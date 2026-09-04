@@ -24,12 +24,23 @@ h1 { margin: 0; color: #14224a; font-size: clamp(2rem,8vw,3.5rem); line-height: 
 .intro, .finish-card > p { max-width: 520px; margin: 20px auto; color: #51607e; font-size: clamp(1.05rem,3.5vw,1.3rem); line-height: 1.7; }
 .mission-list { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 22px 0 30px; }
 .mission-list span { padding: 9px 16px; border-radius: 99px; color: #273a79; background: #e8edff; font-size: 1rem; font-weight: 800; }
+.subject-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 24px 0 30px; }
+.subject-button { min-height: 112px; display: grid; place-items: center; align-content: center; gap: 8px; border: 3px solid transparent; border-radius: 22px; color: #34415e; background: #edf1fa; font-size: 1.1rem; font-weight: 900; cursor: pointer; touch-action: manipulation; transition: transform .15s ease, border-color .15s ease; }
+.subject-button svg { width: 30px; height: 30px; }
+.subject-button.blue { background: #e7edff; color: #3157b7; }
+.subject-button.orange { background: #fff0dc; color: #9a4c13; }
+.subject-button.green { background: #def6e9; color: #17694d; }
+.subject-button.active { border-color: currentColor; transform: translateY(-3px); box-shadow: 0 6px 0 currentColor; }
 .start-button { min-width: min(100%,280px); min-height: 64px; border-radius: 20px; background: #ff6b4a; box-shadow: 0 7px 0 #bf3c27; font-size: 1.25rem; font-weight: 900; }
 .start-button:active { transform: translateY(4px); box-shadow: 0 3px 0 #bf3c27; }
 .settings-row { margin-top: 34px; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; color: #52617d; }
 .settings-row label { display: flex; align-items: center; gap: 7px; font-weight: 700; }
 .game-card { padding: clamp(20px,5vw,42px); }
 .game-topbar { display: flex; align-items: center; gap: 20px; }
+.mode-chip { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; padding: 8px 12px; border-radius: 14px; color: #3157b7; background: #e8edff; font-weight: 900; }
+.mode-chip svg { width: 20px; }
+.theme-orange .mode-chip { color: #9a4c13; background: #fff0dc; }
+.theme-green .mode-chip { color: #17694d; background: #def6e9; }
 .progress-wrap { flex: 1; }
 .progress-label { display: flex; justify-content: space-between; margin-bottom: 8px; color: #53627f; font-size: .95rem; font-weight: 800; }
 .progress-wrap [data-slot="progress"] { height: 14px; background: #dfe7fb; }
@@ -40,8 +51,8 @@ h1 { margin: 0; color: #14224a; font-size: clamp(2rem,8vw,3.5rem); line-height: 
 .reward-row svg { color: #f4b52e; }
 .reward-row .streak { padding: 7px 12px; border-radius: 99px; color: #17694d; background: #dff7e9; font-size: .9rem; }
 .question-area { padding: clamp(22px,6vw,48px) 0 28px; text-align: center; }
+.challenge-display { max-width: 620px; margin-inline: auto; font-size: clamp(1.75rem, 6vw, 3rem); line-height: 1.35; letter-spacing: -.025em; }
 .equation { display: flex; justify-content: center; align-items: center; gap: clamp(10px,4vw,28px); font-size: clamp(2.8rem,13vw,6rem); font-variant-numeric: tabular-nums; }
-.equation span:last-child { display: inline-grid; width: clamp(64px,18vw,100px); height: clamp(64px,18vw,100px); place-items: center; border-radius: 24px; color: #3157d5; background: #e8edff; }
 .answer-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: clamp(12px,3vw,18px); }
 .answer-button { min-height: clamp(72px,17vw,96px); display: flex; align-items: center; justify-content: center; gap: 9px; border: 3px solid #cbd8fa; border-radius: 23px; color: #203466; background: #fff; box-shadow: 0 6px 0 #cbd8fa; font-size: clamp(1.7rem,7vw,2.5rem); font-weight: 900; cursor: pointer; touch-action: manipulation; transition: transform .15s ease, background .15s ease; }
 .answer-button:hover { background: #f0f4ff; transform: translateY(-2px); }
@@ -54,7 +65,9 @@ h1 { margin: 0; color: #14224a; font-size: clamp(2rem,8vw,3.5rem); line-height: 
 .final-score { margin: 24px auto; }
 .final-score strong { display: block; color: #3157d5; font-size: 5rem; line-height: 1; }
 .final-score span { color: #52617d; font-size: 1.15rem; font-weight: 800; }
+.finish-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 16px; }
+.finish-actions > button { min-height: 60px; border-radius: 18px; font-size: 1.05rem; font-weight: 900; }
 @keyframes nudge { 50% { transform: translateX(5px); } }
 .reduce-motion * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 @media (prefers-reduced-motion: reduce) { * { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
-@media (max-width: 520px) { .game-shell { padding: 10px; place-items: stretch; } .start-card,.finish-card,.game-card { align-self: center; border-radius: 26px; } .game-card { padding: 18px 16px 22px; } .feedback { align-items: flex-start; flex-direction: column; } }
+@media (max-width: 520px) { .game-shell { padding: 10px; place-items: stretch; } .start-card,.finish-card,.game-card { align-self: center; border-radius: 26px; } .game-card { padding: 18px 16px 22px; } .game-topbar { gap: 9px; } .mode-chip { padding: 7px 9px; font-size: .9rem; } .subject-grid { gap: 8px; } .subject-button { min-height: 96px; font-size: 1rem; } .feedback { align-items: flex-start; flex-direction: column; } .answer-button { font-size: clamp(1.25rem, 5.5vw, 1.8rem); padding: 10px; } }

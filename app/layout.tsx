@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: '數學星球大冒險',
-  description: '適合國小三年級的短回合數學練習遊戲',
+  title: '學習星球大冒險',
+  description: '適合國小三年級的數學、國語與專注力短回合遊戲',
 };
 
 export default function RootLayout({
