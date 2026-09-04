@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#102b63">
+  <title>學習星球大冒險</title>
+  <style>
+    :root{--ink:#14224a;--muted:#52617d;--blue:#3157d5;--orange:#ff6b4a;--green:#16805b}
+    *{box-sizing:border-box}html,body{min-height:100%;margin:0}body{font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;color:var(--ink);background:#07152f}button{font:inherit}
+    .shell{min-height:100svh;display:grid;place-items:center;padding:clamp(12px,4vw,38px);background:radial-gradient(circle at 12% 18%,#6fd2ff33 0 3px,transparent 4px),radial-gradient(circle at 88% 72%,#ffe07344 0 4px,transparent 5px),linear-gradient(145deg,#07152f,#102b63 55%,#164771)}
+    .card{width:min(100%,720px);padding:clamp(20px,6vw,52px);border:3px solid #ffffffb3;border-radius:clamp(24px,5vw,38px);background:#f8fbff;box-shadow:0 22px 0 #020a1f47,0 34px 70px #0005;text-align:center}
+    .planet{width:88px;height:88px;margin:0 auto 18px;display:grid;place-items:center;border-radius:50%;color:#fff;background:linear-gradient(145deg,#4268ef,#6c49c9);box-shadow:inset -8px -10px #1f10693d,0 10px 24px #3040aa40;font-size:2.5rem}
+    .eyebrow{margin:0 0 8px;color:var(--blue);font-weight:900;letter-spacing:.12em}.title{margin:0;font-size:clamp(2rem,8vw,3.5rem);line-height:1.12;letter-spacing:-.04em}.intro{max-width:520px;margin:20px auto;color:var(--muted);font-size:clamp(1.05rem,3.5vw,1.3rem);line-height:1.7}
+    .subjects{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:24px 0 30px}.subject{min-height:108px;display:grid;place-items:center;align-content:center;gap:7px;border:3px solid transparent;border-radius:22px;font-size:1.1rem;font-weight:900;cursor:pointer;touch-action:manipulation}.subject b{font-size:1.8rem}.subject[data-kind=math]{color:#3157b7;background:#e7edff}.subject[data-kind=chinese]{color:#9a4c13;background:#fff0dc}.subject[data-kind=focus]{color:#17694d;background:#def6e9}.subject.active{border-color:currentColor;transform:translateY(-3px);box-shadow:0 6px currentColor}
+    .primary{min-width:min(100%,290px);min-height:62px;padding:12px 24px;border:0;border-radius:20px;color:#fff;background:var(--orange);box-shadow:0 7px #bf3c27;font-size:1.2rem;font-weight:900;cursor:pointer}.primary:active{transform:translateY(4px);box-shadow:0 3px #bf3c27}.settings{margin-top:32px;display:flex;justify-content:center;gap:20px;flex-wrap:wrap;color:var(--muted);font-weight:800}.settings label{display:flex;align-items:center;gap:8px}.settings input{width:22px;height:22px;accent-color:var(--blue)}
+    .top{display:flex;align-items:center;gap:14px;text-align:left}.chip{padding:9px 12px;border-radius:14px;color:#3157b7;background:#e7edff;font-weight:900}.progressbox{flex:1}.progresslabel{display:flex;justify-content:space-between;margin-bottom:6px;color:var(--muted);font-size:.9rem;font-weight:800}.track{height:14px;overflow:hidden;border-radius:99px;background:#dfe7fb}.bar{height:100%;width:0;background:#4f72e8;transition:width .3s}.iconbtn{width:50px;height:50px;border:0;border-radius:16px;color:#3451a6;background:#e8edff;font-size:1.3rem;cursor:pointer}.reward{min-height:42px;display:flex;align-items:center;gap:10px;margin-top:14px;color:#8b5800;font-weight:900}.streak{padding:7px 11px;border-radius:99px;color:#17694d;background:#dff7e9;font-size:.9rem}
+    .question{padding:clamp(24px,6vw,48px) 0 28px}.display{margin:0 auto;max-width:620px;font-size:clamp(1.7rem,6vw,3rem);line-height:1.35;letter-spacing:-.025em}.display.math{font-size:clamp(2.8rem,13vw,6rem);font-variant-numeric:tabular-nums}
+    .answers{display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(12px,3vw,18px)}.answer{min-height:clamp(72px,17vw,96px);padding:10px;display:flex;align-items:center;justify-content:center;gap:8px;border:3px solid #cbd8fa;border-radius:23px;color:#203466;background:#fff;box-shadow:0 6px #cbd8fa;font-size:clamp(1.25rem,5.5vw,2.2rem);font-weight:900;cursor:pointer;touch-action:manipulation}.answer:active{transform:translateY(4px);box-shadow:0 2px #cbd8fa}.answer.correct{border-color:#44b985;color:#126945;background:#dff8eb;box-shadow:0 6px #44b985}.answer.wrong{border-color:#f59b85;color:#9d301e;background:#fff0ec;animation:nudge .25s 2}
+    .feedback{min-height:52px;margin-top:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;color:#425170;font-size:1.05rem;font-weight:900;text-align:left}.hintbtn{min-height:44px;padding:8px 12px;border:0;border-radius:14px;color:#775800;background:#fff0b8;font-weight:900;cursor:pointer}.hint{margin-top:8px;padding:15px 17px;border-left:5px solid #f4bd3d;border-radius:12px;color:#624d18;background:#fff8dc;line-height:1.6;text-align:left}.score{margin:24px}.score strong{display:block;color:var(--blue);font-size:5rem;line-height:1}.secondary{min-height:56px;margin:16px 8px 0;padding:10px 20px;border:2px solid #cbd8fa;border-radius:18px;color:#3157b7;background:#fff;font-weight:900;cursor:pointer}.hidden{display:none!important}@keyframes nudge{50%{transform:translateX(5px)}}
+    .no-motion *{animation-duration:.01ms!important;transition-duration:.01ms!important}@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+    @media(max-width:520px){.shell{padding:10px;place-items:stretch}.card{align-self:center;padding:24px 16px;border-radius:26px}.subjects{gap:8px}.subject{min-height:94px;font-size:1rem}.top{gap:8px}.chip{padding:8px;font-size:.9rem}.feedback{align-items:flex-start;flex-direction:column}}
+  </style>
+</head>
+<body>
+  <main class="shell" id="app">
+    <section class="card" id="menu">
+      <div class="planet" aria-hidden="true">🚀</div><p class="eyebrow">今天的小任務</p><h1 class="title">學習星球大冒險</h1><p class="intro">選一個任務，完成 8 道題。沒有倒數，慢慢想就好！</p>
+      <div class="subjects" aria-label="選擇任務"><button class="subject active" data-kind="math"><b>＋</b>數學</button><button class="subject" data-kind="chinese"><b>文</b>國語</button><button class="subject" data-kind="focus"><b>◎</b>專注力</button></div>
+      <button class="primary" id="start">🚀 開始數學任務</button>
+      <div class="settings"><label><input type="checkbox" id="sound"> 音效</label><label><input type="checkbox" id="motion" checked> 輕柔動畫</label></div>
+    </section>
+    <section class="card hidden" id="game" aria-live="polite">
+      <header class="top"><span class="chip" id="chip">數學</span><div class="progressbox"><div class="progresslabel"><span id="round">第 1 題</span><span>8 題</span></div><div class="track"><div class="bar" id="bar"></div></div></div><button class="iconbtn" id="soundBtn" aria-label="切換音效">🔇</button></header>
+      <div class="reward"><span id="stars">⭐ 0</span><span class="streak hidden" id="streak"></span></div>
+      <div class="question"><p class="eyebrow" id="prompt"></p><h1 class="display" id="display"></h1></div><div class="answers" id="answers"></div>
+      <div class="feedback"><span id="message">選一個答案</span><button class="hintbtn" id="hintBtn">💡 給我提示</button></div><aside class="hint hidden" id="hint"></aside>
+    </section>
+    <section class="card hidden" id="finish"><div class="planet" aria-hidden="true">⭐</div><p class="eyebrow" id="finishMode"></p><h1 class="title">太棒了，你抵達星球了！</h1><div class="score"><strong>8</strong><span>顆星星</span></div><p class="intro">先休息一下，或回到首頁選另一個任務。</p><button class="primary" id="again">↻ 再玩一次</button><button class="secondary" id="home">選其他任務</button></section>
+  </main>
+  <script>
+    const TOTAL=8;
+    const labels={math:'數學',chinese:'國語',focus:'專注力'};
+    const chinese=[
+      ['選出正確的詞語','今天的天氣很＿＿，適合去公園。',['晴朗','清朗','晴郎','清郎'],'晴朗','「晴」和太陽、天氣有關。'],
+      ['哪個詞語最適合？','妹妹＿＿地把積木收進盒子。',['仔細','清楚','熱鬧','飛快'],'仔細','想想收拾東西時，需要小心還是熱鬧？'],
+      ['找出意思相近的詞','「開心」和哪個詞最接近？',['快樂','難過','安靜','生氣'],'快樂','想想笑咪咪時的心情。'],
+      ['選出正確的量詞','一＿＿鉛筆',['枝','座','片','朵'],'枝','細長的筆，通常用哪個量詞？'],
+      ['哪個句子最通順？','選出語序正確的句子。',['小鳥在樹上唱歌。','在唱歌小鳥樹上。','樹上小鳥歌唱在。','唱歌在小鳥樹上。'],'小鳥在樹上唱歌。','先找「誰」，再找「在哪裡做什麼」。'],
+      ['選出相反的詞','「勇敢」的相反詞是？',['膽小','堅強','認真','活潑'],'膽小','遇到困難時，很害怕可以怎麼形容？'],
+      ['選出正確的字','我＿＿經寫完功課了。',['已','以','己','乙'],'已','「已經」表示事情完成了。'],
+      ['讀一讀，找答案','小安帶著雨傘出門，因為天空烏雲密布。接下來最可能發生什麼？',['下雨','下雪','刮颱風','出太陽'],'下雨','烏雲和雨傘提供了線索。']
+    ];
+    const focus=[
+      ['找出完全一樣的符號','目標：★●▲',['★●▲','★▲●','☆●▲','★●△'],'★●▲','從左到右，一個一個比對。'],
+      ['找出完全一樣的符號','目標：◆○■',['◇○■','◆○■','◆●■','◆○□'],'◆○■','注意實心和空心。'],
+      ['找出不同的一個','其他三個都相同。',['貝貝貝','貝貝見','貝貝貝','貝貝貝'],'貝貝見','仔細看最後一個字。'],
+      ['找出完全一樣的數字','目標：6389',['6389','6398','6839','6386'],'6389','用手指遮住後面，一位一位看。'],
+      ['找出不同的一個','其他三個方向相同。',['↑→↓','↑→↓','↑←↓','↑→↓'],'↑←↓','注意中間箭頭的方向。'],
+      ['找出完全一樣的圖案','目標：☀☁☂',['☀☁☂','☀☂☁','☁☀☂','☀☁☃'],'☀☁☂','先看太陽，再看雲，最後看雨傘。'],
+      ['找出不同的一個','其他三個字母相同。',['bdpq','bdpq','bqpq','bdpq'],'bqpq','注意第二個字母。'],
+      ['找出完全一樣的色彩順序','目標：紅－藍－黃',['紅－黃－藍','藍－紅－黃','紅－藍－黃','黃－藍－紅'],'紅－藍－黃','在心裡念一次：紅、藍、黃。']
+    ];
+    let subject='math',round=0,stars=0,streak=0,current=null,locked=false;
+    const $=id=>document.getElementById(id),shuffle=a=>[...a].sort(()=>Math.random()-.5);
+    function math(){let k=Math.floor(Math.random()*3),a,b,ans,sign;if(k===0){a=12+Math.floor(Math.random()*69);b=4+Math.floor(Math.random()*Math.max(5,96-a));ans=a+b;sign='+'}else if(k===1){a=25+Math.floor(Math.random()*70);b=3+Math.floor(Math.random()*(a-3));ans=a-b;sign='−'}else{a=2+Math.floor(Math.random()*8);b=2+Math.floor(Math.random()*8);ans=a*b;sign='×'}let wrong=new Set;while(wrong.size<3){let o=Math.floor(Math.random()*15)-7,c=Math.max(0,ans+(o===0?8:o));if(c!==ans)wrong.add(c)}let hint=sign==='×'?`可以把 ${a} 加自己 ${b} 次。`:sign==='+'?'先算到下一個整十，再把剩下的加上去。':`試著從 ${a} 往回數 ${b}。`;return['算算看',`${a} ${sign} ${b} = ?`,shuffle([ans,...wrong]).map(String),String(ans),hint]}
+    function challenge(){const data=subject==='math'?math():(subject==='chinese'?chinese:focus)[round%8];return{prompt:data[0],display:data[1],choices:shuffle(data[2]),answer:data[3],hint:data[4]}}
+    function tone(ok){if(!$('sound').checked)return;const C=window.AudioContext||window.webkitAudioContext;if(!C)return;const c=new C,o=c.createOscillator(),g=c.createGain();o.frequency.value=ok?660:220;g.gain.setValueAtTime(.08,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.16);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+.16)}
+    function show(id){['menu','game','finish'].forEach(x=>$(x).classList.toggle('hidden',x!==id))}
+    function render(){current=challenge();locked=false;$('chip').textContent=labels[subject];$('round').textContent=`第 ${round+1} 題`;$('bar').style.width=`${round/TOTAL*100}%`;$('stars').textContent=`⭐ ${stars}`;$('prompt').textContent=current.prompt;$('display').textContent=current.display;$('display').classList.toggle('math',subject==='math');$('message').textContent='選一個答案';$('hint').textContent=current.hint;$('hint').classList.add('hidden');$('hintBtn').classList.remove('hidden');$('streak').classList.toggle('hidden',streak<2);$('streak').textContent=`連續答對 ${streak} 題`;$('answers').innerHTML='';current.choices.forEach((choice,i)=>{const b=document.createElement('button');b.className='answer';b.textContent=choice;b.onclick=()=>answer(choice,b);b.setAttribute('aria-label',`答案 ${choice}`);$('answers').appendChild(b)})}
+    function begin(){round=0;stars=0;streak=0;show('game');render()}
+    function answer(choice,button){if(locked)return;if(choice!==current.answer){button.classList.add('wrong');$('message').textContent='差一點！慢慢看，再試一次';streak=0;tone(false);setTimeout(()=>button.classList.remove('wrong'),600);return}locked=true;button.classList.add('correct');button.textContent+=' ✓';stars++;streak++;$('stars').textContent=`⭐ ${stars}`;$('message').textContent='答對了！獲得一顆星星';tone(true);setTimeout(()=>{round++;if(round>=TOTAL){$('finishMode').textContent=`${labels[subject]}任務完成`;show('finish')}else render()},$('motion').checked?750:250)}
+    document.querySelectorAll('.subject').forEach(b=>b.onclick=()=>{document.querySelectorAll('.subject').forEach(x=>x.classList.remove('active'));b.classList.add('active');subject=b.dataset.kind;$('start').textContent=`🚀 開始${labels[subject]}任務`});
+    $('start').onclick=begin;$('again').onclick=begin;$('home').onclick=()=>show('menu');$('hintBtn').onclick=()=>{$('hint').classList.toggle('hidden')};$('soundBtn').onclick=()=>{$('sound').checked=!$('sound').checked;$('soundBtn').textContent=$('sound').checked?'🔊':'🔇'};$('sound').onchange=()=>{$('soundBtn').textContent=$('sound').checked?'🔊':'🔇'};$('motion').onchange=()=>document.body.classList.toggle('no-motion',!$('motion').checked);
+  </script>
+</body>
+</html>
