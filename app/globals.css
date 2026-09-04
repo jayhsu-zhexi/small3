@@ -1,0 +1,60 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@custom-variant dark (&:is(.dark *));
+@theme inline {
+  --color-background: var(--background); --color-foreground: var(--foreground);
+  --color-primary: var(--primary); --color-primary-foreground: var(--primary-foreground);
+  --color-border: var(--border); --color-ring: var(--ring);
+  --font-sans: var(--font-geist-sans); --radius-lg: var(--radius);
+}
+:root { --background: #07152f; --foreground: #17213c; --primary: #ff6b4a; --primary-foreground: #fff; --border: #d9e3ff; --ring: #3157d5; --radius: 1rem; }
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body { margin: 0; background: #07152f; color: var(--foreground); font-family: var(--font-geist-sans), "Noto Sans TC", system-ui, sans-serif; }
+button { font: inherit; }
+.game-shell { min-height: 100svh; display: grid; place-items: center; padding: clamp(16px, 4vw, 38px); background: radial-gradient(circle at 12% 18%, rgba(111,210,255,.18) 0 3px, transparent 4px), radial-gradient(circle at 88% 72%, rgba(255,224,115,.22) 0 4px, transparent 5px), radial-gradient(circle at 74% 13%, rgba(255,255,255,.15) 0 2px, transparent 3px), linear-gradient(145deg, #07152f 0%, #102b63 55%, #164771 100%); }
+.start-card, .finish-card, .game-card { width: min(100%, 720px); border: 3px solid rgba(255,255,255,.7); border-radius: clamp(24px,5vw,38px); background: #f8fbff; box-shadow: 0 22px 0 rgba(2,10,31,.28), 0 34px 70px rgba(0,0,0,.28); }
+.start-card, .finish-card { text-align: center; padding: clamp(28px,7vw,58px); }
+.planet-mark, .star-burst { width: 92px; height: 92px; margin: 0 auto 18px; display: grid; place-items: center; border-radius: 50%; color: #fff; background: linear-gradient(145deg,#4268ef,#6c49c9); box-shadow: inset -8px -10px 0 rgba(31,16,105,.24), 0 10px 24px rgba(48,64,170,.25); }
+.star-burst { color: #ffd45e; background: #213a82; }
+.eyebrow { margin: 0 0 8px; color: #3157b7; font-size: 1rem; font-weight: 800; letter-spacing: .12em; }
+h1 { margin: 0; color: #14224a; font-size: clamp(2rem,8vw,3.5rem); line-height: 1.12; letter-spacing: -.04em; }
+.intro, .finish-card > p { max-width: 520px; margin: 20px auto; color: #51607e; font-size: clamp(1.05rem,3.5vw,1.3rem); line-height: 1.7; }
+.mission-list { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 22px 0 30px; }
+.mission-list span { padding: 9px 16px; border-radius: 99px; color: #273a79; background: #e8edff; font-size: 1rem; font-weight: 800; }
+.start-button { min-width: min(100%,280px); min-height: 64px; border-radius: 20px; background: #ff6b4a; box-shadow: 0 7px 0 #bf3c27; font-size: 1.25rem; font-weight: 900; }
+.start-button:active { transform: translateY(4px); box-shadow: 0 3px 0 #bf3c27; }
+.settings-row { margin-top: 34px; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; color: #52617d; }
+.settings-row label { display: flex; align-items: center; gap: 7px; font-weight: 700; }
+.game-card { padding: clamp(20px,5vw,42px); }
+.game-topbar { display: flex; align-items: center; gap: 20px; }
+.progress-wrap { flex: 1; }
+.progress-label { display: flex; justify-content: space-between; margin-bottom: 8px; color: #53627f; font-size: .95rem; font-weight: 800; }
+.progress-wrap [data-slot="progress"] { height: 14px; background: #dfe7fb; }
+.progress-wrap [data-slot="progress-indicator"] { background: #4f72e8; }
+.sound-button { width: 52px; height: 52px; flex: 0 0 52px; display: grid; place-items: center; border: 0; border-radius: 17px; color: #3451a6; background: #e8edff; cursor: pointer; }
+.reward-row { min-height: 44px; display: flex; align-items: center; gap: 10px; margin-top: 16px; }
+.reward-row span { display: inline-flex; align-items: center; gap: 6px; color: #8b5800; font-weight: 900; }
+.reward-row svg { color: #f4b52e; }
+.reward-row .streak { padding: 7px 12px; border-radius: 99px; color: #17694d; background: #dff7e9; font-size: .9rem; }
+.question-area { padding: clamp(22px,6vw,48px) 0 28px; text-align: center; }
+.equation { display: flex; justify-content: center; align-items: center; gap: clamp(10px,4vw,28px); font-size: clamp(2.8rem,13vw,6rem); font-variant-numeric: tabular-nums; }
+.equation span:last-child { display: inline-grid; width: clamp(64px,18vw,100px); height: clamp(64px,18vw,100px); place-items: center; border-radius: 24px; color: #3157d5; background: #e8edff; }
+.answer-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: clamp(12px,3vw,18px); }
+.answer-button { min-height: clamp(72px,17vw,96px); display: flex; align-items: center; justify-content: center; gap: 9px; border: 3px solid #cbd8fa; border-radius: 23px; color: #203466; background: #fff; box-shadow: 0 6px 0 #cbd8fa; font-size: clamp(1.7rem,7vw,2.5rem); font-weight: 900; cursor: pointer; touch-action: manipulation; transition: transform .15s ease, background .15s ease; }
+.answer-button:hover { background: #f0f4ff; transform: translateY(-2px); }
+.answer-button:active { transform: translateY(4px); box-shadow: 0 2px 0 #cbd8fa; }
+.answer-button.correct { border-color: #44b985; color: #126945; background: #dff8eb; box-shadow: 0 6px 0 #44b985; }
+.answer-button.wrong { border-color: #f59b85; color: #9d301e; background: #fff0ec; animation: nudge .25s ease-in-out 2; }
+.feedback { min-height: 54px; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 22px; color: #425170; font-size: 1.05rem; font-weight: 800; }
+.feedback button { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 8px 12px; border: 0; border-radius: 14px; color: #775800; background: #fff0b8; font-weight: 800; cursor: pointer; }
+.hint-box { margin-top: 8px; padding: 16px 18px; border-left: 5px solid #f4bd3d; border-radius: 12px; color: #624d18; background: #fff8dc; font-size: 1rem; line-height: 1.6; }
+.final-score { margin: 24px auto; }
+.final-score strong { display: block; color: #3157d5; font-size: 5rem; line-height: 1; }
+.final-score span { color: #52617d; font-size: 1.15rem; font-weight: 800; }
+@keyframes nudge { 50% { transform: translateX(5px); } }
+.reduce-motion * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+@media (prefers-reduced-motion: reduce) { * { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+@media (max-width: 520px) { .game-shell { padding: 10px; place-items: stretch; } .start-card,.finish-card,.game-card { align-self: center; border-radius: 26px; } .game-card { padding: 18px 16px 22px; } .feedback { align-items: flex-start; flex-direction: column; } }
