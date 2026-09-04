@@ -27,10 +27,19 @@ h1 { margin: 0; color: #14224a; font-size: clamp(2rem,8vw,3.5rem); line-height: 
 .subject-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 24px 0 30px; }
 .subject-button { min-height: 112px; display: grid; place-items: center; align-content: center; gap: 8px; border: 3px solid transparent; border-radius: 22px; color: #34415e; background: #edf1fa; font-size: 1.1rem; font-weight: 900; cursor: pointer; touch-action: manipulation; transition: transform .15s ease, border-color .15s ease; }
 .subject-button svg { width: 30px; height: 30px; }
+.subject-button small { font-size: .78rem; opacity: .8; }
 .subject-button.blue { background: #e7edff; color: #3157b7; }
 .subject-button.orange { background: #fff0dc; color: #9a4c13; }
 .subject-button.green { background: #def6e9; color: #17694d; }
 .subject-button.active { border-color: currentColor; transform: translateY(-3px); box-shadow: 0 6px 0 currentColor; }
+.picker-label { margin: -8px 0 10px; color: #52617d; font-weight: 900; }
+.level-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin: 0 0 28px; }
+.level-button { min-height: 86px; display: grid; place-items: center; align-content: center; gap: 3px; border: 2px solid #cbd8fa; border-radius: 18px; color: #3157b7; background: #fff; cursor: pointer; }
+.level-button span { min-height: 22px; display: grid; place-items: center; }
+.level-button strong { font-size: 1rem; }
+.level-button small { font-size: .78rem; font-weight: 800; color: #66728b; }
+.level-button.active { border-color: #ff6b4a; color: #9d301e; background: #fff0ec; box-shadow: 0 5px 0 #f2a08d; transform: translateY(-2px); }
+.level-button:disabled { color: #8b93a5; background: #edf0f5; border-color: #dde1e9; cursor: not-allowed; box-shadow: none; transform: none; }
 .start-button { min-width: min(100%,280px); min-height: 64px; border-radius: 20px; background: #ff6b4a; box-shadow: 0 7px 0 #bf3c27; font-size: 1.25rem; font-weight: 900; }
 .start-button:active { transform: translateY(4px); box-shadow: 0 3px 0 #bf3c27; }
 .settings-row { margin-top: 34px; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; color: #52617d; }
@@ -50,6 +59,7 @@ h1 { margin: 0; color: #14224a; font-size: clamp(2rem,8vw,3.5rem); line-height: 
 .reward-row span { display: inline-flex; align-items: center; gap: 6px; color: #8b5800; font-weight: 900; }
 .reward-row svg { color: #f4b52e; }
 .reward-row .streak { padding: 7px 12px; border-radius: 99px; color: #17694d; background: #dff7e9; font-size: .9rem; }
+.reward-row .level-chip { padding: 7px 11px; border-radius: 99px; color: #3157b7; background: #e8edff; font-size: .9rem; }
 .question-area { padding: clamp(22px,6vw,48px) 0 28px; text-align: center; }
 .challenge-display { max-width: 620px; margin-inline: auto; font-size: clamp(1.75rem, 6vw, 3rem); line-height: 1.35; letter-spacing: -.025em; }
 .equation { display: flex; justify-content: center; align-items: center; gap: clamp(10px,4vw,28px); font-size: clamp(2.8rem,13vw,6rem); font-variant-numeric: tabular-nums; }
@@ -73,4 +83,4 @@ h1 { margin: 0; color: #14224a; font-size: clamp(2rem,8vw,3.5rem); line-height: 
 @keyframes nudge { 50% { transform: translateX(5px); } }
 .reduce-motion * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 @media (prefers-reduced-motion: reduce) { * { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
-@media (max-width: 520px) { .game-shell { padding: 10px; place-items: stretch; } .start-card,.finish-card,.game-card { align-self: center; border-radius: 26px; } .game-card { padding: 18px 16px 22px; } .game-topbar { gap: 9px; } .mode-chip { padding: 7px 9px; font-size: .9rem; } .subject-grid { gap: 8px; } .subject-button { min-height: 96px; font-size: 1rem; } .feedback { align-items: flex-start; flex-direction: column; } .answer-button { font-size: clamp(1.25rem, 5.5vw, 1.8rem); padding: 10px; } }
+@media (max-width: 520px) { .game-shell { padding: 10px; place-items: stretch; } .start-card,.finish-card,.game-card { align-self: center; border-radius: 26px; } .start-card { padding: 24px 16px; } .game-card { padding: 18px 16px 22px; } .game-topbar { gap: 9px; } .mode-chip { padding: 7px 9px; font-size: .82rem; } .subject-grid { gap: 8px; margin-bottom: 24px; } .subject-button { min-height: 92px; font-size: .96rem; } .level-grid { gap: 7px; } .level-button { min-height: 78px; padding: 6px 2px; } .reward-row { flex-wrap: wrap; } .feedback { align-items: flex-start; flex-direction: column; } .answer-button { font-size: clamp(1.25rem, 5.5vw, 1.8rem); padding: 10px; } }
