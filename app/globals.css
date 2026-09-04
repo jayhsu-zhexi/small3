@@ -67,6 +67,9 @@ h1 { margin: 0; color: #14224a; font-size: clamp(2rem,8vw,3.5rem); line-height: 
 .final-score span { color: #52617d; font-size: 1.15rem; font-weight: 800; }
 .finish-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 16px; }
 .finish-actions > button { min-height: 60px; border-radius: 18px; font-size: 1.05rem; font-weight: 900; }
+.secondary-button { color: #3157b7 !important; background: #fff !important; border: 2px solid #cbd8fa !important; box-shadow: 0 5px 0 #cbd8fa; }
+.secondary-button:hover { color: #203466 !important; background: #eef3ff !important; }
+.secondary-button:active { transform: translateY(3px); box-shadow: 0 2px 0 #cbd8fa; }
 @keyframes nudge { 50% { transform: translateX(5px); } }
 .reduce-motion * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 @media (prefers-reduced-motion: reduce) { * { animation-duration: .01ms !important; transition-duration: .01ms !important; } }

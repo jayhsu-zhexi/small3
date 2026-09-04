@@ -124,7 +124,7 @@ export default function Home() {
   if (finished) return <main className="game-shell"><section className="finish-card" aria-labelledby="finish-title">
     <div className="star-burst" aria-hidden="true"><Star fill="currentColor" size={56} /></div><p className="eyebrow">{subjectInfo[subject].label}任務完成</p><h1 id="finish-title">太棒了，你抵達星球了！</h1>
     <div className="final-score"><strong>{stars}</strong><span>顆星星</span></div><p>先休息一下，或回到首頁選另一個任務。</p>
-    <div className="finish-actions"><Button className="start-button" size="lg" onClick={() => startGame()}><RotateCcw /> 再玩一次</Button><Button variant="outline" size="lg" onClick={() => setStarted(false)}>選其他任務</Button></div>
+    <div className="finish-actions"><Button className="start-button" size="lg" onClick={() => startGame()}><RotateCcw /> 再玩一次</Button><Button className="secondary-button" size="lg" onClick={() => setStarted(false)}>選其他任務</Button></div>
   </section></main>;
 
   return <main className={`game-shell ${calmMotion ? '' : 'reduce-motion'}`}><section className={`game-card theme-${subjectInfo[subject].color}`} aria-labelledby="question-title">
