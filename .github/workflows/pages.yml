@@ -1,8 +1,7 @@
 name: Deploy game to GitHub Pages
 
 on:
-  push:
-    branches: [main]
+  # Vercel publishes the game automatically. Pages is an optional manual backup.
   workflow_dispatch:
 
 permissions:
