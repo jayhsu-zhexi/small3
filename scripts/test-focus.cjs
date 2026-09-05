@@ -49,3 +49,25 @@ finish(5);assert.equal(run('unlocks.focus'),2);
 run("level=12;begin();round=7;stars=5;pendingAdvance=true;advance()");assert.equal(get('next').classList.contains('hidden'),true);
 run("level=1;begin();pauseButton.onclick()");assert.equal(run('paused'),true);run("document.getElementById('resume').onclick()");assert.equal(run('paused'),false);
 console.log('PASS: 960 generated questions, memory concealment, click lock, scoring threshold, final stage and pause/resume.');
+run("subject='english'");assert.equal(run('stageCount()'),6);assert.equal(run('unlocks.english'),1);
+for(let stage=1;stage<=6;stage++)for(let sample=0;sample<20;sample++){
+  run(`level=${stage};begin()`);const seen=new Set();
+  for(let r=0;r<8;r++){
+    const q=run(`round=${r};englishChallenge()`);
+    assert.equal(new Set(q.choices).size,4);assert.equal(q.choices.filter(c=>c===q.answer).length,1);
+    assert.ok(q.display&&q.hint);assert.ok(!seen.has(q.display));seen.add(q.display);
+  }
+}
+function englishRound(correct){
+  run('level=1;unlocks.english=1;begin()');
+  for(let i=0;i<8;i++){
+    if(i>=correct){run("answer(current.choices.find(c=>c!==current.answer),document.getElementById('answers').children.find(b=>b.dataset.choice!==current.answer))");flush()}
+    run("answer(current.answer,document.getElementById('answers').children.find(b=>b.dataset.choice===current.answer))");run('advance()');
+  }
+}
+englishRound(0);assert.equal(run('unlocks.english'),1);assert.equal(run('stars'),0);
+englishRound(4);assert.equal(run('unlocks.english'),1);
+englishRound(5);assert.equal(run('unlocks.english'),2);
+assert.equal(JSON.parse(saved['learning-planet-levels']).english,2);
+run('level=6;begin();round=7;stars=5;pendingAdvance=true;advance()');assert.equal(get('next').classList.contains('hidden'),true);
+console.log('PASS: 960 English questions, unique choices and rounds, scoring, saved progress, final stage.');
