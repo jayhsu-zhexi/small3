@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const elements = new Map();
 function element(){
   const classes = new Set();
-  return {children:[],dataset:{},style:{},textContent:'',disabled:false,
+  return {children:[],dataset:{},style:{},textContent:'',disabled:false,parentElement:{after(){}},
     classList:{add:(...xs)=>xs.forEach(x=>classes.add(x)),remove:(...xs)=>xs.forEach(x=>classes.delete(x)),toggle(x,on){if(on===undefined)on=!classes.has(x);on?classes.add(x):classes.delete(x)},contains:x=>classes.has(x)},
     appendChild(x){this.children.push(x)},after(){},before(){},setAttribute(){},
     set innerHTML(value){this.children=[]},get innerHTML(){return ''}};
