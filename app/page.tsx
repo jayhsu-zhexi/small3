@@ -119,6 +119,9 @@ export default function Home() {
   const [streak, setStreak] = useState(0);
   const [challenge, setChallenge] = useState<Challenge>(() => makeMath(1));
   const [selected, setSelected] = useState<string | null>(null);
+  const [attempted, setAttempted] = useState<string[]>([]);
+  const [cooldown, setCooldown] = useState(false);
+  const [passed, setPassed] = useState(false);
   const [message, setMessage] = useState('選一個答案');
   const [showHint, setShowHint] = useState(false);
   const [sound, setSound] = useState(false);
@@ -138,7 +141,7 @@ export default function Home() {
     const chosen = nextSubject ?? subject;
     const chosenLevel = nextLevel ?? level;
     setSubject(chosen); setLevel(chosenLevel); setStarted(true); setRound(0); setStars(0); setStreak(0);
-    setChallenge(makeChallenge(chosen, 0, chosenLevel)); setSelected(null); setMessage('選一個答案'); setShowHint(false); setFinished(false);
+    setChallenge(makeChallenge(chosen, 0, chosenLevel)); setSelected(null); setAttempted([]); setCooldown(false); setPassed(false); setMessage('選一個答案'); setShowHint(false); setFinished(false);
   }, [subject, level]);
 
   useEffect(() => {
@@ -155,27 +158,36 @@ export default function Home() {
   }, [startGame]);
 
   const chooseAnswer = (choice: string) => {
-    if (selected === challenge.answer) return;
+    if (cooldown || selected === challenge.answer || attempted.includes(choice)) return;
     setSelected(choice);
-    if (choice !== challenge.answer) { setMessage('差一點！慢慢看，再試一次'); setStreak(0); playTone(false, sound); return; }
-    const nextRound = round + 1; setStars((value) => value + 1); setStreak((value) => value + 1); setMessage('答對了！獲得一顆星星'); playTone(true, sound);
+    if (choice !== challenge.answer) {
+      setAttempted((current) => [...current, choice]); setMessage('先停一下，想好再選；這題就不計星星囉'); setStreak(0); setCooldown(true); playTone(false, sound);
+      window.setTimeout(() => { setCooldown(false); setSelected(null); }, 900);
+      return;
+    }
+    const earnedStar = attempted.length === 0;
+    const nextStars = stars + (earnedStar ? 1 : 0);
+    const nextRound = round + 1;
+    setStars(nextStars); setStreak((value) => value + 1); setMessage(earnedStar ? '第一次就答對！獲得一顆星星' : '答對了！這題練習完成'); playTone(true, sound);
     window.setTimeout(() => {
       if (nextRound >= TOTAL) {
         setRound(nextRound);
-        if (level < 3) setUnlocks((current) => {
+        const didPass = nextStars >= 5;
+        setPassed(didPass);
+        if (didPass && level < 3) setUnlocks((current) => {
           const updated = { ...current, [subject]: Math.max(current[subject], level + 1) as Level };
           localStorage.setItem('learning-planet-levels', JSON.stringify(updated));
           return updated;
         });
         setFinished(true); return;
       }
-      setRound(nextRound); setChallenge(makeChallenge(subject, nextRound, level)); setSelected(null); setMessage('選一個答案'); setShowHint(false);
+      setRound(nextRound); setChallenge(makeChallenge(subject, nextRound, level)); setSelected(null); setAttempted([]); setCooldown(false); setMessage('選一個答案'); setShowHint(false);
     }, calmMotion ? 750 : 250);
   };
 
   if (!started) return <main className="game-shell"><section className="start-card" aria-labelledby="game-title">
     <div className="planet-mark" aria-hidden="true"><Rocket size={42} /></div><p className="eyebrow">今天的小任務</p><h1 id="game-title">學習星球大冒險</h1>
-    <p className="intro">選一科、挑一關。每關 8 題，過關就會解鎖更難的題目！</p>
+    <p className="intro">選一科、挑一關。第一次答對才有星星，拿到 5 顆星就能升級！</p>
     <div className="subject-grid" aria-label="選擇任務">
       {(Object.keys(subjectInfo) as Subject[]).map((key) => { const { label, Icon, color } = subjectInfo[key]; return <button key={key} className={`subject-button ${subject === key ? 'active' : ''} ${color}`} onClick={() => { setSubject(key); setLevel(unlocks[key]); }}><Icon /><span>{label}</span><small>已到第 {unlocks[key]} 關</small></button>; })}
     </div>
@@ -189,16 +201,16 @@ export default function Home() {
   </section></main>;
 
   if (finished) return <main className="game-shell"><section className="finish-card" aria-labelledby="finish-title">
-    <div className="star-burst" aria-hidden="true"><Trophy size={56} /></div><p className="eyebrow">{subjectInfo[subject].label}第 {level} 關完成</p><h1 id="finish-title">{level < 3 ? '太棒了，升級成功！' : '你成為學習小高手了！'}</h1>
-    <div className="final-score"><strong>{stars}</strong><span>顆星星</span></div><p>{level < 3 ? `第 ${level + 1} 關已解鎖，準備迎接更有挑戰的題目！` : '最高難度完成！重玩還會遇到不同題目。'}</p>
-    <div className="finish-actions">{level < 3 && <Button className="start-button" size="lg" onClick={() => startGame(subject, (level + 1) as Level)}><Rocket /> 挑戰第 {level + 1} 關</Button>}<Button className="secondary-button" size="lg" onClick={() => startGame()}><RotateCcw /> 再玩一次</Button><Button className="secondary-button" size="lg" onClick={() => setStarted(false)}>選其他任務</Button></div>
+    <div className="star-burst" aria-hidden="true"><Trophy size={56} /></div><p className="eyebrow">{subjectInfo[subject].label}第 {level} 關完成</p><h1 id="finish-title">{passed ? (level < 3 ? '太棒了，升級成功！' : '你成為學習小高手了！') : '差一點，再練一次！'}</h1>
+    <div className="final-score"><strong>{stars}</strong><span>顆星星／需要 5 顆</span></div><p>{passed ? (level < 3 ? `第 ${level + 1} 關已解鎖，準備迎接更有挑戰的題目！` : '最高難度完成！重玩還會遇到不同題目。') : '先看清楚、想好再選。下一次一定能拿到更多星星！'}</p>
+    <div className="finish-actions">{passed && level < 3 && <Button className="start-button" size="lg" onClick={() => startGame(subject, (level + 1) as Level)}><Rocket /> 挑戰第 {level + 1} 關</Button>}<Button className={passed ? 'secondary-button' : 'start-button'} size="lg" onClick={() => startGame()}><RotateCcw /> 再玩一次</Button><Button className="secondary-button" size="lg" onClick={() => setStarted(false)}>選其他任務</Button></div>
   </section></main>;
 
   return <main className={`game-shell ${calmMotion ? '' : 'reduce-motion'}`}><section className={`game-card theme-${subjectInfo[subject].color}`} aria-labelledby="question-title">
     <header className="game-topbar"><div className="mode-chip"><ActiveIcon />{subjectInfo[subject].label} · 第 {level} 關</div><div className="progress-wrap"><div className="progress-label"><span>第 {round + 1} 題</span><span>{TOTAL} 題</span></div><Progress value={progress} aria-label={`已完成 ${round} 題，共 ${TOTAL} 題`} /></div><button className="sound-button" onClick={() => setSound((v) => !v)} aria-label={sound ? '關閉音效' : '開啟音效'}>{sound ? <Volume2 /> : <VolumeX />}</button></header>
-    <div className="reward-row" aria-label={`目前有 ${stars} 顆星星，連續答對 ${streak} 題`}><span><Star size={20} fill="currentColor" /> {stars}</span><span className="level-chip">{levelInfo[level].icon} {levelInfo[level].name}</span>{streak >= 2 && <span className="streak">連續答對 {streak} 題</span>}</div>
+    <div className="reward-row" aria-label={`目前有 ${stars} 顆星星，連續答對 ${streak} 題`}><span><Star size={20} fill="currentColor" /> {stars}／5</span><span className="level-chip">{levelInfo[level].icon} {levelInfo[level].name}</span>{streak >= 2 && <span className="streak">連續答對 {streak} 題</span>}</div>
     <div className="question-area"><p className="eyebrow">{challenge.prompt}</p><h1 id="question-title" className={`challenge-display ${subject === 'math' && challenge.display.length < 18 ? 'equation' : ''}`}>{challenge.display}</h1></div>
-    <div className="answer-grid" aria-label="答案選項">{challenge.choices.map((choice, index) => { const isCorrect = selected === challenge.answer && choice === challenge.answer; const isWrong = selected === choice && choice !== challenge.answer; return <button key={`${choice}-${index}`} className={`answer-button ${isCorrect ? 'correct' : ''} ${isWrong ? 'wrong' : ''}`} onClick={() => chooseAnswer(choice)} disabled={selected === challenge.answer}>{choice}{isCorrect && <Check aria-hidden="true" />}</button>; })}</div>
+    <div className="answer-grid" aria-label="答案選項">{challenge.choices.map((choice, index) => { const isCorrect = selected === challenge.answer && choice === challenge.answer; const isWrong = selected === choice && choice !== challenge.answer; const wasTried = attempted.includes(choice); return <button key={`${choice}-${index}`} className={`answer-button ${isCorrect ? 'correct' : ''} ${isWrong ? 'wrong' : ''} ${wasTried ? 'tried' : ''}`} onClick={() => chooseAnswer(choice)} disabled={selected === challenge.answer || cooldown || wasTried}>{choice}{isCorrect && <Check aria-hidden="true" />}</button>; })}</div>
     <div className="feedback" role="status" aria-live="polite"><span>{message}</span>{selected !== challenge.answer && <button onClick={() => setShowHint((v) => !v)}><Lightbulb size={19} />給我提示</button>}</div>
     {showHint && <aside className="hint-box">{challenge.hint}</aside>}
   </section></main>;
