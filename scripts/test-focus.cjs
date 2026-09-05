@@ -71,3 +71,21 @@ englishRound(5);assert.equal(run('unlocks.english'),2);
 assert.equal(JSON.parse(saved['learning-planet-levels']).english,2);
 run('level=6;begin();round=7;stars=5;pendingAdvance=true;advance()');assert.equal(get('next').classList.contains('hidden'),true);
 console.log('PASS: 960 English questions, unique choices and rounds, scoring, saved progress, final stage.');
+for(let stage=1;stage<=3;stage++){
+  run(`subject='chinese';level=${stage};chineseHistory=[]`);
+  const sessions=[];
+  for(let session=0;session<8;session++){
+    run('begin()');const seen=new Set([run('current.display')]);
+    for(let r=1;r<8;r++){
+      const q=run(`round=${r};chineseChallenge()`);
+      assert.ok(!seen.has(q.display),'Chinese repeat within round');seen.add(q.display);
+      assert.equal(q.choices.filter(c=>c===q.answer).length,1);
+    }
+    sessions.push(seen);
+  }
+  assert.equal([...sessions[1]].filter(q=>sessions[0].has(q)).length,0,'Prefer unseen on replay');
+}
+const history=JSON.parse(saved['learning-planet-chinese-history']);assert.ok(history.length>=16);
+run(`chineseHistory=${JSON.stringify(history)};prepareChinese()`);
+assert.equal(run('chineseDeck.length'),8);
+console.log('PASS: Chinese rounds never repeat; replay prioritizes unseen questions and records history.');

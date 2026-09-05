@@ -148,8 +148,48 @@
       const target=symbols[rand(symbols.length)],count=hard?16:9,amount=2+rand(hard?6:4),other=symbols.filter(s=>s!==target),items=mix([...Array(amount).fill(target),...Array.from({length:count-amount},()=>other[rand(other.length)])]);
       return result('目標搜尋','數一數「'+target+'」有幾個？\n'+items.map((s,i)=>s+((i+1)%(hard?4:3)===0?'\n':'　')).join(''),amount,[amount,amount-1,amount+1,amount+2],'一行一行數，數過的位置用手指記住。');
     }
+    // Prefer unseen/least recently played Chinese questions, without repeats per round.
+    let chineseDeck=[], chineseHistory=[];
+    try{const saved=JSON.parse(localStorage.getItem('learning-planet-chinese-history')||'[]');if(Array.isArray(saved))chineseHistory=saved.filter(x=>typeof x==='string').slice(-100)}catch(e){}
+    function prepareChinese(){
+      const bank=level===1?chinese:level===2?[...chinese,...chineseAdvanced]:chineseAdvanced;
+      const unique=[...new Map(bank.map(q=>[q[1],q])).values()];
+      chineseDeck=mix(unique).sort((a,b)=>chineseHistory.indexOf(a[1])-chineseHistory.indexOf(b[1])).slice(0,TOTAL);
+    }
+    function chineseChallenge(){
+      const data=chineseDeck[round];
+      chineseHistory=chineseHistory.filter(id=>id!==data[1]);chineseHistory.push(data[1]);
+      try{localStorage.setItem('learning-planet-chinese-history',JSON.stringify(chineseHistory.slice(-100)))}catch(e){}
+      return {prompt:data[0],display:data[1],choices:mix(data[2]),answer:data[3],hint:data[4]};
+    }
+    chinese.push(
+      ['選出量詞','一＿＿大樹',['棵','本','條','件'],'棵','樹木常用「棵」來計算。'],
+      ['選出量詞','一＿＿小河',['條','隻','枝','張'],'條','河流長長的，用哪個量詞？'],
+      ['選出反義詞','「高」的相反詞是？',['矮','大','長','遠'],'矮','比較兩個人的身高。'],
+      ['選出反義詞','「冷」的相反詞是？',['熱','暖和','冰涼','涼爽'],'熱','冷和熱是相反的感覺。'],
+      ['找出近義詞','「美麗」和哪個詞最接近？',['漂亮','快速','巨大','整齊'],'漂亮','用來稱讚好看的事物。'],
+      ['選出正確的字','我＿＿學校讀書。',['在','再','才','財'],'在','表示人所在的位置。'],
+      ['選出正確的字','離開前，我向老師說＿＿見。',['再','在','才','財'],'再','表示之後還會見面。'],
+      ['讀一讀','小美先洗手，再吃飯。小美先做什麼？',['洗手','吃飯','睡覺','看書'],'洗手','找出「先」後面的動作。'],
+      ['選出合適的詞','夜深了，四周十分＿＿，一點聲音也沒有。',['安靜','熱鬧','吵雜','擁擠'],'安靜','想想沒有聲音的環境。'],
+      ['讀一讀','小明把借來的書放進書包，準備到圖書館歸還。他要去做什麼？',['還書','買書','畫畫','游泳'],'還書','「歸還」表示把借來的東西送回去。'],
+      ['選出量詞','一＿＿雨傘',['把','棵','朵','座'],'把','雨傘有可以握住的把手。'],
+      ['找出近義詞','「迅速」和哪個詞最接近？',['快速','緩慢','安靜','仔細'],'快速','這個詞形容速度很快。']
+    );
+    chineseAdvanced.push(
+      ['成語小偵探','「一心一意」形容什麼？',['專心做一件事','同時想很多事','常常改變主意','一直東張西望'],'專心做一件事','心思集中在同一件事上。'],
+      ['讀懂句子','雖然下雨，但是小安仍準時到校。哪個說法正確？',['小安沒有遲到','小安請假了','今天沒下雨','小安忘了上學'],'小安沒有遲到','「準時」表示在規定時間到達。'],
+      ['句子接龍','我先收好書包，＿＿出門上學。',['再','但是','因為','雖然'],'再','這裡要表達動作的先後順序。'],
+      ['閱讀理解','弟弟忘了帶水壺，姐姐把自己的水分給他。姐姐的行為表現出？',['關心別人','浪費食物','不守信用','粗心大意'],'關心別人','她幫助了有需要的弟弟。'],
+      ['選出標題','文章介紹蝴蝶從卵、幼蟲、蛹到成蟲的變化。哪個標題最適合？',['蝴蝶的一生','美味的午餐','海邊的一天','我的新書包'],'蝴蝶的一生','標題要包含文章主要介紹的內容。'],
+      ['讀懂比喻','「白雲像棉花糖」把白雲比作什麼？',['棉花糖','天空','雨滴','太陽'],'棉花糖','找出「像」後面的事物。'],
+      ['成語小偵探','「鴉雀無聲」形容什麼？',['十分安靜','大家大聲說話','鳥兒不停唱歌','人來人往'],'十分安靜','連鳥的聲音都沒有，是什麼感覺？'],
+      ['句子接龍','＿＿今天很冷，＿＿我多穿一件外套。',['因為／所以','雖然／但是','不但／而且','如果／就'],'因為／所以','天冷是原因，多穿外套是結果。'],
+      ['閱讀理解','小雨找不到鉛筆，後來在桌子底下找到。鉛筆原來在哪裡？',['桌子底下','書包裡面','窗戶旁邊','椅子上面'],'桌子底下','留意「後來」之後找到的位置。'],
+      ['選出合適的詞','他答應幫忙，就一定做到，是個＿＿的人。',['守信用','粗心','膽小','懶惰'],'守信用','答應的事情確實做到。']
+    );
     const originalChallenge=challenge;
-    challenge=function(){return subject==='focus'?focusChallenge():subject==='english'?englishChallenge():originalChallenge()};
+    challenge=function(){return subject==='focus'?focusChallenge():subject==='english'?englishChallenge():subject==='chinese'?chineseChallenge():originalChallenge()};
     const memoryButton=document.createElement('button');memoryButton.id='remember';memoryButton.className='secondary hidden';memoryButton.textContent='我記好了，開始作答';$('display').after(memoryButton);
     const continueButton=document.createElement('button');continueButton.id='continue';continueButton.className='primary hidden';continueButton.textContent='下一題 →';$('hint').after(continueButton);
     const pauseButton=document.createElement('button');pauseButton.id='pause';pauseButton.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></svg><span>休息一下</span>';$('stars').parentElement.after(pauseButton);
@@ -170,7 +210,7 @@
       for(const choice of current.choices){const b=document.createElement('button');b.className='answer';b.textContent=choice;b.dataset.choice=choice;b.onclick=()=>answer(choice,b);$('answers').appendChild(b)}
     };
     memoryButton.onclick=()=>{previewing=false;$('display').textContent='剛才背包裡的圖案順序是？';memoryButton.classList.add('hidden');$('answers').classList.remove('hidden');$('hintBtn').classList.remove('hidden');$('message').textContent='回想剛才的順序，再選答案。';buttonsState()};
-    begin=function(){clearTimeout(feedbackTimer);clearTimeout(cooldownTimer);round=0;stars=0;streak=0;paused=false;adventureActive=true;if(subject==='english')prepareEnglish();show('game');render()};
+    begin=function(){clearTimeout(feedbackTimer);clearTimeout(cooldownTimer);round=0;stars=0;streak=0;paused=false;adventureActive=true;if(subject==='english')prepareEnglish();if(subject==='chinese')prepareChinese();show('game');render()};
     function completeStage(){
       adventureActive=false;const passed=stars>=5,max=stageCount();
       $('finishScore').textContent=stars;$('finishMode').textContent=labels[subject]+'第 '+level+' 關完成';$('finishTitle').textContent=passed?(level<max?'太棒了，下一站解鎖！':'冒險完成！'):'這次練習完成了';
