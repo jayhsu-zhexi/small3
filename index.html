@@ -90,6 +90,72 @@
     function answer(choice,button){if(locked||cooldown||attempted.has(choice))return;if(choice!==current.answer){attempted.add(choice);button.classList.add('wrong','tried');button.disabled=true;$('message').textContent='先停一下，想好再選；這題就不計星星囉';streak=0;cooldown=true;tone(false);document.querySelectorAll('.answer').forEach(x=>x.disabled=true);setTimeout(()=>{cooldown=false;document.querySelectorAll('.answer').forEach(x=>x.disabled=attempted.has(x.textContent))},900);return}locked=true;button.classList.add('correct');button.textContent+=' ✓';let earned=attempted.size===0;if(earned)stars++;streak++;$('stars').textContent=`⭐ ${stars}／5`;$('message').textContent=earned?'第一次就答對！獲得一顆星星':'答對了！這題練習完成';tone(true);setTimeout(()=>{round++;if(round>=TOTAL){let passed=stars>=5;if(passed&&level<3){unlocks[subject]=Math.max(unlocks[subject],level+1);localStorage.setItem('learning-planet-levels',JSON.stringify(unlocks))}$('finishScore').textContent=stars;$('finishMode').textContent=`${labels[subject]}第 ${level} 關完成`;$('finishTitle').textContent=passed?(level<3?'太棒了，升級成功！':'你成為學習小高手了！'):'差一點，再練一次！';$('finishText').textContent=passed?(level<3?`第 ${level+1} 關已解鎖，準備迎接更有挑戰的題目！`:'最高難度完成！重玩還會遇到不同題目。'):'先看清楚、想好再選。下一次一定能拿到更多星星！';$('next').classList.toggle('hidden',!passed||level>=3);show('finish')}else render()},$('motion').checked?750:250)}
     document.querySelectorAll('.subject').forEach(b=>b.onclick=()=>{document.querySelectorAll('.subject').forEach(x=>x.classList.remove('active'));b.classList.add('active');subject=b.dataset.kind;level=unlocks[subject];renderLevels();updateStart()});
     $('start').onclick=begin;$('next').onclick=()=>{level++;begin()};$('again').onclick=begin;$('home').onclick=()=>{renderLevels();updateStart();show('menu')};$('hintBtn').onclick=()=>{$('hint').classList.toggle('hidden')};$('soundBtn').onclick=()=>{$('sound').checked=!$('sound').checked;$('soundBtn').textContent=$('sound').checked?'🔊':'🔇'};$('sound').onchange=()=>{$('soundBtn').textContent=$('sound').checked?'🔊':'🔇'};$('motion').onchange=()=>document.body.classList.toggle('no-motion',!$('motion').checked);renderLevels();updateStart();
+    // Focus adventure: short stages within a longer, saved journey.
+    const focusStages = ['符號偵探','找不同','規律接龍','記憶背包','指令導航','目標搜尋','偵探進階','細節高手','規律高手','記憶高手','反向導航','綜合挑戰'];
+    const stageCount = () => subject === 'focus' ? focusStages.length : 3;
+    const mix = values => { const a=[...values]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]} return a };
+    const rand = n => Math.floor(Math.random()*n);
+    let adventureActive=false, previewing=false, paused=false, feedbackTimer=null, cooldownTimer=null, pendingAdvance=false;
+    function saveProgress(){try{localStorage.setItem('learning-planet-levels',JSON.stringify(unlocks))}catch(e){$('finishText').textContent+=' 此瀏覽器無法儲存進度，請保持頁面開啟。'}}
+    for(const key of Object.keys(labels)){const max=key==='focus'?12:3;unlocks[key]=Number.isInteger(unlocks[key])?Math.max(1,Math.min(max,unlocks[key])):1}
+    function focusChallenge(){
+      const type=level===12?round%6:((level-1)%6+round%2)%6;
+      const hard=level>6, symbols=['★','●','▲','◆','○','■','△','□'], length=hard?5:3;
+      const sequence=()=>Array.from({length},()=>symbols[rand(symbols.length)]).join('');
+      const mutate=text=>{const chars=[...text],i=rand(chars.length);chars[i]=mix(symbols.filter(s=>s!==chars[i]))[0];return chars.join('')};
+      const result=(prompt,display,answer,choices,hint,extra={})=>({prompt,display,answer:String(answer),choices:mix(choices.map(String)),hint,...extra});
+      const alternatives=text=>{const wrong=new Set;while(wrong.size<3)wrong.add(mutate(text));return [text,...wrong]};
+      if(type===0){const target=sequence();return result('符號偵探','目標：'+target,target,alternatives(target),'從左到右，注意空心與實心。')}
+      if(type===1){const same=sequence(),odd=mutate(same);return result('找不同','選出與其他三個不同的一列。',odd,[same,same,same,odd],'逐個位置比對，只有一列不一樣。')}
+      if(type===2){const unit=mix(symbols).slice(0,hard?3:2),count=hard?8:5,answer=unit[count%unit.length];return result('規律接龍',Array.from({length:count},(_,i)=>unit[i%unit.length]).join('　')+'　？',answer,[answer,...mix(symbols.filter(s=>s!==answer)).slice(0,3)],'找出反覆出現的一組，再接下去。')}
+      if(type===3){const target=sequence();return result('記憶背包',target,target,alternatives(target),'把圖案分成小組，在心裡念一次。',{memory:true})}
+      if(type===4){const arrows=['↑','→','↓','←'],i=rand(4),reverse=hard&&round%2===1,answer=arrows[(i+(reverse?2:0))%4];return result('指令導航',(reverse?'選「相反」方向：':'選「相同」方向：')+arrows[i],answer,arrows,'先讀相同或相反，再看箭頭方向。')}
+      const target=symbols[rand(symbols.length)],count=hard?16:9,amount=2+rand(hard?6:4),other=symbols.filter(s=>s!==target),items=mix([...Array(amount).fill(target),...Array.from({length:count-amount},()=>other[rand(other.length)])]);
+      return result('目標搜尋','數一數「'+target+'」有幾個？\n'+items.map((s,i)=>s+((i+1)%(hard?4:3)===0?'\n':'　')).join(''),amount,[amount,amount-1,amount+1,amount+2],'一行一行數，數過的位置用手指記住。');
+    }
+    const originalChallenge=challenge;
+    challenge=function(){return subject==='focus'?focusChallenge():originalChallenge()};
+    const memoryButton=document.createElement('button');memoryButton.id='remember';memoryButton.className='secondary hidden';memoryButton.textContent='我記好了，開始作答';$('display').after(memoryButton);
+    const continueButton=document.createElement('button');continueButton.id='continue';continueButton.className='secondary hidden';continueButton.textContent='下一題 →';$('hint').after(continueButton);
+    const pauseButton=document.createElement('button');pauseButton.id='pause';pauseButton.className='secondary';pauseButton.textContent='休息一下';$('game').appendChild(pauseButton);
+    const pauseCard=document.createElement('section');pauseCard.id='pauseCard';pauseCard.className='card hidden';pauseCard.innerHTML='<h1 class="title">休息一下</h1><p class="intro">放鬆肩膀、看看遠方。準備好再繼續，沒有倒數。</p><button id="resume" class="primary">繼續這一關</button>';$('app').appendChild(pauseCard);
+    const adventureNote=document.createElement('p');adventureNote.className='intro';adventureNote.id='adventureNote';$('levels').before(adventureNote);
+    show=function(id){['menu','game','finish','pauseCard'].forEach(x=>$(x).classList.toggle('hidden',x!==id))};
+    renderLevels=function(){
+      $('levels').innerHTML='';$('adventureNote').textContent=subject==='focus'?'專注力冒險 · 12 關 × 每關 8 題。每關 5 顆星解鎖下一站；進度儲存在這個瀏覽器，可分幾天完成。':'';
+      for(let n=1;n<=stageCount();n++){const b=document.createElement('button'),isLocked=n>unlocks[subject];b.className='level'+(n===level?' active':'');b.disabled=isLocked;b.setAttribute('aria-pressed',String(n===level));b.innerHTML='<strong>第 '+n+' 關</strong><small>'+(isLocked?'🔒 ':n<unlocks[subject]?'✓ ':'')+(subject==='focus'?focusStages[n-1]:['暖身關','成長關','挑戰關'][n-1])+'</small>';b.onclick=()=>{level=n;renderLevels();updateStart()};$('levels').appendChild(b)}
+    };
+    function buttonsState(){document.querySelectorAll('.answer').forEach(b=>b.disabled=locked||cooldown||previewing||paused||attempted.has(b.dataset.choice))}
+    render=function(){
+      current=challenge();locked=false;cooldown=false;attempted=new Set;previewing=!!current.memory;pendingAdvance=false;continueButton.classList.add('hidden');
+      $('chip').textContent=labels[subject]+' · '+level+'/'+stageCount();$('round').textContent='第 '+(round+1)+' 題';$('bar').style.width=round/TOTAL*100+'%';$('stars').textContent='⭐ '+stars+'／5';$('prompt').textContent=current.prompt;
+      $('display').textContent=current.display;$('display').classList.toggle('math',subject==='math'&&current.display.length<18);$('display').style.whiteSpace='pre-line';
+      $('message').textContent=previewing?'慢慢記，準備好再按下方按鈕。':'先想好，再選一個答案。';$('hint').textContent=current.hint;$('hint').classList.add('hidden');$('hintBtn').classList.toggle('hidden',previewing);memoryButton.classList.toggle('hidden',!previewing);
+      $('streak').classList.toggle('hidden',streak<2);$('streak').textContent='連續答對 '+streak+' 題';$('answers').innerHTML='';$('answers').classList.toggle('hidden',previewing);
+      for(const choice of current.choices){const b=document.createElement('button');b.className='answer';b.textContent=choice;b.dataset.choice=choice;b.onclick=()=>answer(choice,b);$('answers').appendChild(b)}
+    };
+    memoryButton.onclick=()=>{previewing=false;$('display').textContent='剛才背包裡的圖案順序是？';memoryButton.classList.add('hidden');$('answers').classList.remove('hidden');$('hintBtn').classList.remove('hidden');$('message').textContent='回想剛才的順序，再選答案。';buttonsState()};
+    begin=function(){clearTimeout(feedbackTimer);clearTimeout(cooldownTimer);round=0;stars=0;streak=0;paused=false;adventureActive=true;show('game');render()};
+    function completeStage(){
+      adventureActive=false;const passed=stars>=5,max=stageCount();
+      $('finishScore').textContent=stars;$('finishMode').textContent=labels[subject]+'第 '+level+' 關完成';$('finishTitle').textContent=passed?(level<max?'太棒了，下一站解鎖！':'冒險完成！'):'這次練習完成了';
+      $('finishText').textContent=passed?(level<max?'先休息一下，再出發到第 '+(level+1)+' 關。':'所有關卡都走過了！也可以回頭挑喜歡的關卡，題目會重新產生。'):'這次得到 '+stars+' 顆星。拿到 5 顆可以前進；休息後再試也沒關係。';
+      if(passed&&level<max){unlocks[subject]=Math.max(unlocks[subject],level+1);saveProgress()}
+      $('next').classList.toggle('hidden',!passed||level>=max);$('next').textContent='前往第 '+(level+1)+' 關';show('finish');
+    }
+    function advance(){if(!pendingAdvance||paused||!adventureActive)return;pendingAdvance=false;round++;if(round>=TOTAL)completeStage();else render()}
+    continueButton.onclick=advance;
+    answer=function(choice,button){
+      if(!adventureActive||locked||cooldown||previewing||paused||attempted.has(choice))return;
+      if(choice!==current.answer){attempted.add(choice);button.classList.add('wrong','tried');streak=0;cooldown=true;$('streak').classList.add('hidden');$('message').textContent='慢慢想，可以看看提示；這題改成練習，不計星星。';tone(false);buttonsState();cooldownTimer=setTimeout(()=>{cooldown=false;buttonsState()},900);return}
+      locked=true;const earned=attempted.size===0;if(earned){stars++;streak++}else streak=0;button.classList.add('correct');button.textContent+=' ✓';$('stars').textContent='⭐ '+stars+'／5';$('message').textContent=earned?'第一次就答對！獲得一顆星星。':'練習完成！你找到了答案。';tone(true);buttonsState();pendingAdvance=true;
+      if(subject==='focus'){continueButton.textContent=round===TOTAL-1?'看看這關成果':'下一題 →';continueButton.classList.remove('hidden')}else feedbackTimer=setTimeout(advance,$('motion').checked?750:250);
+    };
+    pauseButton.onclick=()=>{if(!adventureActive)return;paused=true;clearTimeout(feedbackTimer);show('pauseCard')};
+    $('resume').onclick=()=>{paused=false;show('game');buttonsState();if(pendingAdvance){continueButton.classList.remove('hidden')}};
+    $('start').onclick=begin;$('again').onclick=begin;$('next').onclick=()=>{if(level<stageCount()&&level<unlocks[subject]){level++;begin()}};
+    $('home').onclick=()=>{adventureActive=false;renderLevels();updateStart();show('menu')};
+    renderLevels();
   </script>
 </body>
 </html>
