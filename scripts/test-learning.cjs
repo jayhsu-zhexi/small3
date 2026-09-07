@@ -224,3 +224,47 @@ speech.run('pronounce.onclick();const latestSpeech=window.speechSynthesis.played
 assert.ok(speech.run('window.speechSynthesis.canceled')>=4);
 speech.run('restoreSession();delete window.speechSynthesis;pronounce.onclick()');assert.ok(speech.run('speechNote.textContent').includes('不支援'));
 console.log('PASS: click-only English speech reads visible content, supports replay, cancels on navigation, and degrades safely when unavailable.');
+
+for(const theme of ['space','shop','pets'])for(let variant=0;variant<4;variant++){
+  const game=boot();game.run('begin();saveExitButton.onclick()');const academic=game.saved['learning-planet-session-v1-math'];
+  const history=game.run('JSON.stringify(learning)');game.run(`openStory('${theme}');story.variant=${variant};renderStory();saveStory()`);
+  for(let step=0;step<4;step++){
+    assert.equal(game.run('story.step'),step);game.run('advanceStory()');assert.equal(game.run('story.step'),step);
+    game.run('checkStory()');assert.equal(game.run('story.checked'),false,'Empty task cannot complete');
+    const task=game.run('storyTask()');
+    if(task.kind==='select'){
+      for(const item of task.options)game.run(`changeStory('select',${JSON.stringify(item.id)})`);
+      game.run('checkStory()');assert.equal(game.run('story.checked'),false,'Selecting everything is not a solution');
+      for(const item of task.options.filter(o=>!task.targets.includes(o.id)))game.run(`changeStory('select',${JSON.stringify(item.id)})`);
+    }else if(task.kind==='quantity'){
+      for(const item of task.items){game.run(`changeStory('quantity','${item.id}',-1)`);assert.equal(game.run(`story.values['${item.id}']||0`),0);for(let i=0;i<item.goal;i++)game.run(`changeStory('quantity','${item.id}',1)`)}
+    }else if(task.kind==='money'){
+      let remaining=task.total;for(const coin of [...task.coins].reverse())while(remaining>=coin){game.run(`changeStory('quantity','${coin}',1)`);remaining-=coin}
+    }else if(task.kind==='match'){
+      for(const [word,id] of task.pairs)game.run(`changeStory('word',${JSON.stringify(word)});changeStory('pair',${JSON.stringify(id)})`);
+    }else{
+      if(task.memory){game.run(`changeStory('sequence','${task.order[0]}')`);assert.equal(game.run('story.sequence.length'),0);game.run("changeStory('conceal')")}
+      for(const id of task.order)game.run(`changeStory('sequence','${id}')`);
+    }
+    const progress=game.run('JSON.stringify(story)');game.run('storyExit.onclick()');assert.equal(game.run('storyActive'),false);
+    game.run(`openStory('${theme}')`);assert.equal(game.run('JSON.stringify(story)'),progress);
+    game.run('checkStory()');assert.equal(game.run('story.checked'),true);
+    const frozen=game.run('JSON.stringify(story)');game.run("changeStory('quantity','fuel',1);checkStory()");assert.equal(game.run('JSON.stringify(story)'),frozen);
+    game.run('advanceStory()');assert.equal(game.run('story.step'),step+1);
+  }
+  assert.equal(game.run('storyAction.disabled'),false);game.run("story.reward='🌈';saveStory();storyExit.onclick()");
+  const reloaded=boot(game.saved);reloaded.run(`openStory('${theme}')`);assert.equal(reloaded.run('story.step'),4);assert.equal(reloaded.run('story.reward'),'🌈');
+  reloaded.run('replayStory()');assert.equal(reloaded.run('story.step'),0);assert.equal(reloaded.run('story.variant'),(variant+1)%4);assert.equal(reloaded.run('story.reward'),'🌈');
+  assert.equal(game.saved['learning-planet-session-v1-math'],academic);assert.equal(game.run('JSON.stringify(learning)'),history);
+}
+console.log('PASS: all three stories and four variants complete via real controls; mistakes, resume, rewards and replay preserve academic data.');
+
+const stories=boot();for(const theme of ['space','shop','pets'])stories.run(`openStory('${theme}');storyExit.onclick()`);
+for(const theme of ['space','shop','pets'])assert.ok(stories.run(`readStory('${theme}')`));
+stories.run("openStory('space');story.step=3;resetStoryInputs();renderStory();changeStory('conceal');changeStory('sequence','up');storyExit.onclick()");
+const reloadedStory=boot(stories.saved);reloadedStory.run("openStory('space')");assert.equal(reloadedStory.run('story.concealed'),true);assert.equal(reloadedStory.run('story.sequence.length'),1);
+reloadedStory.run("changeStory('peek')");assert.equal(reloadedStory.run('story.sequence.length'),0);assert.equal(reloadedStory.run('story.concealed'),false);
+stories.saved['learning-planet-stories-v1-shop']='{bad';assert.equal(stories.run("readStory('shop')"),null);stories.run("openStory('shop')");assert.equal(stories.run('story.step'),0);
+stories.run("story.values={unexpected:2};saveStory()");assert.equal(stories.run("readStory('shop')"),null);
+const cannotSave=boot();cannotSave.run("openStory('pets')");cannotSave.fail();cannotSave.run('storyExit.onclick()');assert.equal(cannotSave.run('storyActive'),true);assert.ok(cannotSave.run('storyStatus.textContent').includes('無法存檔'));
+console.log('PASS: independent story saves, hidden memory restore, malformed saves and storage failure handling.');
