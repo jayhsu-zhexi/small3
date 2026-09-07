@@ -110,3 +110,30 @@ for(const mode of ['math','chinese','focus','english']){
   run("document.getElementById('resume').onclick();continueButton.onclick()");assert.equal(run('round'),1);
 }
 console.log('PASS: 3000 math questions, reverse navigation, manual Next and pause in all four subjects.');
+context.document.body=element();
+for(const mode of ['math','chinese','english','focus']){
+  run(`subject='${mode}';level=${mode==='english'?3:1};begin()`);
+  const before=run('JSON.stringify(current)');
+  run("answer(current.choices.find(c=>c!==current.answer),document.getElementById('answers').children.find(b=>b.dataset.choice!==current.answer))");
+  const checkpoint=saved['learning-planet-session-v1'];
+  run('current=null;attempted=new Set;stars=7;adventureActive=false');
+  run('restoreSession()');assert.equal(run('JSON.stringify(current)'),before);assert.equal(run('attempted.size'),1);assert.equal(run('stars'),0);
+  assert.equal(run('cooldown'),true);flush();
+  run("answer(current.answer,document.getElementById('answers').children.find(b=>b.dataset.choice===current.answer))");
+  assert.equal(run('stars'),0);run('restoreSession()');assert.equal(run('locked'),true);
+  run("answer(current.answer,document.getElementById('answers').children.find(b=>b.dataset.choice===current.answer))");assert.equal(run('stars'),0);
+  run('advance()');assert.equal(run('round'),1);assert.equal(run('attempted.size'),0);
+  if(mode==='english')assert.equal(run('new Set(current.choices).size'),4);
+  run('round=7;pendingAdvance=true;advance()');assert.equal(run('wrongQuestions.length'),1);
+  const oldUnlocks=run('JSON.stringify(unlocks)'),oldStars=run('stars');
+  run('reviewButton.onclick()');assert.equal(run('reviewMode'),true);assert.notEqual(run('current.display'),JSON.parse(before).display);
+  run('restoreSession()');assert.equal(run('reviewMode'),true);
+  if(run('previewing'))run('memoryButton.onclick()');
+  run("answer(current.answer,document.getElementById('answers').children.find(b=>b.dataset.choice===current.answer));advance()");
+  assert.equal(run('stars'),oldStars);assert.equal(run('JSON.stringify(unlocks)'),oldUnlocks);assert.equal(run('readSession()'),null);
+}
+run("subject='focus';level=4;begin();memoryButton.onclick();restoreSession()");
+assert.equal(run('previewing'),false);assert.equal(get('display').textContent,'剛才背包裡的圖案順序是？');
+run('pauseButton.onclick();exitButton.onclick()');assert.equal(run('adventureActive'),false);assert.ok(run('readSession()'));run('savedButton.onclick()');assert.equal(run('adventureActive'),true);
+saved['learning-planet-session-v1']='{bad json';assert.equal(run('readSession()'),null);
+console.log('PASS: save/restore all subjects, wrong-answer persistence, cooldown, locked answers, review without rewards, memory hiding, exit/resume, corrupt saves.');
