@@ -29,6 +29,8 @@
     .mission-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:10px;margin:0 0 8px}
     #saveExit{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:8px 14px;border:2px solid #accfbb;border-radius:14px;color:#18583a;background:#e6f5eb;font-size:1rem;font-weight:800;cursor:pointer;touch-action:manipulation}
     #saveExit:hover{background:#d2ebdd}#saveExit svg{width:18px;height:18px;flex-shrink:0}
+    .saved-list{display:grid;gap:10px;margin:16px 0}.saved-list button{margin:0;width:100%;min-width:0}.learning-note{font-size:1rem;line-height:1.6;color:var(--muted)}
+    .parent-records{text-align:left;margin-top:28px;border-top:2px solid #dfe7fb;padding-top:18px}.parent-records summary{cursor:pointer;min-height:44px;font-weight:900;color:#3157b7}.record-card{padding:16px;margin-top:12px;border:1px solid #cbd8fa;border-radius:16px;background:#fff}.record-card h3{margin:0 0 10px}.record-card p{margin:8px 0;line-height:1.6;font-size:1rem}.record-card ul{padding-left:22px;line-height:1.7}
   </style>
 </head>
 <body>
@@ -41,7 +43,7 @@
       <div class="settings"><label><input type="checkbox" id="sound"> 音效</label><label><input type="checkbox" id="motion" checked> 輕柔動畫</label></div>
     </section>
     <section class="card hidden" id="game" aria-live="polite">
-      <header class="top"><span class="chip" id="chip">數學</span><div class="progressbox"><div class="progresslabel"><span id="round">第 1 題</span><span>8 題</span></div><div class="track"><div class="bar" id="bar"></div></div></div><button class="iconbtn" id="soundBtn" aria-label="切換音效">🔇</button></header>
+      <header class="top"><span class="chip" id="chip">數學</span><div class="progressbox"><div class="progresslabel"><span id="round">第 1 題</span><span id="totalLabel">8 題</span></div><div class="track"><div class="bar" id="bar"></div></div></div><button class="iconbtn" id="soundBtn" aria-label="切換音效">🔇</button></header>
       <div class="reward"><span id="stars">⭐ 0</span><span class="streak hidden" id="streak"></span></div>
       <div class="question"><p class="eyebrow" id="prompt"></p><h1 class="display" id="display"></h1></div><div class="answers" id="answers"></div>
       <div class="feedback"><span id="message">選一個答案</span><button class="hintbtn" id="hintBtn">💡 給我提示</button></div><aside class="hint hidden" id="hint"></aside>
@@ -138,7 +140,7 @@
     }
     function focusChallenge(forcedType){
       const type=forcedType??(level===12?round%6:((level-1)%6+round%2)%6);
-      const hard=level>6, symbols=['★','●','▲','◆','○','■','△','□'], length=hard?5:3;
+      const hard=level>6, symbols=['★','●','▲','◆','○','■','△','□'], length=(hard?5:3)+difficultyTier;
       const sequence=()=>Array.from({length},()=>symbols[rand(symbols.length)]).join('');
       const mutate=text=>{const chars=[...text],i=rand(chars.length);chars[i]=mix(symbols.filter(s=>s!==chars[i]))[0];return chars.join('')};
       const result=(prompt,display,answer,choices,hint,extra={})=>({prompt,display,answer:String(answer),choices:mix(choices.map(String)),hint,...extra});
@@ -219,8 +221,9 @@
       continueButton.textContent=round===(reviewMode?reviewDeck.length:TOTAL)-1?'看看這關成果':'下一題 →';buttonsState();saveSession();
     };
     memoryButton.onclick=()=>{previewing=false;$('display').textContent='剛才背包裡的圖案順序是？';memoryButton.classList.add('hidden');$('answers').classList.remove('hidden');$('hintBtn').classList.remove('hidden');$('message').textContent='回想剛才的順序，再選答案。';buttonsState()};
-    begin=function(){clearTimeout(feedbackTimer);clearTimeout(cooldownTimer);round=0;stars=0;streak=0;paused=false;adventureActive=true;wrongQuestions=[];reviewMode=false;reviewDeck=[];reviewButton.classList.add('hidden');if(subject==='english')prepareEnglish();if(subject==='chinese')prepareChinese();show('game');render()};
+    begin=function(){clearTimeout(feedbackTimer);clearTimeout(cooldownTimer);round=0;stars=0;streak=0;paused=false;adventureActive=true;wrongQuestions=[];reviewMode=false;reviewDeck=[];sessionId=newSessionId();difficultyTier=nextDifficulty(subject);seenQuestions=[];dueReviews=learning[subject].mistakes.filter(m=>m.due<=Date.now()).sort((a,b)=>a.due-b.due).slice(0,2);reviewButton.classList.add('hidden');if(subject==='english')prepareEnglish();if(subject==='chinese')prepareChinese();show('game');render()};
     function completeStage(){
+      recordStage();
       adventureActive=false;const passed=stars>=5,max=stageCount();
       $('finishScore').textContent=stars;$('finishMode').textContent=labels[subject]+'第 '+level+' 關完成';$('finishTitle').textContent=passed?(level<max?'太棒了，下一站解鎖！':'冒險完成！'):'這次練習完成了';
       $('finishText').textContent=passed?(level<max?'先休息一下，再出發到第 '+(level+1)+' 關。':'所有關卡都走過了！也可以回頭挑喜歡的關卡，題目會重新產生。'):'這次得到 '+stars+' 顆星。拿到 5 顆可以前進；休息後再試也沒關係。';
@@ -230,7 +233,8 @@
     function advance(){if(!pendingAdvance||paused||!adventureActive)return;pendingAdvance=false;round++;if(reviewMode&&round>=reviewDeck.length){adventureActive=false;clearSession();$('finishMode').textContent=labels[subject]+'錯題復習完成';$('finishTitle').textContent='練習完成，辛苦了！';$('finishScore').textContent=stars;$('finishText').textContent='這是原關卡的星星。復習不補星、不解鎖；準備好後可以重新挑戰。';$('next').classList.add('hidden');reviewButton.classList.add('hidden');show('finish')}else if(!reviewMode&&round>=TOTAL)completeStage();else render()}
     continueButton.onclick=advance;
     answer=function(choice,button){
-      if(!adventureActive||locked||cooldown||previewing||paused||attempted.has(choice))return;
+      if(!adventureActive||locked||cooldown||previewing||paused||attempted.has(choice)||!current.choices.includes(choice))return;
+      recordAnswer(choice);
       if(choice!==current.answer){if(!reviewMode&&attempted.size===0)wrongQuestions.push(JSON.parse(JSON.stringify(current)));attempted.add(choice);button.classList.add('wrong','tried');streak=0;cooldown=true;cooldownUntil=Date.now()+900;$('streak').classList.add('hidden');$('message').textContent='慢慢想，可以看看提示；這題改成練習，不計星星。';tone(false);buttonsState();saveSession();cooldownTimer=setTimeout(()=>{cooldown=false;cooldownUntil=0;buttonsState();saveSession()},900);return}
       locked=true;const earned=!reviewMode&&attempted.size===0;if(earned){stars++;streak++}else streak=0;button.classList.add('correct');button.textContent+=' ✓';$('stars').textContent=reviewMode?'練習不計星星':'⭐ '+stars+'／5';$('message').textContent=earned?'第一次就答對！獲得一顆星星。':'練習完成！你找到了答案。';tone(true);buttonsState();pendingAdvance=true;
       $('hint').textContent='答案：'+current.answer+'。'+current.hint;$('hint').classList.remove('hidden');$('hintBtn').classList.add('hidden');
@@ -250,23 +254,25 @@
     const saveExitButton=document.createElement('button');saveExitButton.id='saveExit';saveExitButton.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 3h12l4 4v14H3V3h2zM7 3v6h10V3M7 21v-8h10v8"/></svg><span>儲存並退出</span>';missionActions.appendChild(saveExitButton);
     function saveSession(){
       if(!adventureActive||!current)return;
-      try{localStorage.setItem(SESSION_KEY,JSON.stringify({version:1,subject,level,round,stars,streak,current,attempted:[...attempted],locked,previewing,pendingAdvance,cooldownUntil,wrongQuestions,reviewMode,reviewDeck,englishDeck,chineseDeck,sound:$('sound').checked,motion:$('motion').checked}));saveNote.textContent='進度自動存在這個瀏覽器；換裝置不會自動同步。'}catch(e){saveNote.textContent='此瀏覽器無法存檔，關閉頁面會失去本關進度。';$('message').textContent+='（目前無法存檔，請保持頁面開啟。）'}
+      try{localStorage.setItem(SESSION_KEY+'-'+subject,JSON.stringify({version:1,subject,level,round,stars,streak,current,attempted:[...attempted],locked,previewing,pendingAdvance,cooldownUntil,wrongQuestions,reviewMode,reviewDeck,englishDeck,chineseDeck,sessionId,difficultyTier,seenQuestions,dueReviews,sound:$('sound').checked,motion:$('motion').checked}));saveNote.textContent='各科分開存檔；進度和學習紀錄只存在這個瀏覽器，換裝置不會自動同步。';return true}catch(e){saveNote.textContent='此瀏覽器無法存檔，關閉頁面會失去本關進度。';$('message').textContent+='（目前無法存檔，請保持頁面開啟。）';return false}
     }
-    function clearSession(){try{localStorage.setItem(SESSION_KEY,'null')}catch(e){}savedButton.classList.add('hidden')}
-    function readSession(){
-      try{const s=JSON.parse(localStorage.getItem(SESSION_KEY)||'null');const q=v=>v&&typeof v.display==='string'&&typeof v.prompt==='string'&&typeof v.answer==='string'&&typeof v.hint==='string'&&Array.isArray(v.choices)&&v.choices.length===4&&v.choices.every(c=>typeof c==='string')&&v.choices.includes(v.answer);
+    function clearSession(){try{localStorage.setItem(SESSION_KEY+'-'+subject,'null')}catch(e){}savedButton.classList.add('hidden')}
+    function readSession(kind=subject){
+      try{const s=JSON.parse(localStorage.getItem(SESSION_KEY+'-'+kind)||'null');const q=validQuestion;
         if(!s||s.version!==1||!Object.hasOwn(labels,s.subject)||!Number.isInteger(s.level)||s.level<1||s.level>(s.subject==='focus'?12:s.subject==='english'?6:3)||!Number.isInteger(s.round)||s.round<0||s.round>=8||!q(s.current)||!Array.isArray(s.attempted)||!s.attempted.every(c=>s.current.choices.includes(c)&&c!==s.current.answer)||!Number.isInteger(s.stars)||s.stars<0||s.stars>8||!Array.isArray(s.wrongQuestions)||!s.wrongQuestions.every(q)||!Array.isArray(s.reviewDeck)||!s.reviewDeck.every(q)||!Array.isArray(s.englishDeck)||!Array.isArray(s.chineseDeck))return null;
-        if(s.reviewMode&&s.round>=s.reviewDeck.length)return null;
+        if(s.subject!==kind||s.reviewMode&&s.round>=s.reviewDeck.length)return null;
         if(!s.reviewMode&&s.subject==='english'&&s.englishDeck.length<8)return null;
         if(!s.reviewMode&&s.subject==='chinese'&&s.chineseDeck.length<8)return null;
         return s;
       }catch(e){return null}
     }
-    function showSaved(){const s=readSession();savedButton.classList.toggle('hidden',!s);savedButton.textContent=s?'繼續'+labels[s.subject]+(s.reviewMode?'復習':'第 '+s.level+' 關')+' · 第 '+(s.round+1)+' 題':'';if(s)saveNote.textContent='開始其他任務會取代這份中途存檔。';savedButton.style.marginBottom='20px'}
-    function restoreSession(){
-      const s=readSession();if(!s){showSaved();return}
+    function showSaved(){savedButton.classList.add('hidden');savedList.innerHTML='';for(const kind of Object.keys(labels)){const s=readSession(kind);if(!s)continue;const b=document.createElement('button');b.className='secondary';b.textContent='繼續'+labels[kind]+(s.reviewMode?'復習':'第 '+s.level+' 關')+' · 第 '+(s.round+1)+' 題';b.onclick=()=>restoreSession(kind);savedList.appendChild(b)}saveNote.textContent='各科分開存檔；開始同一科的新關卡會取代該科中途進度。紀錄只存在這個瀏覽器，換裝置不會同步。';renderParentRecords()}
+    function restoreSession(kind=subject){
+      const s=readSession(kind);if(!s){showSaved();return}
       clearTimeout(cooldownTimer);clearTimeout(feedbackTimer);
       subject=s.subject;level=s.level;round=s.round;stars=s.stars;streak=s.streak||0;current=s.current;attempted=new Set(s.attempted);locked=!!s.locked;previewing=!!s.previewing;pendingAdvance=!!s.pendingAdvance;cooldownUntil=Number(s.cooldownUntil)||0;cooldown=cooldownUntil>Date.now();wrongQuestions=s.wrongQuestions;reviewMode=!!s.reviewMode;reviewDeck=s.reviewDeck;englishDeck=s.englishDeck;chineseDeck=s.chineseDeck;paused=false;adventureActive=true;
+      sessionId=typeof s.sessionId==='string'?s.sessionId:newSessionId();difficultyTier=[-1,0,1].includes(s.difficultyTier)?s.difficultyTier:0;seenQuestions=Array.isArray(s.seenQuestions)?s.seenQuestions.filter(x=>typeof x==='string'):[];dueReviews=Array.isArray(s.dueReviews)?s.dueReviews.filter(validMistake):[];
+      document.querySelectorAll('.subject').forEach(b=>b.classList.toggle('active',b.dataset.kind===subject));
       $('sound').checked=!!s.sound;$('motion').checked=s.motion!==false;$('soundBtn').textContent=s.sound?'🔊':'🔇';document.body.classList.toggle('no-motion',s.motion===false);
       show('game');render(s);if(cooldown)cooldownTimer=setTimeout(()=>{cooldown=false;cooldownUntil=0;buttonsState();saveSession()},Math.min(900,cooldownUntil-Date.now()));
     }
@@ -288,13 +294,70 @@
       }
       return {...old,choices:mix(old.choices),prompt:old.prompt+' · 再練一次'};
     }
-    reviewButton.onclick=()=>{if(!wrongQuestions.length)return;reviewDeck=wrongQuestions.map(newReviewQuestion);reviewMode=true;round=0;streak=0;paused=false;adventureActive=true;show('game');render()};
-    savedButton.onclick=restoreSession;
-    exitButton.onclick=()=>{if(!adventureActive)return;saveSession();clearTimeout(cooldownTimer);clearTimeout(feedbackTimer);adventureActive=false;paused=false;renderLevels();updateStart();showSaved();show('menu')};
+    reviewButton.onclick=()=>{if(!wrongQuestions.length)return;reviewDeck=wrongQuestions.map(old=>{const savedLevel=level;try{level=old.sourceLevel||level;return {...newReviewQuestion(old),mistakeId:old.mistakeId,sourceLevel:level}}finally{level=savedLevel}});reviewMode=true;round=0;streak=0;paused=false;adventureActive=true;show('game');render()};
+    savedButton.onclick=()=>restoreSession();
+    exitButton.onclick=()=>{if(!adventureActive||!saveSession())return;clearTimeout(cooldownTimer);clearTimeout(feedbackTimer);adventureActive=false;paused=false;renderLevels();updateStart();showSaved();show('menu')};
     saveExitButton.onclick=()=>exitButton.onclick();
     const hideMemory=memoryButton.onclick;memoryButton.onclick=()=>{hideMemory();saveSession()};
     const originalPause=pauseButton.onclick;pauseButton.onclick=()=>{originalPause();saveSession()};
     const originalHome=$('home').onclick;$('home').onclick=()=>{originalHome();showSaved()};
+    // Device-local learning history; old single-slot saves are migrated once.
+    const LEARNING_KEY='learning-planet-history-v1', DAY=86400000;
+    let sessionId='',difficultyTier=0,seenQuestions=[],dueReviews=[];
+    function newSessionId(){return Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)}
+    function validQuestion(q){return q&&typeof q.prompt==='string'&&typeof q.display==='string'&&typeof q.answer==='string'&&typeof q.hint==='string'&&Array.isArray(q.choices)&&q.choices.length===4&&q.choices.every(x=>typeof x==='string')&&q.choices.includes(q.answer)}
+    function validMistake(m){return m&&typeof m.id==='string'&&validQuestion(m.q)&&Number.isInteger(m.level)&&m.level>=1&&m.level<=12&&Number.isFinite(m.due)}
+    const learning=Object.fromEntries(Object.keys(labels).map(kind=>[kind,{events:[],stages:[],mistakes:[]}]));
+    try{const data=JSON.parse(localStorage.getItem(LEARNING_KEY)||'{}');for(const kind of Object.keys(labels)){const d=data[kind];if(!d)continue;learning[kind]={events:Array.isArray(d.events)?d.events.filter(e=>e&&typeof e.id==='string'&&typeof e.type==='string'&&['first','retry','review'].includes(e.kind)&&typeof e.correct==='boolean'&&Number.isFinite(e.at)).slice(-600):[],stages:Array.isArray(d.stages)?d.stages.filter(s=>s&&typeof s.id==='string'&&Number.isInteger(s.stars)&&s.stars>=0&&s.stars<=8&&Number.isFinite(s.at)).slice(-100):[],mistakes:Array.isArray(d.mistakes)?d.mistakes.filter(validMistake).slice(-40):[]}}}catch(e){}
+    try{const old=JSON.parse(localStorage.getItem(SESSION_KEY)||'null');if(old&&Object.hasOwn(labels,old.subject)&&!localStorage.getItem(SESSION_KEY+'-'+old.subject)){localStorage.setItem(SESSION_KEY+'-'+old.subject,JSON.stringify(old));if(readSession(old.subject))localStorage.setItem(SESSION_KEY,'null')}}catch(e){}
+    const learningWarning=document.createElement('p');learningWarning.className='learning-note hidden';learningWarning.setAttribute('role','status');learningWarning.textContent='學習紀錄暫時無法保存，關閉頁面後可能遺失。';$('game').appendChild(learningWarning);
+    function persistLearning(){try{localStorage.setItem(LEARNING_KEY,JSON.stringify(learning));learningWarning.classList.add('hidden')}catch(e){learningWarning.classList.remove('hidden')}}
+    function topic(q){if(subject==='math')return q.prompt==='算算看'?(q.display.includes('×')?'乘法':q.display.includes('−')?'減法':'加法'):q.prompt;return q.prompt.replace(/ · 再練一次$/,'')}
+    function nextDifficulty(kind){const recent=learning[kind].stages.slice(-2);if(recent.length<2)return 0;const correct=recent.reduce((n,s)=>n+s.stars,0);return correct>=14?1:correct<=7?-1:0}
+    function recordAnswer(choice){
+      const d=learning[subject],first=attempted.size===0,correct=choice===current.answer;
+      if(!first&&!correct)return;
+      const kind=reviewMode?'review':first?'first':'retry',id=sessionId+':'+(reviewMode?'review:':'')+round+':'+(first?'first':'retry');
+      if(d.events.some(e=>e.id===id))return;
+      d.events.push({id,kind,type:topic(current),correct,at:Date.now(),level});d.events=d.events.slice(-600);
+      if(first){
+        const key=current.mistakeId||level+':'+current.prompt+':'+current.display;
+        let m=d.mistakes.find(x=>x.id===key);
+        if(!correct){if(!m){m={id:key,q:JSON.parse(JSON.stringify(current)),level:current.sourceLevel||level,due:Date.now(),success:0};d.mistakes.push(m)}m.due=Date.now()+DAY;m.success=0;current.mistakeId=key}
+        else if(m&&m.due<=Date.now()){m.success=(m.success||0)+1;m.due=Date.now()+DAY*(m.success===1?3:7);if(m.success>=2)d.mistakes=d.mistakes.filter(x=>x!==m)}
+        d.mistakes=d.mistakes.slice(-40);
+      }
+      persistLearning();
+    }
+    function recordStage(){const d=learning[subject];if(!d.stages.some(s=>s.id===sessionId)){d.stages.push({id:sessionId,level,stars,at:Date.now(),difficulty:difficultyTier});d.stages=d.stages.slice(-100);persistLearning()}}
+    const savedList=document.createElement('div');savedList.className='saved-list';savedButton.before(savedList);
+    const difficultyNote=document.createElement('p');difficultyNote.className='learning-note';$('levels').after(difficultyNote);
+    const parentRecords=document.createElement('details');parentRecords.className='parent-records';
+    const parentSummary=document.createElement('summary');parentSummary.textContent='家長學習紀錄';parentRecords.appendChild(parentSummary);
+    const parentContent=document.createElement('div');parentRecords.appendChild(parentContent);$('menu').appendChild(parentRecords);
+    function renderParentRecords(){
+      difficultyNote.textContent='依最近兩關的首次作答表現，下一回合採用「'+['暖身練習','標準挑戰','進階練習'][nextDifficulty(subject)+1]+'」。不計速度、不跳過關卡；舊錯題到期時穿插最多 2 題。';
+      parentContent.innerHTML='';const note=document.createElement('p');note.className='learning-note';note.textContent='從本次更新起累積；每科保留最近 100 次完整闖關與 600 筆作答。這是練習紀錄，不是注意力或能力診斷。';parentContent.appendChild(note);
+      for(const kind of Object.keys(labels)){
+        const d=learning[kind],box=document.createElement('section');box.className='record-card';const h=document.createElement('h3');h.textContent=labels[kind];box.appendChild(h);
+        const p=document.createElement('p'),first=d.events.filter(e=>e.kind==='first'),correct=first.filter(e=>e.correct).length,retry=d.events.filter(e=>e.kind==='retry').length;
+        p.textContent=d.events.length||d.stages.length?'完成 '+d.stages.length+' 次闖關（通過 '+d.stages.filter(s=>s.stars>=5).length+' 次）｜首次答對 '+correct+'／'+first.length+' 題'+(first.length?'（'+Math.round(correct/first.length*100)+'%）':'')+'｜重試後答對 '+retry+' 題｜複習首次答對 '+d.events.filter(e=>e.kind==='review'&&e.correct&&e.id.endsWith(':first')).length+' 題':'尚無紀錄，玩完第一題就會開始累積。';box.appendChild(p);
+        const counts=new Map;for(const e of first.filter(e=>!e.correct))counts.set(e.type,(counts.get(e.type)||0)+1);
+        if(counts.size){const list=document.createElement('ul');for(const [name,count] of [...counts].sort((a,b)=>b[1]-a[1]).slice(0,3)){const li=document.createElement('li');li.textContent=name+'：首次答錯 '+count+' 題';list.appendChild(li)}box.appendChild(list)}
+        const pending=document.createElement('p');pending.textContent='待熟練 '+d.mistakes.length+' 題，其中 '+d.mistakes.filter(m=>m.due<=Date.now()).length+' 題已到複習時間。';box.appendChild(pending);parentContent.appendChild(box);
+      }
+    }
+    const baseUpdateStart=updateStart;updateStart=function(){baseUpdateStart();showSaved()};
+    const baseMath=math;math=function(){let q=baseMath();if(!difficultyTier)return q;const score=x=>(x[1].match(/\d+/g)||[]).reduce((n,v)=>n+Number(v),0);for(let i=0;i<8;i++){const candidate=baseMath();if(candidate[0]===q[0]&&(candidate[1].includes('×')===q[1].includes('×'))&&(candidate[1].includes('−')===q[1].includes('−'))&&(score(candidate)-score(q))*difficultyTier>0)q=candidate}return q};
+    const baseEnglish=englishChallenge;englishChallenge=function(){const q=baseEnglish();if(difficultyTier===-1)q.hint+=' 可以先按提示，再作答。';if(difficultyTier===1&&level>1&&level<6&&round%2===1){const pair=englishDeck[round];q.prompt='選出對應的英文';q.display=pair[1];q.answer=pair[0];q.choices=mix([pair[0],...mix(englishWords[level].filter(p=>p[0]!==pair[0])).slice(0,3).map(p=>p[0])]);q.hint='回想這個單字的第一個字母：'+pair[0][0]}return q};
+    const basePrepareChinese=prepareChinese;prepareChinese=function(){basePrepareChinese();if(difficultyTier){const pool=level===1?chinese:level===3?chineseAdvanced:[...chinese,...chineseAdvanced];chineseDeck=mix(pool).sort((a,b)=>chineseHistory.indexOf(a[1])-chineseHistory.indexOf(b[1])||difficultyTier*(b[1].length-a[1].length)).slice(0,8)}};
+    function spacedQuestion(m){const savedLevel=level,savedTier=difficultyTier;try{level=m.level;difficultyTier=0;const q=newReviewQuestion(m.q);return {...q,mistakeId:m.id,sourceLevel:m.level,spaced:true}}catch(e){return null}finally{level=savedLevel;difficultyTier=savedTier}}
+    const baseChallenge=challenge;challenge=function(){let q;
+      if(round===2||round===5){const m=dueReviews.shift();if(m)for(let i=0;i<20;i++){const candidate=spacedQuestion(m);if(candidate&&!seenQuestions.includes(candidate.display)&&!(subject==='chinese'&&chineseDeck.some(d=>d[1]===candidate.display))){q=candidate;break}}}
+      if(!q){q=baseChallenge();if(subject==='english'&&seenQuestions.includes(q.display)){for(let i=round+1;i<englishDeck.length;i++){[englishDeck[round],englishDeck[i]]=[englishDeck[i],englishDeck[round]];q=baseChallenge();if(!seenQuestions.includes(q.display))break;[englishDeck[round],englishDeck[i]]=[englishDeck[i],englishDeck[round]]}}if(subject==='math')for(let i=0;i<40&&seenQuestions.includes(q.display);i++)q=baseChallenge()}
+      seenQuestions.push(q.display);return q;
+    };
+    const baseRender=render;render=function(restored=null){baseRender(restored);$('totalLabel').textContent=(reviewMode?reviewDeck.length:TOTAL)+' 題';if(current.spaced)$('prompt').textContent='複習小任務 · '+current.prompt;if(difficultyTier===-1&&!locked&&!previewing)$('hint').classList.remove('hidden')};
     renderLevels();showSaved();
   </script>
 </body>
