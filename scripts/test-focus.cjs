@@ -6,7 +6,7 @@ function element(){
   const classes = new Set();
   return {children:[],dataset:{},style:{},textContent:'',disabled:false,parentElement:{after(){}},
     classList:{add:(...xs)=>xs.forEach(x=>classes.add(x)),remove:(...xs)=>xs.forEach(x=>classes.delete(x)),toggle(x,on){if(on===undefined)on=!classes.has(x);on?classes.add(x):classes.delete(x)},contains:x=>classes.has(x)},
-    appendChild(x){this.children.push(x)},after(){},before(){},setAttribute(){},
+    appendChild(x){this.children.push(x)},after(){},before(){},remove(){this.removed=true},setAttribute(){},
     set innerHTML(value){this.children=[]},get innerHTML(){return ''}};
 }
 const get=id=>{if(!elements.has(id))elements.set(id,element());return elements.get(id)};
@@ -15,6 +15,8 @@ const context=vm.createContext({console,Math,Set,document:{getElementById:get,cr
 const html=fs.readFileSync('index.html','utf8');
 vm.runInContext(html.match(/<script>([\s\S]*?)<\/script>/)[1],context);
 const run=code=>vm.runInContext(code,context);
+assert.equal(run('pauseButton.removed'),true,'Pause button is removed from the mission toolbar');
+assert.equal(run('missionActions.children.includes(saveExitButton)'),true,'Save and exit stays available');
 const flush=()=>{const pending=timers;timers=[];pending.forEach(fn=>fn())};
 run("subject='focus';level=1;begin()");
 for(let stage=1;stage<=12;stage++)for(let r=0;r<8;r++)for(let sample=0;sample<10;sample++){

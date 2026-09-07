@@ -27,7 +27,6 @@
     #pause{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;margin:0 0 8px auto;padding:8px 14px;border:2px solid #b7d7ee;border-radius:14px;color:#204e71;background:#e6f3ff;font-size:1rem;font-weight:800;cursor:pointer;touch-action:manipulation}
     #pause:hover{background:#d3eaff}#pause svg{width:18px;height:18px;flex-shrink:0}
     .mission-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:10px;margin:0 0 8px}
-    .mission-actions #pause{margin:0}
     #saveExit{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:8px 14px;border:2px solid #accfbb;border-radius:14px;color:#18583a;background:#e6f5eb;font-size:1rem;font-weight:800;cursor:pointer;touch-action:manipulation}
     #saveExit:hover{background:#d2ebdd}#saveExit svg{width:18px;height:18px;flex-shrink:0}
   </style>
@@ -247,7 +246,7 @@
     const savedButton=document.createElement('button');savedButton.className='primary hidden';savedButton.id='savedGame';$('start').before(savedButton);
     const saveNote=document.createElement('p');saveNote.className='intro';saveNote.style.fontSize='1rem';$('start').after(saveNote);
     const exitButton=document.createElement('button');exitButton.className='secondary';exitButton.textContent='儲存並回到首頁';$('resume').after(exitButton);
-    const missionActions=document.createElement('div');missionActions.className='mission-actions';pauseButton.after(missionActions);missionActions.appendChild(pauseButton);
+    const missionActions=document.createElement('div');missionActions.className='mission-actions';pauseButton.after(missionActions);pauseButton.remove();
     const saveExitButton=document.createElement('button');saveExitButton.id='saveExit';saveExitButton.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 3h12l4 4v14H3V3h2zM7 3v6h10V3M7 21v-8h10v8"/></svg><span>儲存並退出</span>';missionActions.appendChild(saveExitButton);
     function saveSession(){
       if(!adventureActive||!current)return;
