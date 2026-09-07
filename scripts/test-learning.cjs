@@ -99,3 +99,44 @@ const broken=boot({'learning-planet-history-v1':'{invalid'});broken.run('begin()
 assert.equal(broken.run('adventureActive'),true,'Do not exit when save fails');
 assert.ok(broken.run("document.getElementById('message').textContent.includes('無法存檔')"));
 console.log('PASS: corrupt history fallback and storage failure does not silently exit.');
+
+// Exercise the actual round renderer, not only the individual random generators.
+let uniqueRounds=0;
+for(const [kind,max] of Object.entries({math:3,chinese:3,english:6,focus:12})){
+  const game=boot();
+  for(let stage=1;stage<=max;stage++)for(const tier of [-1,0,1])for(let replay=0;replay<3;replay++){
+    const score=tier<0?3:tier>0?8:5;
+    game.run(`subject='${kind}';level=${stage};learning[subject].stages=[{stars:${score}},{stars:${score}}];begin()`);
+    const seen=new Set();
+    for(let r=0;r<8;r++){
+      if(r)game.run(`round=${r};render()`);
+      const key=game.run('questionKey(current)');
+      assert.ok(!seen.has(key),`${kind} stage ${stage}, tier ${tier}, round ${r}: repeated ${key}`);seen.add(key);
+      if(r===3){game.run('saveExitButton.onclick();restoreSession()');assert.equal(game.run('questionKey(current)'),key)}
+    }
+    assert.equal(seen.size,8);uniqueRounds++;
+  }
+}
+console.log(`PASS: ${uniqueRounds} complete eight-question rounds are unique across all subjects, stages, difficulty tiers and mid-round restores.`);
+
+const vocabulary=boot();vocabulary.run("subject='english';level=3;begin()");
+const played=new Set();for(let r=0;r<8;r++){if(r)vocabulary.run(`round=${r};render()`);played.add(vocabulary.run('questionKey(current)'))}
+vocabulary.run('begin()');assert.ok(!played.has(vocabulary.run('questionKey(current)')));
+vocabulary.run('round=1;render()');assert.ok(!played.has(vocabulary.run('questionKey(current)')));
+assert.equal(vocabulary.run('questionKey({display:"紅色",answer:"red"})'),vocabulary.run('questionKey({display:"red",answer:"紅色"})'));
+assert.equal(vocabulary.run('questionKey({display:"A",answer:"a"})'),vocabulary.run('questionKey({display:"a",answer:"A"})'));
+console.log('PASS: English replay uses unseen vocabulary first; reversed pairs share the same identity.');
+
+for(const kind of ['math','english','chinese','focus']){
+  const game=boot();game.run(`subject='${kind}';level=${kind==='focus'?11:kind==='english'?3:1};begin()`);
+  for(let r=0;r<8;r++){game.answer(false);game.flush();game.answer();game.run('advance()')}
+  game.run('reviewButton.onclick()');
+  assert.equal(game.run('new Set(reviewDeck.map(questionKey)).size'),game.run('reviewDeck.length'));
+  game.run('saveExitButton.onclick()');game.days(2);game.run('begin()');
+  const seen=new Set();for(let r=0;r<8;r++){if(r)game.run(`round=${r};render()`);const key=game.run('questionKey(current)');assert.ok(!seen.has(key),kind+' due-review duplicate');seen.add(key)}
+}
+console.log('PASS: mistake-review decks and normal rounds with injected due reviews are unique.');
+
+const forced=boot();forced.run('begin();const fixed=current;generatedCandidates=()=>[fixed];round=1;render()');
+assert.notEqual(forced.run('questionKey(current)'),forced.run('questionKey(fixed)'));
+console.log('PASS: repeated random candidates use a fresh fallback, never an already played question.');

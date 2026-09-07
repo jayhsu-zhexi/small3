@@ -79,7 +79,7 @@ for(let stage=1;stage<=3;stage++){
   for(let session=0;session<8;session++){
     run('begin()');const seen=new Set([run('current.display')]);
     for(let r=1;r<8;r++){
-      const q=run(`round=${r};chineseChallenge()`);
+      const q=run(`round=${r};challenge()`);
       assert.ok(!seen.has(q.display),'Chinese repeat within round');seen.add(q.display);
       assert.equal(q.choices.filter(c=>c===q.answer).length,1);
     }

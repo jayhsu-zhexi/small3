@@ -294,7 +294,7 @@
       }
       return {...old,choices:mix(old.choices),prompt:old.prompt+' · 再練一次'};
     }
-    reviewButton.onclick=()=>{if(!wrongQuestions.length)return;reviewDeck=wrongQuestions.map(old=>{const savedLevel=level;try{level=old.sourceLevel||level;return {...newReviewQuestion(old),mistakeId:old.mistakeId,sourceLevel:level}}finally{level=savedLevel}});reviewMode=true;round=0;streak=0;paused=false;adventureActive=true;show('game');render()};
+    reviewButton.onclick=()=>{if(!wrongQuestions.length)return;reviewDeck=[];for(const old of wrongQuestions){const savedLevel=level;try{level=old.sourceLevel||level;const used=reviewDeck.map(questionKey);let candidates=Array.from({length:24},()=>newReviewQuestion(old));if(subject==='english')candidates.push(...englishCandidates());if(subject==='chinese')candidates.push(...chineseCandidates());let q=chooseFresh(candidates,[...used,questionKey(old)]);if(!q)q=chooseFresh(candidates,used);if(q)reviewDeck.push({...q,mistakeId:old.mistakeId,sourceLevel:level})}finally{level=savedLevel}}if(!reviewDeck.length)return;reviewMode=true;round=0;streak=0;paused=false;adventureActive=true;show('game');render()};
     savedButton.onclick=()=>restoreSession();
     exitButton.onclick=()=>{if(!adventureActive||!saveSession())return;clearTimeout(cooldownTimer);clearTimeout(feedbackTimer);adventureActive=false;paused=false;renderLevels();updateStart();showSaved();show('menu')};
     saveExitButton.onclick=()=>exitButton.onclick();
@@ -352,10 +352,54 @@
     const baseEnglish=englishChallenge;englishChallenge=function(){const q=baseEnglish();if(difficultyTier===-1)q.hint+=' 可以先按提示，再作答。';if(difficultyTier===1&&level>1&&level<6&&round%2===1){const pair=englishDeck[round];q.prompt='選出對應的英文';q.display=pair[1];q.answer=pair[0];q.choices=mix([pair[0],...mix(englishWords[level].filter(p=>p[0]!==pair[0])).slice(0,3).map(p=>p[0])]);q.hint='回想這個單字的第一個字母：'+pair[0][0]}return q};
     const basePrepareChinese=prepareChinese;prepareChinese=function(){basePrepareChinese();if(difficultyTier){const pool=level===1?chinese:level===3?chineseAdvanced:[...chinese,...chineseAdvanced];chineseDeck=mix(pool).sort((a,b)=>chineseHistory.indexOf(a[1])-chineseHistory.indexOf(b[1])||difficultyTier*(b[1].length-a[1].length)).slice(0,8)}};
     function spacedQuestion(m){const savedLevel=level,savedTier=difficultyTier;try{level=m.level;difficultyTier=0;const q=newReviewQuestion(m.q);return {...q,mistakeId:m.id,sourceLevel:m.level,spaced:true}}catch(e){return null}finally{level=savedLevel;difficultyTier=savedTier}}
-    const baseChallenge=challenge;challenge=function(){let q;
-      if(round===2||round===5){const m=dueReviews.shift();if(m)for(let i=0;i<20;i++){const candidate=spacedQuestion(m);if(candidate&&!seenQuestions.includes(candidate.display)&&!(subject==='chinese'&&chineseDeck.some(d=>d[1]===candidate.display))){q=candidate;break}}}
-      if(!q){q=baseChallenge();if(subject==='english'&&seenQuestions.includes(q.display)){for(let i=round+1;i<englishDeck.length;i++){[englishDeck[round],englishDeck[i]]=[englishDeck[i],englishDeck[round]];q=baseChallenge();if(!seenQuestions.includes(q.display))break;[englishDeck[round],englishDeck[i]]=[englishDeck[i],englishDeck[round]]}}if(subject==='math')for(let i=0;i<40&&seenQuestions.includes(q.display);i++)q=baseChallenge()}
-      seenQuestions.push(q.display);return q;
+    const QUESTION_HISTORY_KEY='learning-planet-question-history-v1';
+    let questionHistory={};try{const h=JSON.parse(localStorage.getItem(QUESTION_HISTORY_KEY)||'{}');for(const kind of Object.keys(labels))questionHistory[kind]=Array.isArray(h[kind])?h[kind].filter(k=>typeof k==='string').slice(-160):[]}catch(e){}
+    function questionKey(q){
+      const clean=s=>s.replace(/\s+/g,'').toLowerCase();
+      if(subject==='english'){
+        if(/^[a-z]$/i.test(q.display)&&/^[a-z]$/i.test(q.answer))return 'letter:'+clean(q.display);
+        const pair=Object.values(englishWords).flat().find(p=>p.includes(q.display)&&p.includes(q.answer));if(pair)return 'word:'+pair[0];
+        const sentence=englishSentences.find(p=>p[0]===q.display||p[0]===q.answer);if(sentence)return 'sentence:'+sentence[0];
+      }
+      if(subject==='math'){const m=q.display.match(/^(\d+)\s*([+×])\s*(\d+)\s*=/);if(m)return 'math:'+m[2]+':'+[Number(m[1]),Number(m[3])].sort((a,b)=>a-b).join(':')}
+      if(subject==='focus'&&q.prompt==='找不同')return 'odd:'+JSON.stringify([...new Set(q.choices)].sort());
+      return (subject==='focus'?q.prompt+':':'')+clean(q.display);
+    }
+    function wasSeen(q,used){return used.includes(questionKey(q))||(q.prompt!=='找不同'&&used.includes(q.display))}
+    function chooseFresh(candidates,used=seenQuestions){
+      const history=questionHistory[subject]||[],unique=new Map;
+      for(const q of candidates)if(q&&validQuestion(q)&&!wasSeen(q,used)&&!unique.has(questionKey(q)))unique.set(questionKey(q),q);
+      return [...unique.values()].sort((a,b)=>history.indexOf(questionKey(a))-history.indexOf(questionKey(b)))[0]||null;
+    }
+    function rememberQuestion(q){
+      const key=questionKey(q);seenQuestions.push(key);questionHistory[subject]=[...(questionHistory[subject]||[]).filter(k=>k!==key),key].slice(-160);
+      if(subject==='chinese'){chineseHistory=[...chineseHistory.filter(k=>k!==q.display),q.display].slice(-100);try{localStorage.setItem('learning-planet-chinese-history',JSON.stringify(chineseHistory))}catch(e){}}
+      try{localStorage.setItem(QUESTION_HISTORY_KEY,JSON.stringify(questionHistory))}catch(e){}
+    }
+    function englishCandidates(){
+      const previous=englishDeck;try{const bank=level===1?[...'ABCDEFGHIJKLMNOPQRSTUVWXYZ']:level===6?englishSentences:englishWords[level];return mix(bank).map(item=>{englishDeck=[...previous];englishDeck[round]=item;return englishChallenge()})}finally{englishDeck=previous}
+    }
+    function chineseCandidates(){const bank=level===1?chinese:level===3?chineseAdvanced:[...chinese,...chineseAdvanced];return [...chineseDeck,...bank].map(d=>({prompt:d[0],display:d[1],choices:mix(d[2]),answer:d[3],hint:d[4]}))}
+    function generatedCandidates(){
+      if(subject==='english')return englishCandidates();if(subject==='chinese')return chineseCandidates();
+      const candidates=Array.from({length:48},()=>subject==='focus'?focusChallenge():originalChallenge());
+      // Navigation has only four arrows: enumerate them so a random collision cannot force a repeat.
+      if(subject==='focus'&&candidates[0].prompt==='指令導航'){const q=candidates[0],arrows=['↑','→','↓','←'],reverse=q.display.includes('相反');return arrows.map((arrow,i)=>({...q,display:q.display.slice(0,-1)+arrow,answer:arrows[(i+(reverse?2:0))%4],choices:mix(arrows)}))}
+      return candidates;
+    }
+    function uniqueFallback(){
+      // Bounded random sampling must never fall through to an already played question.
+      for(let n=0;;n++){
+        let q;if(subject==='math'){const a=12+n,b=3; q={prompt:'算算看',display:a+' + '+b+' = ?',answer:String(a+b),choices:mix([a+b,a+b+1,a+b-1,a+b+2].map(String)),hint:'先加到下一個整十，再把剩下的加上去。'}}
+        else{const symbols=['★','●','▲','◆','○','■','△','□'],target=Array.from({length:3},(_,i)=>symbols[Math.floor(n/8**i)%8]).join('');q={prompt:'符號偵探',display:'目標：'+target,answer:target,choices:mix([target,...[1,2,3].map(offset=>symbols[(n%8+offset)%8]+target.slice(1))]),hint:'從左到右，一個一個比對。'}}
+        if(!wasSeen(q,seenQuestions))return q;
+      }
+    }
+    challenge=function(){let q;
+      if(round===2||round===5){const m=dueReviews.shift();if(m){const candidates=Array.from({length:24},()=>spacedQuestion(m));q=chooseFresh(candidates)}}
+      if(!q)q=chooseFresh(generatedCandidates());
+      if(!q)q=uniqueFallback();
+      rememberQuestion(q);return q;
     };
     const baseRender=render;render=function(restored=null){baseRender(restored);$('totalLabel').textContent=(reviewMode?reviewDeck.length:TOTAL)+' 題';if(current.spaced)$('prompt').textContent='複習小任務 · '+current.prompt;if(difficultyTier===-1&&!locked&&!previewing)$('hint').classList.remove('hidden')};
     renderLevels();showSaved();
