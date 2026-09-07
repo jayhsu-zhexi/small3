@@ -89,3 +89,24 @@ const history=JSON.parse(saved['learning-planet-chinese-history']);assert.ok(his
 run(`chineseHistory=${JSON.stringify(history)};prepareChinese()`);
 assert.equal(run('chineseDeck.length'),8);
 console.log('PASS: Chinese rounds never repeat; replay prioritizes unseen questions and records history.');
+for(let stage=1;stage<=3;stage++)for(let i=0;i<1000;i++){
+  const q=run(`level=${stage};math()`);
+  assert.equal(new Set(q[2]).size,4,'Math choices must be distinct');
+  assert.equal(q[2].filter(c=>c===q[3]).length,1);
+  if(q[0]==='找出餘數'){const numbers=q[1].match(/\d+/g).map(Number);assert.equal(Number(q[3]),numbers[0]%numbers[1])}
+}
+const opposite={'↑':'↓','↓':'↑','←':'→','→':'←'};
+for(let r=0;r<8;r+=2){for(let sample=0;sample<20;sample++){
+  const q=run(`level=11;round=${r};focusChallenge()`);
+  assert.ok(q.display.includes('相反'));assert.equal(q.answer,opposite[q.display.slice(-1)]);
+}}
+for(const mode of ['math','chinese','focus','english']){
+  run(`subject='${mode}';level=1;begin()`);flush();
+  run("answer(current.answer,document.getElementById('answers').children.find(b=>b.dataset.choice===current.answer))");
+  flush();assert.equal(run('round'),0,'Must wait for Next in every subject');
+  assert.equal(run("continueButton.classList.contains('hidden')"),false);
+  assert.ok(get('hint').textContent.startsWith('答案：'));
+  run('pauseButton.onclick();advance()');assert.equal(run('round'),0);
+  run("document.getElementById('resume').onclick();continueButton.onclick()");assert.equal(run('round'),1);
+}
+console.log('PASS: 3000 math questions, reverse navigation, manual Next and pause in all four subjects.');
