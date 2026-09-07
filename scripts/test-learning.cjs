@@ -8,7 +8,7 @@ function boot(saved={}){
   const elements=new Map();
   function el(){const classes=new Set();return {children:[],dataset:{},style:{},textContent:'',checked:false,parentElement:{style:{},after(){}},
     classList:{add:(...xs)=>xs.forEach(x=>classes.add(x)),remove:(...xs)=>xs.forEach(x=>classes.delete(x)),contains:x=>classes.has(x),toggle(x,on){if(on===undefined)on=!classes.has(x);on?classes.add(x):classes.delete(x)}},
-    appendChild(x){this.children.push(x)},before(){},after(){},remove(){},setAttribute(){},set innerHTML(v){this.children=[]},get innerHTML(){return ''}}}
+    appendChild(x){this.children.push(x)},before(){},after(){},remove(){},setAttribute(){},showModal(){this.open=true},close(){this.open=false;this.onclose?.()},set innerHTML(v){this.children=[]},get innerHTML(){return ''}}}
   const get=id=>{if(!elements.has(id))elements.set(id,el());return elements.get(id)};
   const subjects=['math','chinese','focus','english'].map(kind=>{const b=el();b.dataset.kind=kind;return b});
   const document={getElementById:get,createElement:el,body:el(),querySelectorAll:s=>s==='.subject'?subjects:s==='.answer'?get('answers').children:[]};
@@ -154,7 +154,8 @@ console.log('PASS: assistance persists, still earns stars, and difficulty uses o
 
 const confirm=boot();confirm.run('begin();saveExitButton.onclick()');const original=confirm.saved['learning-planet-session-v1-math'];
 confirm.run('level=2;document.getElementById("start").onclick()');assert.equal(confirm.saved['learning-planet-session-v1-math'],original);
-assert.equal(confirm.run('pendingRestart.level'),2);confirm.run('cancelRestart.onclick()');assert.equal(confirm.saved['learning-planet-session-v1-math'],original);
+assert.equal(confirm.run('pendingRestart.level'),2);assert.equal(confirm.run('restartPanel.open'),true);confirm.run('cancelRestart.onclick()');assert.equal(confirm.run('restartPanel.open'),false);assert.equal(confirm.saved['learning-planet-session-v1-math'],original);
+confirm.run('document.getElementById("start").onclick();restartPanel.oncancel({preventDefault(){}})');assert.equal(confirm.run('restartPanel.open'),false);assert.equal(confirm.saved['learning-planet-session-v1-math'],original);
 confirm.run('document.getElementById("start").onclick();continueSaved.onclick()');assert.equal(confirm.run('level'),1);
 confirm.run('saveExitButton.onclick();level=2;document.getElementById("start").onclick();confirmRestart.onclick()');assert.equal(confirm.run('level'),2);assert.equal(confirm.run('adventureActive'),true);
 confirm.run('saveExitButton.onclick();subject="english";level=1;document.getElementById("start").onclick()');assert.ok(confirm.run('readSession("math")'));assert.equal(confirm.run('pendingRestart'),null);

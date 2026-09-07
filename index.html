@@ -31,6 +31,9 @@
     #saveExit:hover{background:#d2ebdd}#saveExit svg{width:18px;height:18px;flex-shrink:0}
     .saved-list{display:grid;gap:10px;margin:16px 0}.saved-list button{margin:0;width:100%;min-width:0}.learning-note{font-size:1rem;line-height:1.6;color:var(--muted)}
     .parent-records{text-align:left;margin-top:28px;border-top:2px solid #dfe7fb;padding-top:18px}.parent-records summary{cursor:pointer;min-height:44px;font-weight:900;color:#3157b7}.record-card{padding:16px;margin-top:12px;border:1px solid #cbd8fa;border-radius:16px;background:#fff}.record-card h3{margin:0 0 10px}.record-card p{margin:8px 0;line-height:1.6;font-size:1rem}.record-card ul{padding-left:22px;line-height:1.7}
+    .restart-dialog{width:min(480px,calc(100% - 32px));max-height:calc(100svh - 40px);overflow:auto;padding:28px;border:2px solid #cbd8fa;border-radius:24px;background:#f8fbff;color:var(--ink);box-shadow:0 24px 80px #0005;text-align:center}
+    .restart-dialog::backdrop{background:#07152fbf}.restart-dialog h2{margin:0 0 16px;font-size:1.5rem;line-height:1.4}.restart-dialog p{font-size:1rem;line-height:1.7;color:var(--muted)}
+    .restart-dialog .secondary{display:block;width:100%;margin:12px 0 0;min-height:52px}.restart-dialog .secondary:first-of-type{background:#e6f5eb;border-color:#accfbb;color:#18583a}
   </style>
 </head>
 <body>
@@ -443,13 +446,16 @@
     const showWithReviewOutcome=show;
     show=function(id){showWithReviewOutcome(id);if(id!=='finish')return;scorePanel.style.display=reviewMode?'none':'';reviewOutcome.classList.toggle('hidden',!reviewMode);if(reviewMode){const e=learning[subject].events.filter(e=>e.id.startsWith(sessionId+':review:'));reviewOutcome.textContent='完成 '+reviewDeck.length+' 題複習，其中 '+e.filter(x=>x.correct&&x.id.endsWith(':first')).length+' 題首次答對。';$('finishText').textContent='獨立首次答對 '+e.filter(x=>x.correct&&x.id.endsWith(':first')&&x.hintUsed===false).length+' 題，看提示首次答對 '+e.filter(x=>x.correct&&x.id.endsWith(':first')&&x.hintUsed===true).length+' 題。複習不補星、不解鎖，每次練習都有收穫。'}};
     let pendingRestart=null;
-    const restartPanel=document.createElement('section');restartPanel.className='record-card hidden';restartPanel.setAttribute('aria-label','重新開始確認');
-    const restartText=document.createElement('p');restartPanel.appendChild(restartText);
-    const continueSaved=document.createElement('button');continueSaved.className='secondary';continueSaved.textContent='繼續原進度';restartPanel.appendChild(continueSaved);
+    const restartPanel=document.createElement('dialog');restartPanel.className='restart-dialog';restartPanel.setAttribute('aria-labelledby','restartTitle');restartPanel.setAttribute('aria-describedby','restartDescription');
+    const restartTitle=document.createElement('h2');restartTitle.id='restartTitle';restartTitle.textContent='要繼續，還是重新開始？';restartPanel.appendChild(restartTitle);
+    const restartText=document.createElement('p');restartText.id='restartDescription';restartPanel.appendChild(restartText);
+    const continueSaved=document.createElement('button');continueSaved.className='secondary';continueSaved.textContent='繼續原進度';continueSaved.setAttribute('autofocus','');restartPanel.appendChild(continueSaved);
     const confirmRestart=document.createElement('button');confirmRestart.className='secondary';confirmRestart.textContent='確定重新開始';restartPanel.appendChild(confirmRestart);
-    const cancelRestart=document.createElement('button');cancelRestart.className='secondary';cancelRestart.textContent='取消';restartPanel.appendChild(cancelRestart);$('start').after(restartPanel);
-    function hideRestart(){pendingRestart=null;restartPanel.classList.add('hidden')}
-    function requestStart(){if(!readSession()){hideRestart();begin();return}pendingRestart={subject,level};restartText.textContent=labels[subject]+'已有未完成進度。重新開始第 '+level+' 關會取代它，要怎麼做？';restartPanel.classList.remove('hidden')}
+    const cancelRestart=document.createElement('button');cancelRestart.className='secondary';cancelRestart.textContent='取消';restartPanel.appendChild(cancelRestart);$('app').appendChild(restartPanel);
+    function hideRestart(){pendingRestart=null;if(restartPanel.open)restartPanel.close()}
+    restartPanel.oncancel=event=>{event.preventDefault();hideRestart()};
+    restartPanel.onclose=()=>{pendingRestart=null};
+    function requestStart(){if(!readSession()){hideRestart();begin();return}pendingRestart={subject,level};restartText.textContent=labels[subject]+'已有未完成進度。重新開始第 '+level+' 關會取代原本的存檔。';if(!restartPanel.open)restartPanel.showModal()}
     continueSaved.onclick=()=>{if(!pendingRestart)return;const kind=pendingRestart.subject;hideRestart();restoreSession(kind)};
     confirmRestart.onclick=()=>{if(!pendingRestart)return;const target=pendingRestart;hideRestart();subject=target.subject;level=target.level;begin()};cancelRestart.onclick=hideRestart;
     const updateBeforeRestart=updateStart;updateStart=function(){hideRestart();updateBeforeRestart()};
