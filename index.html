@@ -279,7 +279,7 @@
     function newReviewQuestion(old){
       if(subject==='focus'){
         const type=['符號偵探','找不同','規律接龍','記憶背包','指令導航','目標搜尋'].indexOf(old.prompt);
-        for(let i=0;i<100;i++){const q=focusChallenge(type<0?0:type);if(q.display!==old.display)return q}
+        for(let i=0;i<100;i++){const q=focusChallenge(type<0?0:type);if(questionKey(q)!==questionKey(old))return q}
       }
       if(subject==='math'){for(let i=0;i<200;i++){const d=math();if(d[0]===old.prompt&&d[1]!==old.display)return {prompt:d[0],display:d[1],choices:d[2],answer:d[3],hint:d[4]}}}
       if(subject==='english'){
@@ -319,12 +319,12 @@
       if(!first&&!correct)return;
       const kind=reviewMode?'review':first?'first':'retry',id=sessionId+':'+(reviewMode?'review:':'')+round+':'+(first?'first':'retry');
       if(d.events.some(e=>e.id===id))return;
-      d.events.push({id,kind,type:topic(current),correct,at:Date.now(),level});d.events=d.events.slice(-600);
+      d.events.push({id,kind,type:topic(current),correct,hintUsed:!!current.hintUsed,at:Date.now(),level});d.events=d.events.slice(-600);
       if(first){
         const key=current.mistakeId||level+':'+current.prompt+':'+current.display;
         let m=d.mistakes.find(x=>x.id===key);
         if(!correct){if(!m){m={id:key,q:JSON.parse(JSON.stringify(current)),level:current.sourceLevel||level,due:Date.now(),success:0};d.mistakes.push(m)}m.due=Date.now()+DAY;m.success=0;current.mistakeId=key}
-        else if(m&&m.due<=Date.now()){m.success=(m.success||0)+1;m.due=Date.now()+DAY*(m.success===1?3:7);if(m.success>=2)d.mistakes=d.mistakes.filter(x=>x!==m)}
+        else if(m&&m.due<=Date.now()&&!current.hintUsed){m.success=(m.success||0)+1;m.due=Date.now()+DAY*(m.success===1?3:7);if(m.success>=2)d.mistakes=d.mistakes.filter(x=>x!==m)}
         d.mistakes=d.mistakes.slice(-40);
       }
       persistLearning();
@@ -401,7 +401,59 @@
       if(!q)q=uniqueFallback();
       rememberQuestion(q);return q;
     };
-    const baseRender=render;render=function(restored=null){baseRender(restored);$('totalLabel').textContent=(reviewMode?reviewDeck.length:TOTAL)+' 題';if(current.spaced)$('prompt').textContent='複習小任務 · '+current.prompt;if(difficultyTier===-1&&!locked&&!previewing)$('hint').classList.remove('hidden')};
+    const baseRender=render;render=function(restored=null){baseRender(restored);$('totalLabel').textContent=(reviewMode?reviewDeck.length:TOTAL)+' 題';if(current.spaced)$('prompt').textContent='複習小任務 · '+current.prompt;if(difficultyTier===-1&&round<2&&!locked&&!previewing){$('hint').classList.remove('hidden');current.hintUsed=true;saveSession()}};
+    // Track assistance on the question itself so hiding a hint or resuming cannot erase it.
+    $('hintBtn').onclick=()=>{if(locked||previewing)return;const opening=$('hint').classList.contains('hidden');$('hint').classList.toggle('hidden');if(opening){current.hintUsed=true;saveSession()}};
+    function skillKey(q){
+      const prompt=q.prompt.replace(/ · 再練一次$/,'');
+      if(subject==='math')return topic({...q,prompt});
+      if(subject==='english'){const source=q.sourceLevel||level;return '英文第'+source+'關'}
+      if(subject==='focus')return prompt+(prompt==='指令導航'?(q.display.includes('相反')?'相反':'相同'):'');
+      return /量詞/.test(prompt)?'量詞':/反義|相反/.test(prompt)?'反義':/近義|相近/.test(prompt)?'近義':/成語/.test(prompt)?'成語':/正確的字|錯別字|正確的詞語/.test(prompt)?'用字':/連接|接龍/.test(prompt)?'連接詞':prompt;
+    }
+    function matchedReview(old,used=[]){
+      const previousLevel=level;try{
+        level=old.sourceLevel||level;
+        const candidates=Array.from({length:32},()=>newReviewQuestion(old));
+        if(subject==='english')candidates.push(...englishCandidates());if(subject==='chinese')candidates.push(...chineseCandidates());
+        const matching=candidates.filter(q=>validQuestion(q)&&skillKey(q)===skillKey(old)&&questionKey(q)!==questionKey(old));
+        const q=chooseFresh(matching,used);
+        return q?{...q,hintUsed:false,mistakeId:old.mistakeId,sourceLevel:level,reviewSkill:skillKey(old)}:null;
+      }finally{level=previousLevel}
+    }
+    reviewButton.onclick=()=>{
+      if(!wrongQuestions.length)return;reviewDeck=[];
+      for(const old of wrongQuestions){const q=matchedReview(old,reviewDeck.map(questionKey));if(q)reviewDeck.push(q)}
+      if(!reviewDeck.length){$('finishText').textContent='這次暫時沒有足夠的同題型新題，錯題仍保留，下次再練習。';return}
+      reviewMode=true;round=0;streak=0;paused=false;adventureActive=true;show('game');render();
+    };
+    spacedQuestion=function(m){const previousTier=difficultyTier;try{difficultyTier=0;const q=matchedReview({...m.q,mistakeId:m.id,sourceLevel:m.level},seenQuestions);return q?{...q,spaced:true}:null}finally{difficultyTier=previousTier}};
+    const recordWithAssistance=recordAnswer;
+    recordAnswer=function(choice){
+      // Legacy review questions may point at an unrelated old mistake: detach that link.
+      if(current.mistakeId){const m=learning[subject].mistakes.find(x=>x.id===current.mistakeId);if(m){const previousLevel=level;let matches;try{level=m.level;matches=skillKey({...current,sourceLevel:current.sourceLevel||level})===skillKey({...m.q,sourceLevel:m.level})}finally{level=previousLevel}if(!matches)delete current.mistakeId}}
+      recordWithAssistance(choice);
+    };
+    recordStage=function(){const d=learning[subject];if(d.stages.some(s=>s.id===sessionId))return;const events=d.events.filter(e=>e.id.startsWith(sessionId+':')&&e.kind==='first');const tracked=events.length===TOTAL&&events.every(e=>typeof e.hintUsed==='boolean');d.stages.push({id:sessionId,level,stars,independent:tracked?events.filter(e=>e.correct&&e.hintUsed===false).length:null,at:Date.now(),difficulty:difficultyTier});d.stages=d.stages.slice(-100);persistLearning()};
+    nextDifficulty=function(kind){const recent=learning[kind].stages.filter(s=>Number.isInteger(s.independent)).slice(-2);if(recent.length<2)return 0;const correct=recent.reduce((sum,s)=>sum+s.independent,0);return correct>=14?1:correct<=7?-1:0};
+    const oldParentRecords=renderParentRecords;
+    renderParentRecords=function(){oldParentRecords();difficultyNote.textContent='依最近兩關未看提示的首次答對表現調整難度；提示仍可得星，不計速度。舊錯題到期時穿插最多 2 題。';for(let i=0;i<Object.keys(labels).length;i++){const kind=Object.keys(labels)[i],d=learning[kind],first=d.events.filter(e=>e.kind==='first'&&e.correct),p=document.createElement('p');p.textContent='首次答對中：獨立 '+first.filter(e=>e.hintUsed===false).length+' 題｜看提示 '+first.filter(e=>e.hintUsed===true).length+' 題｜舊紀錄未區分 '+first.filter(e=>typeof e.hintUsed!=='boolean').length+' 題';parentContent.children[i+1].appendChild(p)}};
+    const scorePanel=$('finishScore').parentElement;
+    const reviewOutcome=document.createElement('p');reviewOutcome.className='intro hidden';$('finishText').before(reviewOutcome);
+    const showWithReviewOutcome=show;
+    show=function(id){showWithReviewOutcome(id);if(id!=='finish')return;scorePanel.style.display=reviewMode?'none':'';reviewOutcome.classList.toggle('hidden',!reviewMode);if(reviewMode){const e=learning[subject].events.filter(e=>e.id.startsWith(sessionId+':review:'));reviewOutcome.textContent='完成 '+reviewDeck.length+' 題複習，其中 '+e.filter(x=>x.correct&&x.id.endsWith(':first')).length+' 題首次答對。';$('finishText').textContent='獨立首次答對 '+e.filter(x=>x.correct&&x.id.endsWith(':first')&&x.hintUsed===false).length+' 題，看提示首次答對 '+e.filter(x=>x.correct&&x.id.endsWith(':first')&&x.hintUsed===true).length+' 題。複習不補星、不解鎖，每次練習都有收穫。'}};
+    let pendingRestart=null;
+    const restartPanel=document.createElement('section');restartPanel.className='record-card hidden';restartPanel.setAttribute('aria-label','重新開始確認');
+    const restartText=document.createElement('p');restartPanel.appendChild(restartText);
+    const continueSaved=document.createElement('button');continueSaved.className='secondary';continueSaved.textContent='繼續原進度';restartPanel.appendChild(continueSaved);
+    const confirmRestart=document.createElement('button');confirmRestart.className='secondary';confirmRestart.textContent='確定重新開始';restartPanel.appendChild(confirmRestart);
+    const cancelRestart=document.createElement('button');cancelRestart.className='secondary';cancelRestart.textContent='取消';restartPanel.appendChild(cancelRestart);$('start').after(restartPanel);
+    function hideRestart(){pendingRestart=null;restartPanel.classList.add('hidden')}
+    function requestStart(){if(!readSession()){hideRestart();begin();return}pendingRestart={subject,level};restartText.textContent=labels[subject]+'已有未完成進度。重新開始第 '+level+' 關會取代它，要怎麼做？';restartPanel.classList.remove('hidden')}
+    continueSaved.onclick=()=>{if(!pendingRestart)return;const kind=pendingRestart.subject;hideRestart();restoreSession(kind)};
+    confirmRestart.onclick=()=>{if(!pendingRestart)return;const target=pendingRestart;hideRestart();subject=target.subject;level=target.level;begin()};cancelRestart.onclick=hideRestart;
+    const updateBeforeRestart=updateStart;updateStart=function(){hideRestart();updateBeforeRestart()};
+    $('start').onclick=requestStart;$('again').onclick=requestStart;
     renderLevels();showSaved();
   </script>
 </body>

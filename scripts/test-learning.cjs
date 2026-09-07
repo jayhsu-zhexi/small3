@@ -6,7 +6,7 @@ const DAY=86400000;
 function boot(saved={}){
   let now=1800000000000,timers=[],fail=false;
   const elements=new Map();
-  function el(){const classes=new Set();return {children:[],dataset:{},style:{},textContent:'',checked:false,parentElement:{after(){}},
+  function el(){const classes=new Set();return {children:[],dataset:{},style:{},textContent:'',checked:false,parentElement:{style:{},after(){}},
     classList:{add:(...xs)=>xs.forEach(x=>classes.add(x)),remove:(...xs)=>xs.forEach(x=>classes.delete(x)),contains:x=>classes.has(x),toggle(x,on){if(on===undefined)on=!classes.has(x);on?classes.add(x):classes.delete(x)}},
     appendChild(x){this.children.push(x)},before(){},after(){},remove(){},setAttribute(){},set innerHTML(v){this.children=[]},get innerHTML(){return ''}}}
   const get=id=>{if(!elements.has(id))elements.set(id,el());return elements.get(id)};
@@ -81,11 +81,11 @@ console.log('PASS: due reviews across days and stages, resume the same review, r
 
 const adaptive=boot();
 for(const kind of ['math','chinese','english','focus']){
-  adaptive.run(`subject='${kind}';learning[subject].stages=[{stars:7},{stars:8}];level=1;begin()`);
+  adaptive.run(`subject='${kind}';learning[subject].stages=[{stars:7,independent:7},{stars:8,independent:8}];level=1;begin()`);
   assert.equal(adaptive.run('difficultyTier'),1);assert.equal(adaptive.run('level'),1);
   adaptive.run('saveExitButton.onclick();restoreSession()');assert.equal(adaptive.run('difficultyTier'),1);
-  adaptive.run('learning[subject].stages=[{stars:3},{stars:4}];begin()');assert.equal(adaptive.run('difficultyTier'),-1);
-  adaptive.run('learning[subject].stages=[{stars:6},{stars:5}];begin()');assert.equal(adaptive.run('difficultyTier'),0);
+  adaptive.run('learning[subject].stages=[{stars:3,independent:3},{stars:4,independent:4}];begin()');assert.equal(adaptive.run('difficultyTier'),-1);
+  adaptive.run('learning[subject].stages=[{stars:6,independent:6},{stars:5,independent:5}];begin()');assert.equal(adaptive.run('difficultyTier'),0);
 }
 adaptive.run("subject='focus';level=1;difficultyTier=-1");assert.equal(adaptive.run('focusChallenge(0).answer.length'),2);
 adaptive.run('difficultyTier=1');assert.equal(adaptive.run('focusChallenge(0).answer.length'),4);
@@ -106,7 +106,7 @@ for(const [kind,max] of Object.entries({math:3,chinese:3,english:6,focus:12})){
   const game=boot();
   for(let stage=1;stage<=max;stage++)for(const tier of [-1,0,1])for(let replay=0;replay<3;replay++){
     const score=tier<0?3:tier>0?8:5;
-    game.run(`subject='${kind}';level=${stage};learning[subject].stages=[{stars:${score}},{stars:${score}}];begin()`);
+    game.run(`subject='${kind}';level=${stage};learning[subject].stages=[{stars:${score},independent:${score}},{stars:${score},independent:${score}}];begin()`);
     const seen=new Set();
     for(let r=0;r<8;r++){
       if(r)game.run(`round=${r};render()`);
@@ -140,3 +140,45 @@ console.log('PASS: mistake-review decks and normal rounds with injected due revi
 const forced=boot();forced.run('begin();const fixed=current;generatedCandidates=()=>[fixed];round=1;render()');
 assert.notEqual(forced.run('questionKey(current)'),forced.run('questionKey(fixed)'));
 console.log('PASS: repeated random candidates use a fresh fallback, never an already played question.');
+
+const assisted=boot();assisted.run('begin();document.getElementById("hintBtn").onclick();document.getElementById("hintBtn").onclick();saveExitButton.onclick();restoreSession()');
+assert.equal(assisted.run('current.hintUsed'),true,'Hiding a hint or resuming cannot clear assistance');
+assisted.answer();assert.equal(assisted.run('stars'),1,'Assisted first answers still earn stars');
+assert.equal(assisted.run('learning.math.events[0].hintUsed'),true);
+assisted.run('advance()');assisted.answer();assert.equal(assisted.run('learning.math.events[1].hintUsed'),false);
+for(let r=2;r<8;r++){assisted.run('advance()');assisted.answer()}
+assisted.run('advance()');assert.equal(assisted.run('learning.math.stages[0].independent'),7);
+assisted.run('learning.math.stages=[{stars:8,independent:3},{stars:8,independent:4}]');assert.equal(assisted.run("nextDifficulty('math')"),-1);
+assisted.run('learning.math.stages=[{stars:8},{stars:8}]');assert.equal(assisted.run("nextDifficulty('math')"),0,'Unclassified old records cannot raise difficulty');
+console.log('PASS: assistance persists, still earns stars, and difficulty uses only tracked independent answers.');
+
+const confirm=boot();confirm.run('begin();saveExitButton.onclick()');const original=confirm.saved['learning-planet-session-v1-math'];
+confirm.run('level=2;document.getElementById("start").onclick()');assert.equal(confirm.saved['learning-planet-session-v1-math'],original);
+assert.equal(confirm.run('pendingRestart.level'),2);confirm.run('cancelRestart.onclick()');assert.equal(confirm.saved['learning-planet-session-v1-math'],original);
+confirm.run('document.getElementById("start").onclick();continueSaved.onclick()');assert.equal(confirm.run('level'),1);
+confirm.run('saveExitButton.onclick();level=2;document.getElementById("start").onclick();confirmRestart.onclick()');assert.equal(confirm.run('level'),2);assert.equal(confirm.run('adventureActive'),true);
+confirm.run('saveExitButton.onclick();subject="english";level=1;document.getElementById("start").onclick()');assert.ok(confirm.run('readSession("math")'));assert.equal(confirm.run('pendingRestart'),null);
+console.log('PASS: same-subject overwrite requires confirmation; cancel/continue and switching subjects preserve saves.');
+
+for(const kind of ['math','chinese','english','focus']){
+  const sameSkill=boot();sameSkill.run(`subject='${kind}';level=${kind==='english'?3:1};begin()`);
+  for(let r=0;r<8;r++){sameSkill.answer(false);sameSkill.flush();sameSkill.answer();sameSkill.run('advance()')}
+  sameSkill.run('reviewButton.onclick()');
+  assert.ok(sameSkill.run('reviewDeck.length')>0);
+  assert.equal(sameSkill.run('reviewDeck.every(q=>{const old=wrongQuestions.find(x=>x.mistakeId===q.mistakeId);return skillKey(q)===skillKey(old)&&questionKey(q)!==questionKey(old)})'),true);
+  const length=sameSkill.run('reviewDeck.length');sameSkill.run('document.getElementById("hintBtn").onclick()');
+  for(let r=0;r<length;r++){sameSkill.answer();sameSkill.run('advance()')}
+  assert.equal(sameSkill.run('scorePanel.style.display'),'none');
+  assert.ok(sameSkill.run('reviewOutcome.textContent').includes('完成 '+length+' 題'));
+  assert.ok(sameSkill.run('document.getElementById("finishText").textContent').includes('看提示首次答對 1 題'));
+  sameSkill.run('begin();round=7;pendingAdvance=true;advance()');assert.equal(sameSkill.run('scorePanel.style.display'),'');
+}
+console.log('PASS: review questions stay on the original skill, differ from the source, and show current review results without old stars.');
+
+const mastery=boot();mastery.run('begin()');mastery.answer(false);mastery.flush();mastery.answer();mastery.run('saveExitButton.onclick()');mastery.days(2);
+mastery.run('begin();round=2;render();document.getElementById("hintBtn").onclick()');mastery.answer();
+assert.equal(mastery.run('learning.math.mistakes[0].success'),0,'Assisted review cannot retire the mistake');
+const stale=boot();stale.run('begin()');stale.answer(false);stale.flush();stale.answer();stale.run('saveExitButton.onclick()');stale.days(2);
+stale.run('begin();round=2;render();current.prompt="其他題型"');stale.answer();
+assert.equal(stale.run('learning.math.mistakes[0].success'),0,'Unrelated legacy review cannot retire the mistake');
+console.log('PASS: assisted and unrelated legacy review answers do not advance original mistake mastery.');
