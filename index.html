@@ -460,6 +460,103 @@
     confirmRestart.onclick=()=>{if(!pendingRestart)return;const target=pendingRestart;hideRestart();subject=target.subject;level=target.level;begin()};cancelRestart.onclick=hideRestart;
     const updateBeforeRestart=updateStart;updateStart=function(){hideRestart();updateBeforeRestart()};
     $('start').onclick=requestStart;$('again').onclick=requestStart;
+    // More items within the existing topics; no new levels or reset of saved decks.
+    englishWords[2].push(['zero','0'],...['eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen','twenty'].map((word,i)=>[word,String(i+11)]));
+    englishWords[3].push(['gray','灰色'],['light blue','淺藍色'],['dark blue','深藍色'],['light green','淺綠色'],['dark green','深綠色'],['light pink','淺粉紅色']);
+    englishWords[4].push(['horse','馬'],['cow','乳牛'],['sheep','綿羊'],['goat','山羊'],['chicken','雞'],['mouse','老鼠'],['tiger','老虎'],['lion','獅子'],['elephant','大象'],['zebra','斑馬'],['giraffe','長頸鹿'],['turtle','烏龜'],['snake','蛇'],['bee','蜜蜂']);
+    englishWords[5].push(['pencil case','鉛筆盒'],['schoolbag','書包'],['scissors','剪刀'],['glue','膠水'],['paper','紙'],['marker','麥克筆'],['folder','資料夾'],['dictionary','字典'],['lunch box','午餐盒'],['water bottle','水壺'],['clock','時鐘'],['door','門'],['window','窗戶'],['board','黑板']);
+    englishSentences.push(
+      ['想請別人幫忙時，可以說什麼？','Help me, please.',['Good night.','I am ten.','It is blue.'],'please 表示「請」，help 表示幫忙。'],
+      ['不小心踩到別人的腳，要說什麼？',"I'm sorry.",['I am happy.','Good morning.','It is a pen.'],'做錯事時，要向對方道歉。'],
+      ['朋友說「Thank you.」，可以怎麼回答？',"You're welcome.",['I am nine.','Open your book.','It is red.'],'這句話表示「不客氣」。'],
+      ['「Close your book.」要你做什麼？','把書合起來。',['把書打開。','站起來。','喝水。'],'close 表示關上、合起來。'],
+      ['「Raise your hand.」要你做什麼？','舉手。',['坐下。','跑步。','關門。'],'hand 是手，raise 表示舉起。'],
+      ['「Wash your hands.」要你做什麼？','洗手。',['洗臉。','刷牙。','喝水。'],'wash 是洗，hands 是雙手。'],
+      ['「I am hungry.」是什麼意思？','我餓了。',['我累了。','我口渴了。','我很冷。'],'hungry 表示肚子餓。'],
+      ['「I am thirsty.」是什麼意思？','我口渴了。',['我餓了。','我很高興。','我九歲。'],'想喝水時，可以說 thirsty。'],
+      ['「I am happy.」是什麼意思？','我很開心。',['我很難過。','我很累。','我很冷。'],'happy 是開心的。'],
+      ['「How old are you?」在問什麼？','你幾歲？',['你叫什麼名字？','它是什麼顏色？','你在哪裡？'],'old 在這裡用來詢問年齡。'],
+      ['「See you tomorrow.」是什麼意思？','明天見。',['早安。','謝謝你。','我很抱歉。'],'tomorrow 是明天。'],
+      ['「It is a dog.」是什麼意思？','牠是一隻狗。',['牠是一隻貓。','這是一本書。','我喜歡鳥。'],'dog 是狗。']
+    );
+    for(const [word,answer,wrong] of [
+      ['快','慢',['高','亮','長']],['大','小',['多','遠','新']],['長','短',['寬','高','重']],['新','舊',['早','近','直']],['乾淨','骯髒',['整齊','美麗','安靜']],['明亮','黑暗',['晴朗','溫暖','熱鬧']],['開始','結束',['出發','進行','努力']],['安靜','吵鬧',['平靜','寧靜','小聲']]
+    ])chinese.push(['選出反義詞','「'+word+'」的相反詞是？',[answer,...wrong],answer,'想一想，哪個詞和「'+word+'」的意思相反？']);
+    for(const [word,answer,wrong] of [
+      ['高興','開心',['生氣','傷心','害怕']],['難過','傷心',['快樂','興奮','得意']],['安靜','寧靜',['吵鬧','熱鬧','喧嘩']],['仔細','細心',['粗心','馬虎','大意']],['巨大','龐大',['微小','細小','狹小']],['喜愛','喜歡',['討厭','害怕','拒絕']]
+    ])chinese.push(['找出近義詞','「'+word+'」和哪個詞最接近？',[answer,...wrong],answer,'找出意思和「'+word+'」相近的詞。']);
+    for(const [thing,answer,wrong] of [
+      ['花','朵',['本','隻','條']],['書','本',['棵','隻','朵']],['狗','隻',['本','張','朵']],['桌子','張',['朵','隻','本']],['山','座',['隻','本','枝']],['衣服','件',['棵','朵','座']],['鞋子','雙',['棵','朵','座']],['白雲','朵',['枝','本','隻']]
+    ])chinese.push(['選出量詞','一＿＿'+thing,[answer,...wrong],answer,'想想我們平常怎麼計算'+thing+'。']);
+    chineseAdvanced.push(
+      ['選出標題','文章說明洗手時要搓洗手心、手背和指縫，再用清水沖乾淨。哪個標題最適合？',['正確洗手的方法','我的新鞋子','公園裡的鳥','美麗的星空'],'正確洗手的方法','整段都在介紹怎麼洗手。'],
+      ['選出標題','文章介紹圖書館的借書方法、還書期限和保持安靜的規定。哪個標題最適合？',['圖書館使用指南','好吃的點心','海邊的貝殼','快樂的運動會'],'圖書館使用指南','標題要包含文章主要介紹的內容。'],
+      ['選出標題','文章記錄把種子埋進土裡、澆水，直到長出小芽的過程。哪個標題最適合？',['種子發芽了','我的鉛筆盒','一次游泳比賽','夜晚的月亮'],'種子發芽了','注意種子從播種到發芽的變化。'],
+      ['讀懂比喻','「月亮像一艘小船」把月亮比作什麼？',['小船','星星','太陽','雲朵'],'小船','找出「像」後面的事物。'],
+      ['讀懂比喻','「露珠像晶亮的珍珠」把露珠比作什麼？',['珍珠','石頭','葉子','雨傘'],'珍珠','找出用來形容露珠的事物。'],
+      ['讀懂比喻','「紅紅的楓葉像小手掌」把楓葉比作什麼？',['小手掌','小雨滴','小星星','小船'],'小手掌','比一比楓葉和手掌的形狀。'],
+      ['成語小偵探','「手忙腳亂」形容什麼？',['忙亂而沒有條理','做事井井有條','安靜地休息','開心地散步'],'忙亂而沒有條理','想想手和腳都忙不過來的樣子。'],
+      ['成語小偵探','「大吃一驚」形容什麼？',['非常驚訝','吃了很多東西','非常開心','肚子很餓'],'非常驚訝','這裡的「吃驚」不是吃東西。'],
+      ['成語小偵探','「東張西望」形容什麼？',['到處張望','專心閱讀','閉眼休息','低頭寫字'],'到處張望','一下看東邊，一下看西邊。'],
+      ['句子接龍','＿＿小華跌倒了，＿＿他仍勇敢地爬起來。',['雖然／但是','因為／所以','不但／而且','先／再'],'雖然／但是','後面的行動和原本可能的情況不同，是轉折。'],
+      ['閱讀理解','小明把書借給小華，約好星期五歸還。誰要在星期五還書？',['小華','小明','老師','妹妹'],'小華','借到書的人，需要把書還回去。'],
+      ['閱讀理解','媽媽把水果洗乾淨後，才切成小塊。媽媽先做什麼？',['洗水果','切水果','吃水果','買水果'],'洗水果','留意「後，才」之前的動作。']
+    );
+    chinese.push(
+      ['哪個詞語最適合？','小安每天主動整理書桌，還幫忙掃地，做事很＿＿。',['勤勞','懶惰','粗心','吵鬧'],'勤勞','主動做事、願意付出力氣，就是勤勞。'],
+      ['哪個句子最通順？','選出排列正確的句子。',['妹妹在房間裡看書。','在妹妹書看房間裡。','房間裡書妹妹看在。','看書裡房間妹妹在。'],'妹妹在房間裡看書。','先說誰，再說在哪裡做什麼。'],
+      ['讀一讀，找答案','小美聽見下課鐘響，同學們開始收起課本。接下來最可能發生什麼？',['大家下課休息','大家正在考試','學校開始放寒假','老師宣布明天停課'],'大家下課休息','下課鐘響和收課本都是線索。']
+    );
+    chineseAdvanced.push(
+      ['閱讀推論','小華穿上泳衣、戴好泳帽，走到泳池邊。他最可能準備做什麼？',['游泳','爬山','畫畫','踢足球'],'游泳','泳衣、泳帽和泳池提供了線索。'],
+      ['閱讀主旨','小玲學騎車時跌倒了好幾次，仍繼續練習，終於學會了。這段話告訴我們？',['持續練習能帶來進步','學騎車一定很容易','跌倒就應該放棄','只要看別人騎就會了'],'持續練習能帶來進步','注意她繼續練習後的結果。'],
+      ['選出病句','哪個句子需要修改？',['我用耳朵聞花香。','哥哥用眼睛看書。','妹妹用手拿杯子。','小狗在草地上奔跑。'],'我用耳朵聞花香。','聞氣味要用鼻子，不是耳朵。'],
+      ['找出正確關係','「鳥：鳥巢」就像「蜜蜂：＿＿」。',['蜂巢','花朵','蜂蜜','翅膀'],'蜂巢','前後是在配對動物和牠住的地方。'],
+      ['改寫句子','「姐姐收好了玩具。」改成把字句是？',['姐姐把玩具收好了。','玩具把姐姐收好了。','收好玩具的是弟弟。','姐姐玩具把了收好。'],'姐姐把玩具收好了。','誰＋把＋東西＋怎麼了。'],
+      ['讀懂句子','雖然小明很累，但是他仍把功課寫完。哪個說法正確？',['小明完成了功課','小明沒有寫功課','小明一點也不累','小明正在上體育課'],'小明完成了功課','「仍把功課寫完」說明他完成了。']
+    );
+    // One voluntary, unscored example for each rule used in the selected focus stage.
+    const focusLesson=document.createElement('dialog');focusLesson.className='restart-dialog';focusLesson.setAttribute('aria-labelledby','lessonTitle');
+    const lessonTitle=document.createElement('h2');lessonTitle.id='lessonTitle';focusLesson.appendChild(lessonTitle);
+    const lessonNote=document.createElement('p');lessonNote.textContent='先試一題，不計分，也不影響存檔。';focusLesson.appendChild(lessonNote);
+    const lessonDisplay=document.createElement('p');lessonDisplay.style.fontSize='1.5rem';focusLesson.appendChild(lessonDisplay);
+    const lessonRemember=document.createElement('button');lessonRemember.className='secondary';lessonRemember.textContent='我記好了，藏起圖案';focusLesson.appendChild(lessonRemember);
+    const lessonChoices=document.createElement('div');lessonChoices.className='answers';focusLesson.appendChild(lessonChoices);
+    const lessonFeedback=document.createElement('p');lessonFeedback.setAttribute('aria-live','polite');focusLesson.appendChild(lessonFeedback);
+    const lessonNext=document.createElement('button');lessonNext.className='secondary';focusLesson.appendChild(lessonNext);
+    const lessonSkip=document.createElement('button');lessonSkip.className='secondary';lessonSkip.textContent='我會了，直接開始';focusLesson.appendChild(lessonSkip);
+    const lessonCancel=document.createElement('button');lessonCancel.className='secondary';lessonCancel.textContent='返回選關';focusLesson.appendChild(lessonCancel);$('app').appendChild(focusLesson);
+    let lessonPlan=null,lessonIndex=0,lessonExample=null;
+    function examplesForStage(stage){const types=stage===12?[0,1,2,3,4,5]:[(stage-1)%6,stage%6];return types.map(type=>{
+      const reverse=type===4&&(stage===11||stage===10);
+      return [
+        {title:'符號偵探',text:'目標：★●▲',choices:['★●▲','★▲●','☆●▲','★●△'],answer:'★●▲',help:'從左到右逐個比對，形狀和順序都要相同。'},
+        {title:'找不同',text:'找出和其他三列不同的一列。',choices:['★●▲','★●△','★●▲','★●▲'],answer:'★●△',help:'只有這一列的最後一個圖案是空心三角形。'},
+        {title:'規律接龍',text:'★ ● ★ ● ★ ？',choices:['★','●','▲','□'],answer:'●',help:'一顆星、一個圓輪流出現，所以接圓形。'},
+        {title:'記憶背包',text:'★ ● ▲',choices:['★ ● ▲','● ★ ▲','★ ▲ ●','▲ ● ★'],answer:'★ ● ▲',help:'先記住順序，藏起來後再選；不用搶快。',memory:true},
+        {title:'指令導航',text:(reverse?'選「相反」方向：':'選「相同」方向：')+'↑',choices:['↑','→','↓','←'],answer:reverse?'↓':'↑',help:reverse?'向上的相反方向是向下。':'相同就是一樣，向上就選向上。'},
+        {title:'目標搜尋',text:'數一數「★」：★ ● ★ ▲ ★',choices:['2','3','4','5'],answer:'3',help:'從左到右數，總共有三顆星星。'}
+      ][type];})}
+    function renderLesson(){lessonExample=lessonPlan.examples[lessonIndex];lessonTitle.textContent='玩法示範 '+(lessonIndex+1)+'／'+lessonPlan.examples.length+' · '+lessonExample.title;lessonDisplay.textContent=lessonExample.text;lessonFeedback.textContent='可以試選答案，答錯也沒關係。';lessonRemember.classList.toggle('hidden',!lessonExample.memory);lessonChoices.classList.toggle('hidden',!!lessonExample.memory);lessonChoices.innerHTML='';for(const choice of lessonExample.choices){const b=document.createElement('button');b.className='answer';b.textContent=choice;b.onclick=()=>{lessonFeedback.textContent=(choice===lessonExample.answer?'答對了！':'再看看：')+lessonExample.help};lessonChoices.appendChild(b)}lessonNext.textContent=lessonIndex===lessonPlan.examples.length-1?'開始正式 8 題':'看看下一種玩法'}
+    function closeLesson(){lessonPlan=null;if(focusLesson.open)focusLesson.close()}
+    function startAfterLesson(){if(!lessonPlan)return;const target=lessonPlan.stage;closeLesson();subject='focus';level=target;begin()}
+    function offerLesson(stage){lessonPlan={stage,examples:examplesForStage(stage)};lessonIndex=0;renderLesson();if(!focusLesson.open)focusLesson.showModal()}
+    lessonRemember.onclick=()=>{lessonDisplay.textContent='剛才的順序是什麼？';lessonRemember.classList.add('hidden');lessonChoices.classList.remove('hidden')};
+    lessonNext.onclick=()=>{if(!lessonPlan)return;if(lessonIndex===lessonPlan.examples.length-1)startAfterLesson();else{lessonIndex++;renderLesson()}};lessonSkip.onclick=startAfterLesson;lessonCancel.onclick=closeLesson;focusLesson.oncancel=e=>{e.preventDefault();closeLesson()};
+    const requestBeforeLesson=requestStart;requestStart=function(){if(subject==='focus'&&!readSession()){hideRestart();offerLesson(level)}else requestBeforeLesson()};$('start').onclick=requestStart;$('again').onclick=requestStart;
+    const confirmBeforeLesson=confirmRestart.onclick;confirmRestart.onclick=()=>{if(pendingRestart&&pendingRestart.subject==='focus'){const stage=pendingRestart.level;hideRestart();offerLesson(stage)}else confirmBeforeLesson()};
+    const nextBeforeLesson=$('next').onclick;$('next').onclick=()=>{if(subject==='focus'&&level<stageCount()&&level<unlocks[subject])offerLesson(level+1);else nextBeforeLesson()};
+    // Read only visible English: never secretly pronounce the correct choice.
+    const pronounce=document.createElement('button');pronounce.className='secondary hidden';$('display').after(pronounce);
+    const speechNote=document.createElement('p');speechNote.className='learning-note hidden';speechNote.setAttribute('aria-live','polite');pronounce.after(speechNote);
+    let speechTicket=0;
+    function cancelPronunciation(){speechTicket++;if(window.speechSynthesis)window.speechSynthesis.cancel()}
+    function spokenEnglish(){if(subject!=='english'||!current)return null;const english=s=>/^[A-Za-z0-9\s.,?!'’-]+$/.test(s)&&/[A-Za-z]/.test(s);if(locked&&english(current.answer))return {text:current.answer,label:'聽答案發音'};if(english(current.display))return {text:current.display,label:'朗讀題目英文'};const quote=current.display.match(/「([^」]+)」/);if(quote&&english(quote[1]))return {text:quote[1],label:'朗讀題目英文'};const options=current.choices.filter(english);return options.length?{text:options.join('. '),label:'朗讀英文選項'}:null}
+    function updatePronunciation(){const content=spokenEnglish();pronounce.classList.toggle('hidden',!content);speechNote.classList.add('hidden');if(content)pronounce.textContent='🔊 '+content.label}
+    pronounce.onclick=()=>{const content=spokenEnglish();if(!content)return;speechNote.classList.remove('hidden');if(!window.speechSynthesis||!window.SpeechSynthesisUtterance){speechNote.textContent='這個瀏覽器暫時不支援發音，仍可繼續作答。';return}cancelPronunciation();const ticket=speechTicket;try{const utterance=new window.SpeechSynthesisUtterance(content.text);utterance.lang='en-US';utterance.rate=.8;const voice=window.speechSynthesis.getVoices().find(v=>/^en[-_]/i.test(v.lang));if(voice)utterance.voice=voice;utterance.onend=()=>{if(ticket===speechTicket)speechNote.textContent='可以再按一次重聽。'};utterance.onerror=()=>{if(ticket===speechTicket)speechNote.textContent='暫時無法播放，請確認裝置音量或稍後再試。'};speechNote.textContent='播放中；再按一次可從頭重聽。';window.speechSynthesis.speak(utterance)}catch(e){speechNote.textContent='暫時無法播放，仍可繼續作答。'}};
+    const renderBeforeSpeech=render;render=function(restored=null){cancelPronunciation();renderBeforeSpeech(restored);updatePronunciation()};
+    const answerBeforeSpeech=answer;answer=function(choice,button){const wasLocked=locked;answerBeforeSpeech(choice,button);if(locked&&!wasLocked)cancelPronunciation();updatePronunciation()};
+    const showBeforeSpeech=show;show=function(id){cancelPronunciation();showBeforeSpeech(id)};
     renderLevels();showSaved();
   </script>
 </body>

@@ -183,3 +183,44 @@ const stale=boot();stale.run('begin()');stale.answer(false);stale.flush();stale.
 stale.run('begin();round=2;render();current.prompt="其他題型"');stale.answer();
 assert.equal(stale.run('learning.math.mistakes[0].success'),0,'Unrelated legacy review cannot retire the mistake');
 console.log('PASS: assisted and unrelated legacy review answers do not advance original mistake mastery.');
+
+const content=boot();
+assert.equal(content.run('chinese.length+chineseAdvanced.length'),83);
+for(const bank of ['chinese','chineseAdvanced']){
+  assert.equal(content.run(`new Set(${bank}.map(q=>q[1])).size`),content.run(`${bank}.length`));
+  assert.equal(content.run(`${bank}.every(q=>q[2].length===4&&new Set(q[2]).size===4&&q[2].includes(q[3])&&q[4].length>0)`),true);
+}
+assert.equal(content.run('englishWords[2].length'),21);assert.equal(content.run('englishWords[3].length'),16);
+assert.equal(content.run('englishWords[4].length'),24);assert.equal(content.run('englishWords[5].length'),24);assert.equal(content.run('englishSentences.length'),24);
+assert.equal(content.run('Object.values(englishWords).every(bank=>new Set(bank.map(p=>p[0])).size===bank.length&&new Set(bank.map(p=>p[1])).size===bank.length)'),true);
+console.log('PASS: expanded banks contain 83 Chinese questions, 85 vocabulary/number pairs, and 24 dialogues with distinct valid choices.');
+
+const lesson=boot();lesson.run("subject='focus';level=4;document.getElementById('start').onclick()");
+assert.equal(lesson.run('focusLesson.open'),true);assert.equal(lesson.run('adventureActive'),false);
+assert.equal(lesson.run("lessonChoices.classList.contains('hidden')"),true);lesson.run('lessonRemember.onclick()');
+assert.equal(lesson.run("lessonChoices.classList.contains('hidden')"),false);
+lesson.run('lessonChoices.children[0].onclick()');assert.equal(lesson.run('learning.focus.events.length'),0);assert.equal(lesson.run('stars'),0);
+lesson.run('lessonNext.onclick()');assert.equal(lesson.run('lessonExample.title'),'指令導航');
+lesson.run('lessonNext.onclick()');assert.equal(lesson.run('focusLesson.open'),false);assert.equal(lesson.run('round'),0);assert.equal(lesson.run('adventureActive'),true);
+lesson.run('saveExitButton.onclick()');const checkpoint=lesson.saved['learning-planet-session-v1-focus'];
+lesson.run("document.getElementById('start').onclick();confirmRestart.onclick();lessonCancel.onclick()");assert.equal(lesson.saved['learning-planet-session-v1-focus'],checkpoint);
+lesson.run("document.getElementById('start').onclick();continueSaved.onclick()");assert.equal(lesson.run('focusLesson.open'),false);
+for(let stage=1;stage<=12;stage++){
+  const examples=lesson.run(`examplesForStage(${stage})`);assert.ok(examples.every(q=>q.choices.includes(q.answer)));
+  for(const example of examples.filter(q=>q.title==='指令導航'))assert.equal(example.answer,[10,11].includes(stage)?'↓':'↑');
+}
+lesson.run('saveExitButton.onclick();offerLesson(12);lessonSkip.onclick()');assert.equal(lesson.run('level'),12);assert.equal(lesson.run('round'),0);
+console.log('PASS: focus examples match every stage, memory hides before answering, skip/cancel work, and practice never changes stars, records or saves.');
+
+const speech=boot();speech.run(`window.speechSynthesis={played:[],canceled:0,cancel(){this.canceled++},speak(u){this.played.push(u)},getVoices(){return [{lang:'en-US',name:'Test English'}]}};window.SpeechSynthesisUtterance=function(text){this.text=text};subject='english';level=3;begin()`);
+assert.equal(speech.run('window.speechSynthesis.played.length'),0,'Never autoplay');
+assert.equal(speech.run('spokenEnglish().text'),speech.run('current.choices.join(". ")'),'Chinese-to-English reads all visible options, not just the answer');
+speech.run('pronounce.onclick()');assert.equal(speech.run('window.speechSynthesis.played.length'),1);
+assert.equal(speech.run('window.speechSynthesis.played[0].lang'),'en-US');assert.equal(speech.run('window.speechSynthesis.played[0].rate'),.8);
+speech.run('pronounce.onclick()');assert.equal(speech.run('window.speechSynthesis.played.length'),2);assert.ok(speech.run('window.speechSynthesis.canceled')>=2);
+speech.answer();assert.equal(speech.run('spokenEnglish().text'),speech.run('current.answer'));
+speech.run('advance()');assert.equal(speech.run('window.speechSynthesis.played.length'),2);assert.equal(speech.run('spokenEnglish().text'),speech.run('current.display'));
+speech.run('pronounce.onclick();const latestSpeech=window.speechSynthesis.played.at(-1);saveExitButton.onclick()');
+assert.ok(speech.run('window.speechSynthesis.canceled')>=4);
+speech.run('restoreSession();delete window.speechSynthesis;pronounce.onclick()');assert.ok(speech.run('speechNote.textContent').includes('不支援'));
+console.log('PASS: click-only English speech reads visible content, supports replay, cancels on navigation, and degrades safely when unavailable.');
