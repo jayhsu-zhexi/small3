@@ -4,6 +4,9 @@
   if(!E||!bank){$('saveStatus').textContent='遊戲暫時沒有載入完成，請重新整理再試。';$('startBoard').disabled=true;return;}
   let state=null,selected='cat',busy=false,animationTicket=0,taskViewKey='',updates=[],corrupt=false;
   const taskDialog=$('taskDialog');
+  let residentAnimations=[];
+  function stopResidents(){for(const animation of residentAnimations)animation.cancel?.();residentAnimations=[];}
+  function pauseResidents(){for(const animation of residentAnimations)document.hidden?animation.pause?.():animation.play?.();}
   const audio=window.PlanetBoardAudio?window.PlanetBoardAudio.createAudio(message=>{$('audioStatus').textContent=message}):null;
   function activateAudio(){if(!audio)return;audio.setMusic($('musicSetting').checked);audio.setEffects($('effectsSetting').checked);audio.activate();}
   $('musicSetting').onchange=()=>{$('audioStatus').textContent=$('musicSetting').checked?'輕音樂已開啟，可隨時取消勾選。':'輕音樂已關閉。';activateAudio();};
@@ -49,7 +52,7 @@
   function paint(){
     $('setupCard').classList.toggle('hidden',!!state);$('playCard').classList.toggle('hidden',!state);$('newJourney').classList.toggle('hidden',!state);
     renderPark();renderCharacters();setPosition(state?state.position:0);
-    const level=state?Math.max(state.baseLevel,E.parkOf(state).facilities.length):0,style=state?state.baseStyle:'space';
+    const level=state?Math.min(3,Math.max(state.baseLevel,E.parkOf(state).facilities.length)):0,style=state?state.baseStyle:'space';
     $('baseCenter').dataset.level=String(level);$('baseLevel').textContent='LEVEL '+level+' / 3';
     $('baseName').textContent=level?E.BASES[style][0]+' '+E.STAGES[level]:'你的小小營地';
     $('baseCaption').textContent='建材蓋設施，星星換裝飾。到下方樂園和朋友一起玩！';
@@ -63,7 +66,7 @@
     $('rollButton').disabled=busy||state.phase!=='ready';$('rollButton').classList.toggle('hidden',state.phase==='finished');
     $('resumeTask').classList.toggle('hidden',state.phase==='ready'||busy);$('resumeTask').textContent=state.phase==='finished'?'🏆 看看這趟旅程的成果':'繼續這一站 →';
     $('buildButton').disabled=busy||!['ready','reward','finished'].includes(state.phase);
-    $('buildButton').textContent='🏗️ 蓋設施・換裝飾';
+    $('buildButton').textContent='🏗️ 設施・裝飾・動物朋友';
     const next=Object.entries(E.FACILITIES).find(([id])=>!E.parkOf(state).facilities.includes(id));
     $('buildNote').textContent=next?(state.supplies>=next[1][2]?'可以蓋'+next[1][1]+'了！打開工坊選一個喜歡的。':'再收集 '+(next[1][2]-state.supplies)+' 份建材，就能蓋'+next[1][1]+'。'):'設施都蓋好了！點樂園裡的設施和朋友一起玩。';
   }
@@ -131,7 +134,7 @@
         $('taskCategory').textContent='🏆 每趟旅程，都值得慶祝';$('taskTitle').textContent='旅程完成，樂園繼續長大';$('taskText').textContent='12 次擲骰完成了！今天你和'+E.CHARACTERS[state.character][1]+'走過星球，完成 '+state.events.length+' 個學習任務。';
         const stats=node('div','','result-stats');
         const stars=node('div','這趟獲得的星星');stars.appendChild(node('strong','⭐ '+state.stars));
-        const base=node('div','我的樂園');base.appendChild(node('strong',E.parkOf(state).facilities.length+' 座設施・'+E.parkOf(state).decorations.length+' 種裝飾'));stats.append(stars,base);controls.appendChild(stats);
+        const base=node('div','我的樂園');base.appendChild(node('strong',E.parkOf(state).facilities.length+' 座設施・'+E.parkOf(state).decorations.length+' 種裝飾・'+E.parkOf(state).animals.length+' 位朋友'));stats.append(stars,base);controls.appendChild(stats);
         const list=node('ul','','learning-list');
         for(const kind of ['math','chinese','english','focus']){const events=state.events.filter(e=>e.subject===kind);if(events.length)list.appendChild(node('li',E.INFO[kind].join(' ')+'：'+events.length+' 個任務，獨立 '+events.filter(e=>e.mode==='independent').length+'、提示 '+events.filter(e=>e.mode==='hint').length+'、重試 '+events.filter(e=>e.mode==='retry').length+'、示範 '+events.filter(e=>e.mode==='demo').length+'。'));}
         if(!state.events.length)list.appendChild(node('li','這次遇到了很多驚喜站。下次再來尋找四科任務！'));controls.appendChild(list);
@@ -144,8 +147,28 @@
     for(const update of updates)update();
   }
   function openTask(){if(!state||state.phase==='ready'||busy)return;renderTask();if(!taskDialog.open)taskDialog.showModal();$('taskTitle').focus();}
+  function renderHabitat(park){
+    stopResidents();const yard=$('parkHabitat');yard.replaceChildren();
+    const spots=[[15,27],[48,27],[81,27],[15,65],[48,65],[81,65],[48,46]];
+    park.facilities.forEach((id,i)=>{const landmark=node('div','','habitat-landmark');landmark.style.left=spots[i][0]+'%';landmark.style.top=spots[i][1]+'%';landmark.append(node('span',E.FACILITIES[id][0]),node('small',E.FACILITIES[id][1]));yard.appendChild(landmark);});
+    if(!park.animals.length){yard.appendChild(node('p','用 3 顆星星邀請小狗豆豆，讓花園多一位玩伴！','habitat-empty'));}
+    const paths=park.facilities.length?spots.slice(0,park.facilities.length):[[20,35],[75,35],[50,70]];
+    park.animals.forEach((id,i)=>{
+      const [icon,name,,greeting]=E.ANIMALS[id],animal=button(yard,'',()=>{$('parkMessage').textContent=name+'：'+greeting;audio?.effect('land');},'habitat-animal');
+      animal.setAttribute('aria-label',name+'，點我打招呼');animal.append(node('span',icon),node('small',name));
+      const stops=Array.from({length:3},(_,j)=>paths[(i+j)%paths.length]);animal.style.left=stops[0][0]+'%';animal.style.top=(stops[0][1]+12)+'%';
+      if(animal.animate&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+        const frames=[];
+        for(let j=0;j<3;j++){const [x,y]=stops[j],base=j/3;frames.push({left:x+'%',top:(y+12)+'%',transform:'translate(-50%,-50%) rotate(0deg)',offset:base},{left:x+'%',top:(y+12)+'%',transform:'translate(-50%,-65%) rotate(-9deg)',offset:base+.09},{left:x+'%',top:(y+12)+'%',transform:'translate(-50%,-50%) rotate(9deg)',offset:base+.18});}
+        frames.push({...frames[0],offset:1});const animation=animal.animate(frames,{duration:21000+i*1500,iterations:Infinity,easing:'ease-in-out'});animation.finished?.catch(()=>{});residentAnimations.push(animation);
+      }
+    });
+    $('parkResidents').textContent=park.animals.length?'已入住 '+park.animals.length+' 位朋友：'+park.animals.map(id=>E.ANIMALS[id][1]).join('、')+'。牠們會自己散步玩耍，也可以點牠們打招呼。':'動物入住後，會在這裡散步、到設施旁玩耍；下一趟旅程也會留下。';
+    pauseResidents();
+  }
   function renderPark(){
-    const park=state?E.parkOf(state):{facilities:[],decorations:[]};
+    const park=state?E.parkOf(state):{facilities:[],decorations:[],animals:[]};
+    renderHabitat(park);
     $('parkShop').disabled=!state||busy||!['ready','reward','finished'].includes(state.phase);
     $('parkDecor').textContent=park.decorations.map(id=>E.DECORATIONS[id][0]+' '+E.DECORATIONS[id][1]).join('　');
     $('parkMessage').textContent=park.facilities.length?'點亮的設施可以玩！樂園和剩餘獎勵都會留到下一趟旅程。':'第一個目標：收集 4 份建材，幫朋友蓋溜滑梯。';
@@ -158,18 +181,19 @@
         if(actor.animate&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches)actor.animate(id==='slide'?[{transform:'translate(-22px,-35px)'},{transform:'translate(24px,14px)'},{transform:'translate(0,0)'}]:id==='garden'?[{transform:'translate(-25px,0)'},{transform:'translate(25px,-25px)'},{transform:'translate(0,0)'}]:[{transform:'scale(.3)'},{transform:'scale(1.3)'},{transform:'scale(1)'}],{duration:1400,easing:'ease-in-out'});
       },'park-place'+(owned?' owned':''));
       place.disabled=!owned&&(!state||busy||!['ready','reward','finished'].includes(state.phase));
-      place.append(node('span',icon,'park-building'),node('span',owned?(id==='garden'?'🦋':id==='house'?'🐰':E.CHARACTERS[state.character][0]):'','park-actor'),node('strong',name),node('small',owned?'點我一起玩':cost+' 建材・等你來蓋'));
+      place.append(node('span',icon,'park-building'),node('span',owned?(id==='seesaw'&&park.animals.length>=2?park.animals.slice(0,2).map(a=>E.ANIMALS[a][0]).join(' '):park.animals.length?E.ANIMALS[park.animals[Object.keys(E.FACILITIES).indexOf(id)%park.animals.length]][0]:id==='garden'?'🦋':id==='house'?'🐰':E.CHARACTERS[state.character][0]):'','park-actor play-'+id),node('strong',name),node('small',owned?'點我一起玩':cost+' 建材・等你來蓋'));
     }
   }
   function openBuild(){
     if(!state||busy||!['ready','reward','finished'].includes(state.phase))return;
     const park=E.parkOf(state);$('baseChoices').replaceChildren();
-    $('buildDescription').textContent='你有 '+state.supplies+' 份建材、'+park.stars+' 顆星星。設施和裝飾會一直保留。';
-    for(const [category,catalog,currency,balance] of [['facilities',E.FACILITIES,'建材',state.supplies],['decorations',E.DECORATIONS,'星星',park.stars]]){
+    $('buildDescription').textContent='你有 '+state.supplies+' 份建材、'+park.stars+' 顆星星。設施、裝飾和動物朋友都會一直保留。';
+    for(const [category,catalog,currency,balance] of [['facilities',E.FACILITIES,'建材',state.supplies],['decorations',E.DECORATIONS,'星星',park.stars],['animals',E.ANIMALS,'星星',park.stars]]){
+      $('baseChoices').appendChild(node('h3',category==='facilities'?'🧱 建造遊樂設施':category==='decorations'?'⭐ 裝飾花園':'⭐ 邀請動物朋友','shop-heading'));
       for(const [id,[icon,name,cost]] of Object.entries(catalog)){
-        const owned=park[category].includes(id),b=button($('baseChoices'),icon+' '+name+' · '+(owned?'已擁有':cost+' '+currency),()=>{
+        const owned=park[category].includes(id),b=button($('baseChoices'),icon+' '+name+' · '+(owned?(category==='animals'?'已入住':'已擁有'):cost+' '+currency),()=>{
           dispatch({type:'purchase',category,item:id});$('buildDialog').close();taskDialog.close();
-          $('parkMessage').textContent='完成了！'+name+'加入你的樂園。'+(category==='facilities'?'點它，和朋友一起玩！':'下趟旅程也會陪著你。');
+          $('parkMessage').textContent='完成了！'+name+'加入你的樂園。'+(category==='animals'?'牠已經在花園散步了，點牠打個招呼吧！':category==='facilities'?'點它，和朋友一起玩！':'下趟旅程也會陪著你。');
           $('parkScene').scrollIntoView({block:'center',behavior:'auto'});$('parkShop').focus();
           if($('parkScene').animate&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches)$('parkScene').animate([{opacity:.3,transform:'scale(.9)'},{opacity:1,transform:'scale(1)'}],{duration:650});
         },'base-choice');b.disabled=owned||balance<cost;
@@ -223,9 +247,9 @@
   $('confirmRestart').onclick=()=>{$('restartDialog').close();if(corrupt){start();return;}restartJourney()};
   $('cancelRestart').onclick=()=>$('restartDialog').close();
   $('goHome').onclick=event=>{stopSpeech();if(!persist())event.preventDefault();else animationTicket++};
-  window.addEventListener('pagehide',()=>{animationTicket++;stopSpeech();audio?.dispose()});
+  window.addEventListener('pagehide',()=>{stopResidents();animationTicket++;stopSpeech();audio?.dispose()});
   window.addEventListener('pageshow',event=>{if(event.persisted){animationTicket++;busy=false;$('dice').classList.remove('rolling');state=null;load();paint();if(state&&state.phase!=='ready')openTask();}});
-  document.addEventListener?.('visibilitychange',()=>{if(document.hidden){audio?.suspend();stopSpeech();}else activateAudio();});
+  document.addEventListener?.('visibilitychange',()=>{pauseResidents();$('parkScene').classList.toggle('park-paused',document.hidden);if(document.hidden){audio?.suspend();stopSpeech();}else activateAudio();});
   window.addEventListener('storage',event=>{if(event.key===E.KEY||event.key===null){animationTicket++;busy=false;taskDialog.close();state=null;corrupt=false;load();paint();$('announcement').textContent='已同步另一個分頁的旅程。';}});
   load();paint();if(state&&state.phase!=='ready')openTask();
 })();

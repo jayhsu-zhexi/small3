@@ -2,10 +2,11 @@
   'use strict';
   const KEY = 'learning-planet-board-v1', HISTORY_KEY = 'learning-planet-board-history-v1';
   const TOTAL = 12;
-  const FACILITIES={slide:['🛝','溜滑梯',4,'小夥伴咻一下滑下來！'],house:['🏡','小兔的家',6,'小兔出門和你打招呼！'],garden:['🌻','蝴蝶花園',8,'蝴蝶飛來看你種的花！']};
+  const FACILITIES={slide:['🛝','溜滑梯',4,'小夥伴咻一下滑下來！'],house:['🏡','小兔的家',6,'小兔出門和你打招呼！'],garden:['🌻','蝴蝶花園',8,'蝴蝶飛來看你種的花！'],swing:['🌳','樹下鞦韆',7,'抓穩囉！和朋友一起盪高高。'],seesaw:['⚖️','雙人蹺蹺板',9,'你上我下，和好朋友輪流玩！'],sandbox:['🏖️','沙坑城堡',6,'小小鏟子，堆出大大的沙堡！'],carousel:['🎠','旋轉木馬',12,'坐上木馬，一起繞圈圈！']};
   const DECORATIONS={balloons:['🎈','彩色氣球',2],flowers:['🌷','花花圍籬',3],rainbow:['🌈','彩虹拱門',4]};
-  function parkOf(s){return s.park||{stars:s.stars,facilities:[],decorations:[]};}
-  function validPark(p){return obj(p)&&integer(p.stars,0,100000)&&['facilities','decorations'].every(key=>Array.isArray(p[key])&&new Set(p[key]).size===p[key].length&&p[key].every(id=>Object.hasOwn(key==='facilities'?FACILITIES:DECORATIONS,id)));}
+  const ANIMALS={dog:['🐶','小狗豆豆',3,'汪！今天想和你一起玩球。'],kitten:['🐱','小貓咪咪',4,'喵～玩累了就曬曬太陽。'],panda:['🐼','小熊貓圓圓',5,'抱抱！一起找個好玩的地方吧。'],fox:['🦊','小狐狸栗栗',6,'嘿！我們來花園探險吧！']};
+  function parkOf(s){return s.park?{...s.park,animals:s.park.animals||[]}:{stars:s.stars,facilities:[],decorations:[],animals:[]};}
+  function validPark(p){return obj(p)&&(p.animals===undefined||Array.isArray(p.animals)&&new Set(p.animals).size===p.animals.length&&p.animals.every(id=>Object.hasOwn(ANIMALS,id)))&&integer(p.stars,0,100000)&&['facilities','decorations'].every(key=>Array.isArray(p[key])&&new Set(p[key]).size===p[key].length&&p[key].every(id=>Object.hasOwn(key==='facilities'?FACILITIES:DECORATIONS,id)));}
   const TYPES = ['start','math','event','chinese','build','focus','rest','english','build','math','event','chinese','rest','focus','build','english','event','math','rest','chinese','build','focus','event','english'];
   const INFO = {
     start: ['🚀','出發站'], math: ['🧮','數學商店'], chinese: ['📖','故事小屋'],
@@ -109,7 +110,7 @@
       case 'claim':if(s.phase!=='encounter')return previous;{const e=encounter(s);reward(s,e[0],e[1],e[2]);}break;
       case 'purchase':{
         if(!['ready','reward','finished'].includes(s.phase))return previous;
-        const catalog=action.category==='facilities'?FACILITIES:action.category==='decorations'?DECORATIONS:null;
+        const catalog=action.category==='facilities'?FACILITIES:action.category==='decorations'?DECORATIONS:action.category==='animals'?ANIMALS:null;
         if(!catalog||!Object.hasOwn(catalog,action.item)||s.park[action.category].includes(action.item))return previous;
         const cost=catalog[action.item][2],balance=action.category==='facilities'?s.supplies:s.park.stars;if(balance<cost)return previous;
         if(action.category==='facilities')s.supplies-=cost;else s.park.stars-=cost;
@@ -133,6 +134,6 @@
     h.games=h.games.slice(-100);return h;
   }
   function nextJourney(previous,now=Date.now()){if(!validState(previous))throw Error('無法讀取樂園');const s=create(previous.character,now);s.park=clone(parkOf(previous));s.supplies=previous.supplies;s.baseStyle=previous.baseStyle;s.baseLevel=previous.baseLevel;return s;}
-  const api={FACILITIES,DECORATIONS,parkOf,nextJourney,KEY,HISTORY_KEY,TOTAL,TYPES,INFO,CHARACTERS,BASES,STAGES,dirs,create,act,archive,validState,validHistory,encounter};
+  const api={FACILITIES,DECORATIONS,ANIMALS,parkOf,nextJourney,KEY,HISTORY_KEY,TOTAL,TYPES,INFO,CHARACTERS,BASES,STAGES,dirs,create,act,archive,validState,validHistory,encounter};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.PlanetBoard=api;
 })(typeof window==='undefined'?{}:window);

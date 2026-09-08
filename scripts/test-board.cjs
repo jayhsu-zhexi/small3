@@ -90,3 +90,14 @@ assert.deepEqual(copy(continued.park),copy(built.park));assert.notEqual(continue
 for(const park of [{stars:-1,facilities:[],decorations:[]},{stars:1,facilities:['slide','slide'],decorations:[]},{stars:1,facilities:['unknown'],decorations:[]}])assert.equal(E.validState({...continued,park}),false);
 const parkBackup=B.parse(JSON.stringify(B.capture(storage({[E.KEY]:JSON.stringify(continued)}))));const restored=storage();B.restore(restored,parkBackup);assert.deepEqual(JSON.parse(restored.values[E.KEY]).park,copy(continued.park));
 console.log('PASS: park purchases charge once, reject insufficient funds, migrate old saves, survive new journeys and round-trip through backup.');
+
+let animalSave=E.create();animalSave.supplies=100;animalSave.stars=12;
+animalSave.park={stars:30,facilities:['slide'],decorations:['flowers']};
+assert.ok(E.validState(animalSave),'Previous park format without animals remains valid');
+for(const id of Object.keys(E.ANIMALS)){const before=E.parkOf(animalSave).stars;animalSave=act(animalSave,{type:'purchase',category:'animals',item:id});assert.equal(animalSave.park.stars,before-E.ANIMALS[id][2]);assert.equal(act(animalSave,{type:'purchase',category:'animals',item:id}),animalSave);}
+for(const id of ['swing','seesaw','sandbox','carousel']){animalSave=act(animalSave,{type:'purchase',category:'facilities',item:id});assert.ok(animalSave.park.facilities.includes(id));}
+assert.ok(E.validState(animalSave));const nextAnimals=E.nextJourney(animalSave);assert.deepEqual(copy(nextAnimals.park),copy(animalSave.park));
+for(const animals of [null,['fox','fox'],['dragon'],{}])assert.equal(E.validState({...animalSave,park:{...animalSave.park,animals}}),false);
+const poor=E.create();assert.equal(act(poor,{type:'purchase',category:'animals',item:'dog'}),poor);
+const animalExport=B.parse(JSON.stringify(B.capture(storage({[E.KEY]:JSON.stringify(animalSave)}))));const animalImport=storage();B.restore(animalImport,animalExport);assert.deepEqual(JSON.parse(animalImport.values[E.KEY]).park,copy(animalSave.park));
+console.log('PASS: four animal invitations and four new facilities charge correctly, reject duplicates/invalid residents, migrate old parks and survive restart/backup.');
