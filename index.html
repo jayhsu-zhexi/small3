@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#102b63">
   <title>學習星球大冒險</title>
+  <link rel="canonical" href="https://small3.vercel.app/">
   <style>
     :root{--ink:#14224a;--muted:#52617d;--blue:#3157d5;--orange:#ff6b4a;--green:#16805b}
     *{box-sizing:border-box}html,body{min-height:100%;margin:0}body{font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;color:var(--ink);background:#07152f}button{font:inherit}
@@ -47,6 +48,15 @@
       <p class="picker">選擇關卡</p><div class="levels" id="levels"></div>
       <button class="primary" id="start">🚀 開始數學第 1 關</button>
       <div class="settings"><label><input type="checkbox" id="sound"> 音效</label><label><input type="checkbox" id="motion" checked> 輕柔動畫</label></div>
+      <details class="parent-records" id="backupTools">
+        <summary>進度備份與正式入口</summary>
+        <p class="learning-note">固定從 <a href="https://small3.vercel.app/">正式網站</a> 開始遊戲。換裝置或網址前，先下載進度備份，再到新地方匯入。</p>
+        <p class="learning-note hidden" id="officialNotice">目前是預覽網址，進度不會自動帶到正式網站。請先下載備份，再前往正式網站匯入。</p>
+        <button class="secondary" id="exportBackup">下載進度備份</button>
+        <button class="secondary" id="importBackup">匯入進度備份</button>
+        <input class="hidden" type="file" id="backupFile" accept=".json,application/json" aria-label="選擇遊戲備份檔">
+        <p class="learning-note" id="backupStatus" role="status">包含四科紀錄、解鎖關卡及三個故事；檔案只在你的裝置處理，不會上傳。</p>
+      </details>
     </section>
     <section class="card hidden" id="game" aria-live="polite">
       <header class="top"><span class="chip" id="chip">數學</span><div class="progressbox"><div class="progresslabel"><span id="round">第 1 題</span><span id="totalLabel">8 題</span></div><div class="track"><div class="bar" id="bar"></div></div></div><button class="iconbtn" id="soundBtn" aria-label="切換音效">🔇</button></header>
@@ -56,6 +66,14 @@
     </section>
     <section class="card hidden" id="finish"><div class="planet" aria-hidden="true">🏆</div><p class="eyebrow" id="finishMode"></p><h1 class="title" id="finishTitle">太棒了，升級成功！</h1><div class="score"><strong id="finishScore">0</strong><span>顆星星／需要 5 顆</span></div><p class="intro" id="finishText"></p><button class="primary" id="next">🚀 挑戰下一關</button><button class="secondary" id="again">↻ 再玩一次</button><button class="secondary" id="home">選其他任務</button></section>
   </main>
+  <dialog class="restart-dialog" id="restoreBackupDialog" aria-labelledby="restoreBackupTitle" aria-describedby="restoreBackupSummary restoreBackupWarning">
+    <h2 id="restoreBackupTitle">匯入這份進度備份？</h2>
+    <p id="restoreBackupSummary"></p>
+    <p id="restoreBackupWarning">匯入會取代這個網址上的遊戲進度。建議先下載目前進度，日後可再匯入還原。</p>
+    <button class="secondary" id="downloadBeforeRestore">先下載目前進度</button>
+    <button class="secondary" id="confirmBackup">確認取代並匯入</button>
+    <button class="secondary" id="cancelBackup" autofocus>取消，保留目前進度</button>
+  </dialog>
   <script>
     const TOTAL=8;
     const labels={math:'數學',chinese:'國語',focus:'專注力',english:'英文'};
@@ -617,23 +635,97 @@
     }
     function checkStory(){if(!storyActive||story.step>=4||story.checked)return;if(storySolved()){story.checked=true;story.feedback=storyTask().success||'完成了！你的安排和任務相符，可以前往下一站。'}else story.feedback='還差一點，慢慢調整就好。'+storyTask().help;renderStory();saveStory()}
     function advanceStory(){if(!storyActive||!story.checked||story.step>=4)return;story.step++;resetStoryInputs();renderStory();saveStory()}
+    // Build once per task; subsequent interactions update the existing controls.
+    let storyViewKey='',storyUpdates=[];
     function renderStory(){
-      const info=storyThemes[story.theme];storyAction.disabled=false;storyCard.dataset.theme=story.theme;storyTitle.textContent=info.icon+' '+info.name;storyRoute.innerHTML='';storyTasks(story.theme,story.variant).forEach((t,i)=>{const chip=document.createElement('span');chip.textContent=(i<story.step?'✓ ':'')+(i+1)+' '+t.title;chip.className=i===story.step?'current':'';storyRoute.appendChild(chip)});storyScene.innerHTML='';storyFeedback.textContent=story.feedback||'';
-      const heading=document.createElement('h2');storyScene.appendChild(heading);
-      if(story.step===4){heading.textContent='任務完成，今天辛苦了！';storyParagraph(info.mission+'：完成。選一枚貼紙，裝飾你的'+info.reward+'。');storyParagraph((story.reward||'✨')+' '+info.icon+' '+info.reward,'story-signal');const stickers=document.createElement('div');stickers.className='story-grid';storyScene.appendChild(stickers);for(const sticker of ['🌟','🌈','🌸']){const b=storyButton(stickers,sticker,()=>{story.reward=sticker;renderStory();saveStory()});b.setAttribute('aria-label','選擇'+({'🌟':'星星','🌈':'彩虹','🌸':'花朵'}[sticker])+'貼紙');b.setAttribute('aria-pressed',String(story.reward===sticker))}storyParagraph('可以到這裡休息，也可以回首頁試試另一個故事。這些操作不計入學科星星或熟練度。');storyAction.textContent='收好作品，回到首頁';storyAction.onclick=()=>storyExit.onclick();return}
-      const t=storyTask();heading.textContent=t.title;storyParagraph(t.text);const grid=document.createElement('div');grid.className='story-grid';storyScene.appendChild(grid);
-      if(t.kind==='select'){for(const o of t.options){const b=storyButton(grid,o.label,()=>changeStory('select',o.id));b.classList.toggle('selected',story.selected.includes(o.id));b.setAttribute('aria-pressed',String(story.selected.includes(o.id)));b.disabled=story.checked}storyParagraph('已選 '+story.selected.length+' 樣。選錯可再點一次取消。')}
-      if(t.kind==='quantity'||t.kind==='money'){const items=t.kind==='money'?t.coins.map(c=>({id:String(c),label:c+' 元硬幣'})):t.items;for(const item of items){const box=document.createElement('div');box.className='story-counter';grid.appendChild(box);const label=document.createElement('strong');label.textContent=item.label;box.appendChild(label);const minus=storyButton(box,'−',()=>changeStory('quantity',item.id,-1));minus.setAttribute('aria-label',item.label+'減一');minus.disabled=story.checked||!(story.values[item.id]>0);const output=document.createElement('output');output.textContent=String(story.values[item.id]||0);output.setAttribute('aria-label',item.label+'數量');box.appendChild(output);const plus=storyButton(box,'＋',()=>changeStory('quantity',item.id,1));plus.setAttribute('aria-label',item.label+'加一');plus.disabled=story.checked}if(t.kind==='money')storyParagraph('托盤目前共 '+t.coins.reduce((sum,c)=>sum+c*(story.values[c]||0),0)+' 元。','story-signal');else if(t.shared)storyParagraph('還有 '+(t.limit-Object.values(story.values).reduce((sum,n)=>sum+n,0))+' 顆可以分。','story-signal')}
-      if(t.kind==='match'){for(const [word] of t.pairs){const label=story.pairs[word]?word+' → '+t.options.find(o=>o.id===story.pairs[word])?.label:word+' → 還沒貼好';const b=storyButton(grid,label,()=>changeStory('word',word));b.setAttribute('aria-pressed',String(story.activeWord===word));b.classList.toggle('selected',story.activeWord===word);b.disabled=story.checked}const choices=document.createElement('div');choices.className='story-grid';storyScene.appendChild(choices);for(const o of t.options){const b=storyButton(choices,o.label,()=>changeStory('pair',o.id));b.disabled=story.checked||!story.activeWord}storyParagraph(story.activeWord?'現在選「'+story.activeWord+'」對應的物品。':'先點英文標籤，再點物品。可以重新選標籤改配對。')}
-      if(t.kind==='sequence'){if(t.memory&&!story.concealed){storyParagraph('導航：'+t.order.map(id=>t.options.find(o=>o.id===id).label).join(' → '),'story-signal');storyButton(grid,'我記好了，開始走',()=>changeStory('conceal'), 'secondary')}else{storyParagraph('已安排：'+(story.sequence.length?story.sequence.map(id=>t.options.find(o=>o.id===id)?.label||'').join(' → '):'還沒開始'),'story-signal');for(const o of t.options){const b=storyButton(grid,o.label,()=>changeStory('sequence',o.id));b.disabled=story.checked||story.sequence.length===t.order.length}const undo=storyButton(storyScene,'退回上一步',()=>changeStory('undo'),'secondary');undo.disabled=story.checked||!story.sequence.length;if(t.memory){const peek=storyButton(storyScene,'再看一次路線',()=>changeStory('peek'),'secondary');peek.disabled=story.checked}}}
-      storyAction.textContent=story.checked?(story.step===3?'完成故事，選貼紙':'前往下一站'):'準備好了，檢查任務';storyAction.onclick=story.checked?advanceStory:checkStory;storyAction.disabled=t.kind==='sequence'&&t.memory&&!story.concealed;
+      const key=story.theme+':'+story.variant+':'+story.step;
+      const bind=update=>{storyUpdates.push(update);update()};
+      const selected=(button,on)=>{button.classList.toggle('selected',on);button.setAttribute('aria-pressed',String(on))};
+      if(key!==storyViewKey){
+        storyViewKey=key;storyUpdates=[];
+        const info=storyThemes[story.theme];storyCard.dataset.theme=story.theme;
+        storyTitle.textContent=info.icon+' '+info.name;storyRoute.innerHTML='';
+        storyTasks(story.theme,story.variant).forEach((t,i)=>{const chip=document.createElement('span');chip.textContent=(i<story.step?'✓ ':'')+(i+1)+' '+t.title;chip.className=i===story.step?'current':'';storyRoute.appendChild(chip)});
+        storyScene.innerHTML='';
+        const heading=document.createElement('h2');heading.tabIndex=-1;storyScene.appendChild(heading);
+        if(story.step===4){
+          heading.textContent='任務完成，今天辛苦了！';
+          storyParagraph(info.mission+'：完成。選一枚貼紙，裝飾你的'+info.reward+'。');
+          const artwork=storyParagraph('','story-signal');
+          bind(()=>{artwork.textContent=(story.reward||'✨')+' '+info.icon+' '+info.reward});
+          const stickers=document.createElement('div');stickers.className='story-grid';storyScene.appendChild(stickers);
+          for(const sticker of ['🌟','🌈','🌸']){
+            const b=storyButton(stickers,sticker,()=>{story.reward=sticker;renderStory();saveStory()});
+            b.setAttribute('aria-label','選擇'+({'🌟':'星星','🌈':'彩虹','🌸':'花朵'}[sticker])+'貼紙');
+            bind(()=>selected(b,story.reward===sticker));
+          }
+          storyParagraph('可以到這裡休息，也可以回首頁試試另一個故事。這些操作不計入學科星星或熟練度。');
+          storyButton(storyScene,'再玩一回（保留貼紙）',replayStory,'secondary');
+        }else{
+          const t=storyTask();heading.textContent=t.title;storyParagraph(t.text);
+          const grid=document.createElement('div');grid.className='story-grid';storyScene.appendChild(grid);
+          if(t.kind==='select'){
+            for(const o of t.options){const b=storyButton(grid,o.label,()=>changeStory('select',o.id));bind(()=>{selected(b,story.selected.includes(o.id));b.disabled=story.checked})}
+            const count=storyParagraph('');bind(()=>{count.textContent='已選 '+story.selected.length+' 樣。選錯可再點一次取消。'});
+          }
+          if(t.kind==='quantity'||t.kind==='money'){
+            const items=t.kind==='money'?t.coins.map(c=>({id:String(c),label:c+' 元硬幣'})):t.items;
+            for(const item of items){
+              const box=document.createElement('div');box.className='story-counter';grid.appendChild(box);
+              const label=document.createElement('strong');label.textContent=item.label;box.appendChild(label);
+              const minus=storyButton(box,'−',()=>changeStory('quantity',item.id,-1));minus.setAttribute('aria-label',item.label+'減一');
+              const output=document.createElement('output');output.setAttribute('aria-label',item.label+'數量');box.appendChild(output);
+              const plus=storyButton(box,'＋',()=>changeStory('quantity',item.id,1));plus.setAttribute('aria-label',item.label+'加一');
+              bind(()=>{output.textContent=String(story.values[item.id]||0);minus.disabled=story.checked;minus.setAttribute('aria-disabled',String(story.checked||!(story.values[item.id]>0)));plus.disabled=story.checked});
+            }
+            if(t.kind==='money'){const total=storyParagraph('','story-signal');bind(()=>{total.textContent='托盤目前共 '+t.coins.reduce((sum,c)=>sum+c*(story.values[c]||0),0)+' 元。'})}
+            else if(t.shared){const remaining=storyParagraph('','story-signal');bind(()=>{remaining.textContent='還有 '+(t.limit-Object.values(story.values).reduce((sum,n)=>sum+n,0))+' 顆可以分。'})}
+          }
+          if(t.kind==='match'){
+            const labels=[];
+            for(const [word] of t.pairs){
+              const b=storyButton(grid,'',()=>changeStory('word',word));labels.push(b);
+              bind(()=>{b.textContent=story.pairs[word]?word+' → '+t.options.find(o=>o.id===story.pairs[word])?.label:word+' → 還沒貼好';selected(b,story.activeWord===word);b.disabled=story.checked});
+            }
+            const choices=document.createElement('div');choices.className='story-grid';storyScene.appendChild(choices);
+            for(const o of t.options){
+              const b=storyButton(choices,o.label,()=>{changeStory('pair',o.id);const next=t.pairs.findIndex(([word])=>!story.pairs[word]);(labels[next<0?0:next]).focus?.()});
+              bind(()=>{b.disabled=story.checked;b.setAttribute('aria-disabled',String(story.checked||!story.activeWord))});
+            }
+            const note=storyParagraph('');bind(()=>{note.textContent=story.activeWord?'現在選「'+story.activeWord+'」對應的物品。':'先點英文標籤，再點物品。可以重新選標籤改配對。'});
+          }
+          if(t.kind==='sequence'){
+            const preview=document.createElement('div');storyScene.appendChild(preview);
+            const navigation=document.createElement('p');navigation.className='story-signal';preview.appendChild(navigation);
+            const options=document.createElement('div');options.className='story-grid';storyScene.appendChild(options);
+            const optionButtons=[];
+            const conceal=storyButton(preview,'我記好了，開始走',()=>{changeStory('conceal');optionButtons[0].focus?.()},'secondary');
+            bind(()=>{const visible=t.memory&&!story.concealed;preview.classList.toggle('hidden',!visible);navigation.textContent=visible?'導航：'+t.order.map(id=>t.options.find(o=>o.id===id).label).join(' → '):'';options.classList.toggle('hidden',visible)});
+            const arranged=storyParagraph('','story-signal');bind(()=>{arranged.classList.toggle('hidden',t.memory&&!story.concealed);arranged.textContent='已安排：'+(story.sequence.length?story.sequence.map(id=>t.options.find(o=>o.id===id)?.label||'').join(' → '):'還沒開始')});
+            for(const o of t.options){
+              const b=storyButton(options,o.label,()=>changeStory('sequence',o.id));optionButtons.push(b);
+              bind(()=>{b.disabled=story.checked;b.setAttribute('aria-disabled',String(story.checked||story.sequence.length===t.order.length))});
+            }
+            const undo=storyButton(options,'退回上一步',()=>changeStory('undo'),'secondary');
+            bind(()=>{undo.disabled=story.checked;undo.setAttribute('aria-disabled',String(story.checked||!story.sequence.length))});
+            if(t.memory){const peek=storyButton(options,'再看一次路線',()=>{changeStory('peek');conceal.focus?.()},'secondary');bind(()=>{peek.disabled=story.checked})}
+          }
+        }
+        heading.focus?.();
+      }
+      for(const update of storyUpdates)update();
+      storyFeedback.textContent=story.feedback||'';
+      if(story.step===4){storyAction.disabled=false;storyAction.textContent='收好作品，回到首頁';storyAction.onclick=()=>storyExit.onclick();return}
+      const t=storyTask();storyAction.textContent=story.checked?(story.step===3?'完成故事，選貼紙':'前往下一站'):'準備好了，檢查任務';
+      storyAction.onclick=story.checked?advanceStory:checkStory;storyAction.disabled=t.kind==='sequence'&&t.memory&&!story.concealed;
     }
+
     const validatedStory=readStory;readStory=function(theme){const s=validatedStory(theme);if(!s||s.step===4)return s;const t=storyTask(s),ids=(t.options||[]).map(o=>o.id),values=t.kind==='quantity'?t.items.map(i=>i.id):t.kind==='money'?t.coins.map(String):[],words=(t.pairs||[]).map(p=>p[0]);if(!Object.keys(s.values).every(k=>values.includes(k))||!s.selected.every(k=>ids.includes(k))||new Set(s.selected).size!==s.selected.length||!s.sequence.every(k=>ids.includes(k))||!Object.entries(s.pairs).every(([k,v])=>words.includes(k)&&ids.includes(v)))return null;return s};
     function replayStory(){if(!storyActive||story.step!==4)return;story.variant=(story.variant+1)%4;story.step=0;resetStoryInputs();renderStory();saveStory()}
-    const renderWithReplay=renderStory;renderStory=function(){renderWithReplay();if(story.step===4)storyButton(storyScene,'再玩一回（保留貼紙）',replayStory,'secondary')};
     storyExit.onclick=()=>{if(!storyActive||!saveStory())return;storyActive=false;show('menu');renderStoryMenu()};
     const showBeforeStories=show;show=function(id){showBeforeStories(id);if(id!=='story')storyActive=false;storyCard.classList.toggle('hidden',id!=='story');if(id==='menu')renderStoryMenu()};
     renderLevels();showSaved();renderStoryMenu();
   </script>
+  <script src="/assets/backup.js"></script>
 </body>
 </html>
