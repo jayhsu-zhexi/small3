@@ -31,13 +31,13 @@
             </div>
           </div>
           <div class="map-footer"><span id="positionLabel">🚀 從出發站開始，順時針前進</span><span>每一站，都有新發現 ✦</span></div>
-          <details class="legend"><summary>看看地圖上的格子</summary><div id="legendItems"></div></details>
+          <section class="park-section" aria-label="我的動物樂園"><div class="park-heading"><div><p class="eyebrow">每趟旅程，都留下新風景</p><h2>我的動物樂園</h2></div><button class="secondary" id="parkShop">🏗️ 蓋設施・換裝飾</button></div><div id="parkDecor" class="park-decor"></div><div id="parkScene" class="park-scene"></div><p id="parkMessage" role="status">第一個目標：收集 4 份建材，幫朋友蓋溜滑梯。</p></section><details class="legend"><summary>看看地圖上的格子</summary><div id="legendItems"></div></details>
         </section>
         <aside class="journey-panel" aria-label="旅程控制">
           <section class="control-card" id="setupCard">
             <p class="eyebrow">選一位探險夥伴</p><h2>今天，誰要出發？</h2>
             <div class="characters" id="characters" aria-label="選擇角色"></div>
-            <p class="small-note">擲骰走 12 回合，一起蓋出自己的基地。沒有倒數，隨時可以存檔。</p>
+            <p class="small-note">擲骰走 12 回合，一起蓋出自己的樂園。沒有倒數，隨時可以存檔。</p>
             <button class="primary" id="startBoard">開始我的探險 →</button>
           </section>
           <section class="control-card hidden" id="playCard">
@@ -46,10 +46,10 @@
             <div class="dice-area"><span class="dice" id="dice" aria-hidden="true">⚀</span><p id="diceLabel">準備好，就丟骰子！</p></div>
             <button class="primary" id="rollButton">🎲 丟骰子，出發！</button>
             <button class="secondary hidden" id="resumeTask">繼續這一站</button>
-            <button class="secondary" id="buildButton">🏗️ 建造基地 · 4 建材</button>
-            <p class="small-note" id="buildNote">每 4 份建材，基地就能升一級。</p>
+            <button class="secondary" id="buildButton">🏗️ 蓋設施・換裝飾</button>
+            <p class="small-note" id="buildNote">收集 4 份建材，就能蓋溜滑梯。</p>
           </section>
-          <section class="tip-card"><span aria-hidden="true">💫</span><div><strong>旅途小提醒</strong><p>完成任務就有建材，獨立首次完成再加一顆星。需要提示也沒關係！</p></div></section>
+          <section class="tip-card"><span aria-hidden="true">💫</span><div><strong>旅途小提醒</strong><p>完成學習就有建材和星星！建材蓋設施，星星換裝飾。提示和重試也拿得到。</p></div></section>
           <p class="save-status" id="saveStatus" role="status">進度只存在這個瀏覽器，可在首頁下載備份。</p>
           <button class="quiet hidden" id="retrySave">再試一次存檔</button>
           <div class="preferences"><label><input type="checkbox" id="gentleMotion" checked> 移動動畫</label><label><input type="checkbox" id="musicSetting"> 輕音樂</label><label><input type="checkbox" id="effectsSetting"> 音效</label><button class="quiet hidden" id="newJourney">開始新旅程</button></div>
@@ -71,16 +71,16 @@
     <button class="primary" id="taskAction"></button>
   </dialog>
   <dialog id="buildDialog" class="task-dialog" aria-labelledby="buildTitle">
-    <span class="category-tag">🏗️ 基地工坊</span><h2 id="buildTitle">基地要長成什麼樣子？</h2><p class="task-copy" id="buildDescription">花 4 份建材升級，也可以換個喜歡的造型。</p>
+    <span class="category-tag">🏗️ 樂園工坊</span><h2 id="buildTitle">今天想替樂園添什麼？</h2><p class="task-copy" id="buildDescription">建材蓋設施，星星換裝飾；買好的東西會留到下一趟旅程。</p>
     <div id="baseChoices" class="base-choices"></div><button class="secondary" id="cancelBuild">先把建材收好</button>
   </dialog>
   <dialog id="helpDialog" class="task-dialog" aria-labelledby="helpTitle">
-    <span class="category-tag">✦ 探險指南</span><h2 id="helpTitle">一邊玩，一邊把基地蓋起來</h2>
-    <ol class="instructions"><li>選好夥伴，丟骰子沿地圖前進。</li><li>遇到學習格，就幫朋友完成小任務。</li><li>完成任務拿建材，獨立首次完成再加星星。</li><li>每 4 份建材升級一次基地，最多 3 級。</li><li>走完 12 回合，看看今天的學習成果。</li></ol>
-    <p class="task-copy">不倒退、不扣星，也沒有倒數。卡住時可以看提示或示範。遊戲自動存檔；換裝置前請到首頁下載備份。</p><button class="primary" id="closeHelp">我知道了！</button>
+    <span class="category-tag">✦ 探險指南</span><h2 id="helpTitle">一邊玩，一邊把樂園蓋起來</h2>
+    <ol class="instructions"><li>選好夥伴，丟骰子沿地圖前進。</li><li>遇到學習格，就幫朋友完成小任務。</li><li>完成學習拿建材和星星，提示與重試也有獎勵。</li><li>用建材蓋設施、星星換裝飾，點設施就能玩。</li><li>走完 12 回合可以開始新旅程，繼續建設原來的樂園。</li></ol>
+    <p class="task-copy">答錯不倒退、不扣星，也沒有倒數。卡住時可以看提示或示範。遊戲自動存檔；換裝置前請到首頁下載備份。</p><button class="primary" id="closeHelp">我知道了！</button>
   </dialog>
   <dialog id="restartDialog" class="task-dialog" aria-labelledby="restartTitle">
-    <h2 id="restartTitle">開始另一趟旅程？</h2><p class="task-copy">新的旅程會取代這一局的棋盤和基地。已保存的學習紀錄仍會保留。</p><button class="primary" id="confirmRestart">確定，開始新旅程</button><button class="secondary" id="cancelRestart" autofocus>繼續原來的旅程</button>
+    <h2 id="restartTitle">開始另一趟旅程？</h2><p class="task-copy">重新從出發站開始 12 回合。樂園、基地、剩餘建材、星星與學習紀錄全部保留。</p><button class="primary" id="confirmRestart">確定，開始新旅程</button><button class="secondary" id="cancelRestart" autofocus>繼續原來的旅程</button>
   </dialog>
 </body>
 </html>

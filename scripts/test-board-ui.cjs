@@ -64,3 +64,13 @@ console.log('PASS: real UI direction buttons render exactly the clicked sequence
   assert.equal(instant.get('taskDialog').open,true);
   console.log('PASS: dice animation precedes one slow hop per step, repeat rolls are locked, interrupted movement restores its task, and disabling motion skips delays.');
 })().catch(error=>{console.error(error);process.exitCode=1});
+
+const parkState=E.create();parkState.supplies=4;parkState.stars=2;
+const parkUI=boot({[E.KEY]:JSON.stringify(parkState)});parkUI.get('buildButton').click();
+let slide=parkUI.get('baseChoices').children.find(b=>b.textContent.includes('溜滑梯'));assert.equal(slide.disabled,false);slide.click();
+assert.equal(parkUI.read().supplies,0);assert.deepEqual(parkUI.read().park.facilities,['slide']);
+parkUI.get('parkScene').children[0].click();assert.match(parkUI.get('parkMessage').textContent,/滑下來/);
+parkUI.get('parkShop').click();const balloons=parkUI.get('baseChoices').children.find(b=>b.textContent.includes('氣球'));balloons.click();assert.equal(parkUI.read().park.stars,0);assert.match(parkUI.get('parkDecor').textContent,/氣球/);
+const ended=parkUI.read();ended.turn=12;ended.phase='finished';
+const finishUI=boot({[E.KEY]:JSON.stringify(ended)});assert.match(finishUI.get('taskAction').textContent,/開始新旅程/);finishUI.get('taskAction').click();assert.equal(finishUI.read().turn,0);assert.deepEqual(finishUI.read().park.facilities,['slide']);assert.deepEqual(finishUI.read().park.decorations,['balloons']);assert.equal(finishUI.get('taskDialog').open,false);
+console.log('PASS: actual workshop controls buy facilities and decorations, facilities respond to play, and the finish button keeps the park in the next journey.');

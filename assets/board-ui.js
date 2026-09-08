@@ -48,26 +48,26 @@
   function setPosition(position){tiles.forEach((tile,i)=>{tile.classList.toggle('current',i===position);if(i===position)tile.setAttribute('aria-current','step');else tile.removeAttribute('aria-current')});tiles[position].appendChild(token);}
   function paint(){
     $('setupCard').classList.toggle('hidden',!!state);$('playCard').classList.toggle('hidden',!state);$('newJourney').classList.toggle('hidden',!state);
-    renderCharacters();setPosition(state?state.position:0);
-    const level=state?state.baseLevel:0,style=state?state.baseStyle:'space';
+    renderPark();renderCharacters();setPosition(state?state.position:0);
+    const level=state?Math.max(state.baseLevel,E.parkOf(state).facilities.length):0,style=state?state.baseStyle:'space';
     $('baseCenter').dataset.level=String(level);$('baseLevel').textContent='LEVEL '+level+' / 3';
     $('baseName').textContent=level?E.BASES[style][0]+' '+E.STAGES[level]:'你的小小營地';
-    $('baseCaption').textContent=level===3?E.BASES[style][1]+'蓋好了！每一份努力都在這裡。':level?E.BASES[style][1]+'慢慢長大中，再收集一些建材吧。':'收集建材，讓基地慢慢長大。';
+    $('baseCaption').textContent='建材蓋設施，星星換裝飾。到下方樂園和朋友一起玩！';
     $('baseMilestones').replaceChildren(...[1,2,3].map(n=>node('span',(n<=level?'✓ ':'')+['補給','建設','家園'][n-1],'milestone'+(n<=level?' done':''))));
     if(!state){$('tripLabel').textContent='準備出發';return;}
     $('tripLabel').textContent=state.phase==='finished'?'12 回合 · 探險完成':'旅程 '+state.turn+' / '+E.TOTAL+' 回合';
     $('avatar').textContent=E.CHARACTERS[state.character][0];$('characterName').textContent=E.CHARACTERS[state.character][1];
-    $('starCount').textContent=state.stars;$('supplyCount').textContent=state.supplies;
+    $('starCount').textContent=E.parkOf(state).stars;$('supplyCount').textContent=state.supplies;
     $('dice').textContent=['⚀','⚁','⚂','⚃','⚄','⚅'][Math.max(0,state.dice-1)];
     $('diceLabel').textContent=busy?'看看這次走到哪裡…':state.phase==='finished'?'今天的探險完成了！':state.dice?'上次擲出 '+state.dice+'，還有 '+(E.TOTAL-state.turn)+' 次擲骰。':'準備好，就丟骰子！';
     $('rollButton').disabled=busy||state.phase!=='ready';$('rollButton').classList.toggle('hidden',state.phase==='finished');
     $('resumeTask').classList.toggle('hidden',state.phase==='ready'||busy);$('resumeTask').textContent=state.phase==='finished'?'🏆 看看這趟旅程的成果':'繼續這一站 →';
-    $('buildButton').disabled=busy||!['ready','reward','finished'].includes(state.phase)||state.supplies<4||state.baseLevel>=3;
-    $('buildButton').textContent=state.baseLevel===3?'✓ 基地已完成':'🏗️ 建造基地 · 4 建材';
-    $('buildNote').textContent=state.baseLevel===3?'你蓋出了一座閃耀家園！':state.supplies<4?'再收集 '+(4-state.supplies)+' 份建材，就能升級。':'建材準備好了！選個喜歡的基地造型。';
-    $('positionLabel').textContent=E.CHARACTERS[state.character][0]+' 目前在第 '+(state.position+1)+' 格 · '+E.INFO[E.TYPES[state.position]][1];
+    $('buildButton').disabled=busy||!['ready','reward','finished'].includes(state.phase);
+    $('buildButton').textContent='🏗️ 蓋設施・換裝飾';
+    const next=Object.entries(E.FACILITIES).find(([id])=>!E.parkOf(state).facilities.includes(id));
+    $('buildNote').textContent=next?(state.supplies>=next[1][2]?'可以蓋'+next[1][1]+'了！打開工坊選一個喜歡的。':'再收集 '+(next[1][2]-state.supplies)+' 份建材，就能蓋'+next[1][1]+'。'):'設施都蓋好了！點樂園裡的設施和朋友一起玩。';
   }
-  function dispatch(action){if(!state||busy)return;const next=E.act(state,action,bank);if(next===state)return;const rewarded=state.phase!=='reward'&&next.phase==='reward';state=next;persist();paint();renderTask();if(rewarded||action.type==='upgrade')audio?.effect('reward');}
+  function dispatch(action){if(!state||busy)return;const next=E.act(state,action,bank);if(next===state)return;const rewarded=state.phase!=='reward'&&next.phase==='reward';state=next;persist();paint();renderTask();if(rewarded||action.type==='upgrade'||action.type==='purchase')audio?.effect('reward');}
   function stopSpeech(){if(window.speechSynthesis)window.speechSynthesis.cancel();}
   function speak(word){
     if(!window.speechSynthesis||!window.SpeechSynthesisUtterance){$('taskFeedback').textContent='這個瀏覽器暫時無法朗讀。可以看英文單字繼續玩。';return;}
@@ -125,18 +125,18 @@
         const outcome=state.outcome;$('taskCategory').textContent='✦ 旅途收穫';$('taskTitle').textContent=outcome.title;$('taskText').textContent=state.task&&state.task.demoUsed?explanation(state.task):outcome.text;
         controls.appendChild(node('div',outcome.stars?'🌟':'🎁','reward-icon'));
         const chips=node('div','','reward-chips');chips.appendChild(node('span','🧱 +'+outcome.supplies+' 建材'));if(outcome.stars)chips.appendChild(node('span','⭐ +1 星星'));controls.appendChild(chips);
-        const upgrade=button(controls,'🏗️ 用建材升級基地',()=>openBuild(),'secondary');bind(()=>{upgrade.classList.toggle('hidden',state.supplies<4||state.baseLevel>=3)});
+        button(controls,'🏗️ 看看這些獎勵能蓋什麼',()=>openBuild(),'secondary');
         $('taskAction').textContent=state.turn===E.TOTAL?'完成旅程，看看成果':'收進背包，繼續出發';$('taskAction').onclick=()=>{dispatch({type:'continue'});if(state.phase==='finished')openTask();else $('rollButton').focus()};
       }else{
-        $('taskCategory').textContent='🏆 第一次出發，也值得慶祝';$('taskTitle').textContent='一趟探險，一座自己的基地';$('taskText').textContent='12 次擲骰完成了！今天你和'+E.CHARACTERS[state.character][1]+'走過星球，完成 '+state.events.length+' 個學習任務。';
+        $('taskCategory').textContent='🏆 每趟旅程，都值得慶祝';$('taskTitle').textContent='旅程完成，樂園繼續長大';$('taskText').textContent='12 次擲骰完成了！今天你和'+E.CHARACTERS[state.character][1]+'走過星球，完成 '+state.events.length+' 個學習任務。';
         const stats=node('div','','result-stats');
-        const stars=node('div','獨立完成的星星');stars.appendChild(node('strong','⭐ '+state.stars));
-        const base=node('div','我的基地');base.appendChild(node('strong',E.STAGES[state.baseLevel]));stats.append(stars,base);controls.appendChild(stats);
+        const stars=node('div','這趟獲得的星星');stars.appendChild(node('strong','⭐ '+state.stars));
+        const base=node('div','我的樂園');base.appendChild(node('strong',E.parkOf(state).facilities.length+' 座設施・'+E.parkOf(state).decorations.length+' 種裝飾'));stats.append(stars,base);controls.appendChild(stats);
         const list=node('ul','','learning-list');
         for(const kind of ['math','chinese','english','focus']){const events=state.events.filter(e=>e.subject===kind);if(events.length)list.appendChild(node('li',E.INFO[kind].join(' ')+'：'+events.length+' 個任務，獨立 '+events.filter(e=>e.mode==='independent').length+'、提示 '+events.filter(e=>e.mode==='hint').length+'、重試 '+events.filter(e=>e.mode==='retry').length+'、示範 '+events.filter(e=>e.mode==='demo').length+'。'));}
         if(!state.events.length)list.appendChild(node('li','這次遇到了很多驚喜站。下次再來尋找四科任務！'));controls.appendChild(list);
-        if(state.supplies>=4&&state.baseLevel<3)button(controls,'還有建材！把基地再升一級',()=>openBuild(),'secondary');
-        $('taskAction').textContent='收好成果，回到地圖';$('taskAction').onclick=()=>taskDialog.close();
+        button(controls,'🏗️ 去樂園蓋設施・換裝飾',()=>openBuild(),'secondary');
+        $('taskAction').textContent='繼續建設，開始新旅程';$('taskAction').onclick=restartJourney;
       }
       if(state.phase!=='task'||state.task.kind!=='memory')$('taskAction').disabled=false;
       if(taskDialog.open)$('taskTitle').focus();
@@ -144,10 +144,42 @@
     for(const update of updates)update();
   }
   function openTask(){if(!state||state.phase==='ready'||busy)return;renderTask();if(!taskDialog.open)taskDialog.showModal();$('taskTitle').focus();}
-  function openBuild(){if(!state||state.supplies<4||state.baseLevel>=3||!['ready','reward','finished'].includes(state.phase))return;$('buildDescription').textContent='用 4 份建材升到第 '+(state.baseLevel+1)+' 級，也可以選擇喜歡的基地造型。';$('buildDialog').showModal();}
-  for(const [style,[icon,name]] of Object.entries(E.BASES)){
-    const b=button($('baseChoices'),'',()=>{dispatch({type:'upgrade',style});$('buildDialog').close();if(taskDialog.open)$('taskAction').focus();else $('rollButton').focus();$('announcement').textContent='基地升到第 '+state.baseLevel+' 級！'},'base-choice');b.append(node('span',icon),node('strong',name));
+  function renderPark(){
+    const park=state?E.parkOf(state):{facilities:[],decorations:[]};
+    $('parkShop').disabled=!state||busy||!['ready','reward','finished'].includes(state.phase);
+    $('parkDecor').textContent=park.decorations.map(id=>E.DECORATIONS[id][0]+' '+E.DECORATIONS[id][1]).join('　');
+    $('parkMessage').textContent=park.facilities.length?'點亮的設施可以玩！樂園和剩餘獎勵都會留到下一趟旅程。':'第一個目標：收集 4 份建材，幫朋友蓋溜滑梯。';
+    $('parkScene').replaceChildren();
+    for(const [id,[icon,name,cost,copy]] of Object.entries(E.FACILITIES)){
+      const owned=park.facilities.includes(id),place=button($('parkScene'),'',()=>{
+        if(!owned){openBuild();return;}
+        $('parkMessage').textContent=copy;audio?.effect('reward');
+        const actor=place.children[1];
+        if(actor.animate&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches)actor.animate(id==='slide'?[{transform:'translate(-22px,-35px)'},{transform:'translate(24px,14px)'},{transform:'translate(0,0)'}]:id==='garden'?[{transform:'translate(-25px,0)'},{transform:'translate(25px,-25px)'},{transform:'translate(0,0)'}]:[{transform:'scale(.3)'},{transform:'scale(1.3)'},{transform:'scale(1)'}],{duration:1400,easing:'ease-in-out'});
+      },'park-place'+(owned?' owned':''));
+      place.disabled=!owned&&(!state||busy||!['ready','reward','finished'].includes(state.phase));
+      place.append(node('span',icon,'park-building'),node('span',owned?(id==='garden'?'🦋':id==='house'?'🐰':E.CHARACTERS[state.character][0]):'','park-actor'),node('strong',name),node('small',owned?'點我一起玩':cost+' 建材・等你來蓋'));
+    }
   }
+  function openBuild(){
+    if(!state||busy||!['ready','reward','finished'].includes(state.phase))return;
+    const park=E.parkOf(state);$('baseChoices').replaceChildren();
+    $('buildDescription').textContent='你有 '+state.supplies+' 份建材、'+park.stars+' 顆星星。設施和裝飾會一直保留。';
+    for(const [category,catalog,currency,balance] of [['facilities',E.FACILITIES,'建材',state.supplies],['decorations',E.DECORATIONS,'星星',park.stars]]){
+      for(const [id,[icon,name,cost]] of Object.entries(catalog)){
+        const owned=park[category].includes(id),b=button($('baseChoices'),icon+' '+name+' · '+(owned?'已擁有':cost+' '+currency),()=>{
+          dispatch({type:'purchase',category,item:id});$('buildDialog').close();taskDialog.close();
+          $('parkMessage').textContent='完成了！'+name+'加入你的樂園。'+(category==='facilities'?'點它，和朋友一起玩！':'下趟旅程也會陪著你。');
+          $('parkScene').scrollIntoView({block:'center',behavior:'auto'});$('parkShop').focus();
+          if($('parkScene').animate&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches)$('parkScene').animate([{opacity:.3,transform:'scale(.9)'},{opacity:1,transform:'scale(1)'}],{duration:650});
+        },'base-choice');b.disabled=owned||balance<cost;
+        if(!owned&&balance<cost)b.appendChild(node('small','還差 '+(cost-balance)+' '+currency));
+      }
+    }
+    if(!$('buildDialog').open)$('buildDialog').showModal();
+  }
+  function restartJourney(){if(!state||busy||!persist())return;state=E.nextJourney(state);taskViewKey='';taskDialog.close();persist();paint();$('rollButton').focus();$('announcement').textContent='新的旅程出發！你的樂園和獎勵都保留下來了。';}
+  $('parkShop').onclick=openBuild;
   async function roll(){
     if(!state||busy||state.phase!=='ready')return;
     activateAudio();
@@ -188,7 +220,7 @@
   $('cancelBuild').onclick=()=>$('buildDialog').close();$('helpButton').onclick=()=>$('helpDialog').showModal();$('closeHelp').onclick=()=>$('helpDialog').close();
   $('retrySave').onclick=persist;
   $('newJourney').onclick=()=>{if(persist())$('restartDialog').showModal()};
-  $('confirmRestart').onclick=()=>{$('restartDialog').close();if(corrupt){start();return;}state=null;taskViewKey='';paint();$('startBoard').focus()};
+  $('confirmRestart').onclick=()=>{$('restartDialog').close();if(corrupt){start();return;}restartJourney()};
   $('cancelRestart').onclick=()=>$('restartDialog').close();
   $('goHome').onclick=event=>{stopSpeech();if(!persist())event.preventDefault();else animationTicket++};
   window.addEventListener('pagehide',()=>{animationTicket++;stopSpeech();audio?.dispose()});

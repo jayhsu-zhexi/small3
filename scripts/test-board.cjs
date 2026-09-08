@@ -31,7 +31,7 @@ for(const subject of ['math','chinese','english','focus'])for(const mode of ['in
     assert.equal(s.task.attempts,1);
   }
   s=mode==='demo'?act(s,{type:'demo'}):solve(s);
-  assert.equal(s.events[0].mode,mode);assert.equal(s.supplies,2);assert.equal(s.stars,mode==='independent'?1:0);
+  assert.equal(s.events[0].mode,mode);assert.equal(s.supplies,2);assert.equal(s.stars,1);assert.equal(E.parkOf(s).stars,1);
   assert.ok(E.validState(copy(s)));const h=E.archive(null,s);
   assert.equal(E.archive(h,s).events.length,1,'Reloading must not duplicate records');
 }
@@ -74,3 +74,19 @@ B.restore(destination,legacy);assert.equal(destination.values[E.KEY],original.va
 const invalid=copy(b);invalid.entries[E.KEY]='{"version":1}';const previous=JSON.stringify(destination.values);
 assert.throws(()=>B.restore(destination,invalid));assert.equal(JSON.stringify(destination.values),previous);
 console.log('PASS: backups include board position, hidden memory and parent history; version-1 backups preserve board data; invalid imported board states never overwrite progress.');
+
+let legacyPark=E.create();legacyPark.supplies=12;legacyPark.stars=5;legacyPark.baseLevel=2;
+assert.ok(E.validState(legacyPark));
+let built=act(legacyPark,{type:'purchase',category:'facilities',item:'slide'});
+assert.equal(built.supplies,8);assert.equal(built.park.stars,5);
+assert.equal(act(built,{type:'purchase',category:'facilities',item:'slide'}),built,'Owned items cannot charge twice');
+built=act(built,{type:'purchase',category:'decorations',item:'balloons'});
+assert.equal(built.park.stars,3);assert.equal(built.stars,5,'Spending never changes journey learning totals');
+assert.equal(act(built,{type:'purchase',category:'decorations',item:'rainbow'}),built,'Insufficient funds do not mutate saves');
+assert.equal(act(built,{type:'purchase',category:'other',item:'slide'}),built);
+const continued=E.nextJourney(copy(built),1800000000100);
+assert.equal(continued.turn,0);assert.equal(continued.phase,'ready');assert.equal(continued.stars,0);assert.equal(continued.supplies,8);assert.equal(continued.baseLevel,2);
+assert.deepEqual(copy(continued.park),copy(built.park));assert.notEqual(continued.id,built.id);assert.ok(E.validState(continued));
+for(const park of [{stars:-1,facilities:[],decorations:[]},{stars:1,facilities:['slide','slide'],decorations:[]},{stars:1,facilities:['unknown'],decorations:[]}])assert.equal(E.validState({...continued,park}),false);
+const parkBackup=B.parse(JSON.stringify(B.capture(storage({[E.KEY]:JSON.stringify(continued)}))));const restored=storage();B.restore(restored,parkBackup);assert.deepEqual(JSON.parse(restored.values[E.KEY]).park,copy(continued.park));
+console.log('PASS: park purchases charge once, reject insufficient funds, migrate old saves, survive new journeys and round-trip through backup.');

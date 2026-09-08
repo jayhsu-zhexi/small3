@@ -2,6 +2,10 @@
   'use strict';
   const KEY = 'learning-planet-board-v1', HISTORY_KEY = 'learning-planet-board-history-v1';
   const TOTAL = 12;
+  const FACILITIES={slide:['🛝','溜滑梯',4,'小夥伴咻一下滑下來！'],house:['🏡','小兔的家',6,'小兔出門和你打招呼！'],garden:['🌻','蝴蝶花園',8,'蝴蝶飛來看你種的花！']};
+  const DECORATIONS={balloons:['🎈','彩色氣球',2],flowers:['🌷','花花圍籬',3],rainbow:['🌈','彩虹拱門',4]};
+  function parkOf(s){return s.park||{stars:s.stars,facilities:[],decorations:[]};}
+  function validPark(p){return obj(p)&&integer(p.stars,0,100000)&&['facilities','decorations'].every(key=>Array.isArray(p[key])&&new Set(p[key]).size===p[key].length&&p[key].every(id=>Object.hasOwn(key==='facilities'?FACILITIES:DECORATIONS,id)));}
   const TYPES = ['start','math','event','chinese','build','focus','rest','english','build','math','event','chinese','rest','focus','build','english','event','math','rest','chinese','build','focus','event','english'];
   const INFO = {
     start: ['🚀','出發站'], math: ['🧮','數學商店'], chinese: ['📖','故事小屋'],
@@ -28,7 +32,8 @@
   }
   function validEvent(e) { return obj(e) && text(e.id) && subject(e.subject) && modes.includes(e.mode) && text(e.title) && Number.isFinite(e.at); }
   function validState(s) {
-    if (!obj(s)||s.version!==1||!text(s.id)||!Object.hasOwn(CHARACTERS,s.character)||!Object.hasOwn(BASES,s.baseStyle)||!integer(s.position,0,23)||!integer(s.turn,0,TOTAL)||!integer(s.dice,0,6)||!integer(s.stars,0,TOTAL)||!integer(s.supplies,0,100)||!integer(s.baseLevel,0,3)||!integer(s.revision,0,100000)||!['ready','task','encounter','reward','finished'].includes(s.phase)||!Array.isArray(s.events)||s.events.length>TOTAL||!s.events.every(validEvent)||!Array.isArray(s.seen)||s.seen.length>TOTAL||!s.seen.every(text)||!obj(s.input)||!Array.isArray(s.input.sequence)||s.input.sequence.length>3||!s.input.sequence.every(d=>dirs.includes(d))||!obj(s.input.coins)||Object.entries(s.input.coins).some(([k,v])=>!['1','5','10'].includes(k)||!integer(v,0,30))||!Number.isFinite(s.startedAt)) return false;
+    if (!obj(s)||s.version!==1||!text(s.id)||!Object.hasOwn(CHARACTERS,s.character)||!Object.hasOwn(BASES,s.baseStyle)||!integer(s.position,0,23)||!integer(s.turn,0,TOTAL)||!integer(s.dice,0,6)||!integer(s.stars,0,TOTAL)||!integer(s.supplies,0,100000)||!integer(s.baseLevel,0,3)||!integer(s.revision,0,100000)||!['ready','task','encounter','reward','finished'].includes(s.phase)||!Array.isArray(s.events)||s.events.length>TOTAL||!s.events.every(validEvent)||!Array.isArray(s.seen)||s.seen.length>TOTAL||!s.seen.every(text)||!obj(s.input)||!Array.isArray(s.input.sequence)||s.input.sequence.length>3||!s.input.sequence.every(d=>dirs.includes(d))||!obj(s.input.coins)||Object.entries(s.input.coins).some(([k,v])=>!['1','5','10'].includes(k)||!integer(v,0,30))||!Number.isFinite(s.startedAt)) return false;
+    if(s.park!==undefined&&!validPark(s.park))return false;
     if (s.phase==='finished'&&s.turn!==TOTAL || s.phase==='ready'&&s.turn===TOTAL || s.turn===0&&s.phase!=='ready') return false;
     if (s.phase==='task'&&!validTask(s.task)) return false;
     if (s.task!==null&&!validTask(s.task)) return false;
@@ -65,17 +70,17 @@
   ];
   function encounter(s) {
     const e=s.encounter;
-    return e.kind==='event'?EVENTS[e.variant]:e.kind==='build'?['基地補給到了','收下 2 份建材。累積 4 份就能選擇造型、升級基地。',2]:e.kind==='start'?['回到出發站','繞了一圈，補充建材，再出發看看新的風景。',2]:['在彩虹下休息','伸伸手、看看遠方。收下旅途小禮物，準備好再繼續。',1];
+    return e.kind==='event'?EVENTS[e.variant]:e.kind==='build'?['基地補給到了','收下 2 份建材。累積 4 份就能蓋一座可以玩的溜滑梯。',2]:e.kind==='start'?['回到出發站','繞了一圈，補充建材，再出發看看新的風景。',2]:['在彩虹下休息','伸伸手、看看遠方。收下旅途小禮物，準備好再繼續。',1];
   }
-  function reward(s,title,message,supplies,stars=0) { s.supplies+=supplies;s.stars+=stars;s.phase='reward';s.outcome={title,text:message,supplies,stars}; }
+  function reward(s,title,message,supplies,stars=0) { s.supplies+=supplies;s.stars+=stars;s.park.stars+=stars;s.phase='reward';s.outcome={title,text:message,supplies,stars}; }
   function complete(s,mode,now) {
     const t=s.task;
     if(!s.events.some(e=>e.id===s.id+':'+s.turn))s.events.push({id:s.id+':'+s.turn,subject:t.subject,mode,title:t.title,at:now});
-    reward(s,mode==='independent'?'第一次就完成了！':'任務完成，繼續探險！',mode==='demo'?'看完示範也是學習。下次再試著自己完成。':mode==='independent'?'得到 2 份建材，還有一顆獨立完成的星星。':'你願意繼續練習，得到 2 份建材。',2,mode==='independent'?1:0);
+    reward(s,mode==='independent'?'第一次就完成了！':'任務完成，繼續探險！',mode==='demo'?'看完示範也是學習。下次再試著自己完成。':mode==='independent'?'得到 2 份建材和 1 顆星星，去樂園看看能蓋什麼吧！':'你願意繼續練習，得到 2 份建材和 1 顆星星。',2,1);
   }
   function act(previous,action,bank,rng=Math.random,now=Date.now()) {
     if(!validState(previous))throw Error('無法讀取這趟旅程');
-    const s=clone(previous),t=s.task;
+    const s=clone(previous),t=s.task;s.park=clone(parkOf(s));
     switch(action.type){
       case 'roll':
         if(s.phase!=='ready'||s.turn>=TOTAL)return previous;
@@ -102,6 +107,14 @@
         break;
       }
       case 'claim':if(s.phase!=='encounter')return previous;{const e=encounter(s);reward(s,e[0],e[1],e[2]);}break;
+      case 'purchase':{
+        if(!['ready','reward','finished'].includes(s.phase))return previous;
+        const catalog=action.category==='facilities'?FACILITIES:action.category==='decorations'?DECORATIONS:null;
+        if(!catalog||!Object.hasOwn(catalog,action.item)||s.park[action.category].includes(action.item))return previous;
+        const cost=catalog[action.item][2],balance=action.category==='facilities'?s.supplies:s.park.stars;if(balance<cost)return previous;
+        if(action.category==='facilities')s.supplies-=cost;else s.park.stars-=cost;
+        s.park[action.category].push(action.item);break;
+      }
       case 'upgrade':if(!['ready','reward','finished'].includes(s.phase)||s.supplies<4||s.baseLevel>=3||!Object.hasOwn(BASES,action.style))return previous;s.supplies-=4;s.baseLevel++;s.baseStyle=action.style;break;
       case 'continue':if(s.phase!=='reward')return previous;s.phase=s.turn===TOTAL?'finished':'ready';s.task=null;s.encounter=null;s.outcome=null;break;
       default:return previous;
@@ -119,6 +132,7 @@
     }
     h.games=h.games.slice(-100);return h;
   }
-  const api={KEY,HISTORY_KEY,TOTAL,TYPES,INFO,CHARACTERS,BASES,STAGES,dirs,create,act,archive,validState,validHistory,encounter};
+  function nextJourney(previous,now=Date.now()){if(!validState(previous))throw Error('無法讀取樂園');const s=create(previous.character,now);s.park=clone(parkOf(previous));s.supplies=previous.supplies;s.baseStyle=previous.baseStyle;s.baseLevel=previous.baseLevel;return s;}
+  const api={FACILITIES,DECORATIONS,parkOf,nextJourney,KEY,HISTORY_KEY,TOTAL,TYPES,INFO,CHARACTERS,BASES,STAGES,dirs,create,act,archive,validState,validHistory,encounter};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.PlanetBoard=api;
 })(typeof window==='undefined'?{}:window);
