@@ -4,6 +4,10 @@
   if(!E||!bank){$('saveStatus').textContent='遊戲暫時沒有載入完成，請重新整理再試。';$('startBoard').disabled=true;return;}
   let state=null,selected='cat',busy=false,animationTicket=0,taskViewKey='',updates=[],corrupt=false;
   const taskDialog=$('taskDialog');
+  const audio=window.PlanetBoardAudio?window.PlanetBoardAudio.createAudio(message=>{$('audioStatus').textContent=message}):null;
+  function activateAudio(){if(!audio)return;audio.setMusic($('musicSetting').checked);audio.setEffects($('effectsSetting').checked);audio.activate();}
+  $('musicSetting').onchange=()=>{$('audioStatus').textContent=$('musicSetting').checked?'輕音樂已開啟，可隨時取消勾選。':'輕音樂已關閉。';activateAudio();};
+  $('effectsSetting').onchange=()=>{$('audioStatus').textContent=$('effectsSetting').checked?'音效已開啟。':'音效已關閉。';activateAudio();};
   const tiles=[],coordinates=[];
   for(let c=1;c<=7;c++)coordinates.push([1,c]);
   for(let r=2;r<=7;r++)coordinates.push([r,7]);
@@ -11,6 +15,12 @@
   for(let r=6;r>=2;r--)coordinates.push([r,1]);
   function node(tag,text='',className=''){const el=document.createElement(tag);el.textContent=text;el.className=className;return el;}
   function button(parent,text,action,className='choice'){const b=node('button',text,className);b.type='button';b.onclick=action;parent.appendChild(b);return b;}
+  const directionNames={'↑':'往上','→':'往右','↓':'往下','←':'往左'};
+  function routeSlots(parent,label){
+    const list=node('div','','route-steps');list.setAttribute('role','list');list.setAttribute('aria-label',label);parent.appendChild(list);
+    const slots=[1,2,3].map(step=>{const item=node('div','','route-step');item.setAttribute('role','listitem');const icon=node('strong','','route-direction'),word=node('span','','route-word');item.append(node('span','第 '+step+' 步','route-step-index'),icon,word);list.appendChild(item);return {icon,word};});
+    return values=>slots.forEach((slot,i)=>{slot.icon.textContent=values[i]||'—';slot.word.textContent=values[i]?directionNames[values[i]]:'待選';});
+  }
   const token=node('span','🐱','token');token.setAttribute('aria-hidden','true');
   E.TYPES.forEach((kind,i)=>{
     const tile=node('div','','tile');tile.dataset.kind=kind;tile.style.gridRow=coordinates[i][0];tile.style.gridColumn=coordinates[i][1];
@@ -57,13 +67,13 @@
     $('buildNote').textContent=state.baseLevel===3?'你蓋出了一座閃耀家園！':state.supplies<4?'再收集 '+(4-state.supplies)+' 份建材，就能升級。':'建材準備好了！選個喜歡的基地造型。';
     $('positionLabel').textContent=E.CHARACTERS[state.character][0]+' 目前在第 '+(state.position+1)+' 格 · '+E.INFO[E.TYPES[state.position]][1];
   }
-  function dispatch(action){if(!state||busy)return;const next=E.act(state,action,bank);if(next===state)return;state=next;persist();paint();renderTask();}
+  function dispatch(action){if(!state||busy)return;const next=E.act(state,action,bank);if(next===state)return;const rewarded=state.phase!=='reward'&&next.phase==='reward';state=next;persist();paint();renderTask();if(rewarded||action.type==='upgrade')audio?.effect('reward');}
   function stopSpeech(){if(window.speechSynthesis)window.speechSynthesis.cancel();}
   function speak(word){
     if(!window.speechSynthesis||!window.SpeechSynthesisUtterance){$('taskFeedback').textContent='這個瀏覽器暫時無法朗讀。可以看英文單字繼續玩。';return;}
     try{stopSpeech();const voice=new SpeechSynthesisUtterance(word);voice.lang='en-US';voice.rate=.8;voice.onerror=()=>{$('taskFeedback').textContent='暫時無法朗讀，可以看單字繼續玩。'};window.speechSynthesis.speak(voice)}catch{$('taskFeedback').textContent='暫時無法朗讀，可以看單字繼續玩。'}
   }
-  function explanation(t){if(t.kind==='money')return '把蘋果的數量乘上每顆的價格，共需要 '+t.answer+' 元。';if(t.kind==='memory')return '路線是 '+t.answer.join(' → ')+'。跟著念一遍，下次再試試看。';return '答案是「'+t.answer+'」。'+t.hint;}
+  function explanation(t){if(t.kind==='money')return '把蘋果的數量乘上每顆的價格，共需要 '+t.answer+' 元。';if(t.kind==='memory')return '路線是：'+t.answer.map((direction,i)=>'第 '+(i+1)+' 步'+directionNames[direction]).join('；')+'。跟著念一遍，下次再試試看。';return '答案是「'+t.answer+'」。'+t.hint;}
   function renderTask(){
     if(!state||state.phase==='ready'){taskDialog.close();return;}
     const key=state.id+':'+state.turn+':'+state.phase+(state.phase==='finished'?':'+state.baseLevel:'');
@@ -88,13 +98,13 @@
           bind(()=>{total.textContent='托盤共 '+Object.entries(state.input.coins).reduce((sum,[c,n])=>sum+Number(c)*n,0)+' 元';});
           $('taskAction').textContent='準備好了，送出補給';$('taskAction').onclick=()=>dispatch({type:'answer'});
         }else if(t.kind==='memory'){
-          const preview=node('div'),route=node('p','','big-signal');preview.appendChild(route);controls.appendChild(preview);
-          const input=node('div');controls.appendChild(input);const sequence=node('p','','big-signal');input.appendChild(sequence);
+          const preview=node('div');controls.appendChild(preview);const showPreview=routeSlots(preview,'要記住的路線');
+          const input=node('div');controls.appendChild(input);const progress=node('p','','route-progress');progress.setAttribute('role','status');input.appendChild(progress);const showSelection=routeSlots(input,'你選的路線');
           const arrows=node('div','','directions');input.appendChild(arrows);const buttons=[];
           const hide=button(preview,'我記好了，藏起路線',()=>{dispatch({type:'conceal'});buttons[0].focus()},'secondary');
-          for(const dir of E.dirs){const b=button(arrows,dir,()=>dispatch({type:'direction',value:dir}),'');b.setAttribute('aria-label',{'↑':'往上','→':'往右','↓':'往下','←':'往左'}[dir]);buttons.push(b);}
+          for(const dir of E.dirs){const b=button(arrows,'',()=>dispatch({type:'direction',value:dir}),'');b.setAttribute('aria-label',directionNames[dir]);b.append(node('strong',dir),node('span',directionNames[dir],'direction-word'));buttons.push(b);}
           button(input,'退回上一步',()=>dispatch({type:'undo'}),'secondary');
-          bind(()=>{preview.classList.toggle('hidden',state.task.concealed);input.classList.toggle('hidden',!state.task.concealed);route.textContent=state.task.concealed?'':state.task.answer.join('　');sequence.textContent=state.input.sequence.length?state.input.sequence.join(' → '):'依序點選三個方向';$('taskAction').disabled=!state.task.concealed||state.input.sequence.length!==3;});
+          bind(()=>{preview.classList.toggle('hidden',state.task.concealed);input.classList.toggle('hidden',!state.task.concealed);showPreview(state.task.concealed?[]:state.task.answer);showSelection(state.input.sequence);progress.textContent='你選的路線：'+state.input.sequence.length+' / 3 步';$('taskAction').disabled=!state.task.concealed||state.input.sequence.length!==3;});
           $('taskAction').textContent='照這條路線前進';$('taskAction').onclick=()=>dispatch({type:'answer'});
         }else{
           if(t.subject==='english')button(controls,'🔊 聽聽 '+t.word,()=>speak(t.word),'secondary');
@@ -140,17 +150,37 @@
   }
   async function roll(){
     if(!state||busy||state.phase!=='ready')return;
+    activateAudio();
     const from=state.position,next=E.act(state,{type:'roll'},bank),ticket=++animationTicket;
     state=next;persist();busy=true;paint();setPosition(from);$('dice').classList.add('rolling');
     if(window.matchMedia('(max-width: 780px)').matches)$('board').scrollIntoView({block:'center',behavior:'auto'});
     const animated=$('gentleMotion').checked&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    for(let step=1;step<=state.dice;step++){
-      if(animated)await new Promise(resolve=>setTimeout(resolve,180));
-      if(ticket!==animationTicket)return;setPosition((from+step)%24);
+    const faces=['⚀','⚁','⚂','⚃','⚄','⚅'];
+    if(animated){
+      for(let frame=0;frame<10;frame++){
+        if(ticket!==animationTicket)return;
+        $('dice').textContent=faces[frame%6];if(frame%2===0)audio?.effect('dice');
+        await new Promise(resolve=>setTimeout(resolve,frame<7?90:160));
+      }
     }
-    busy=false;$('dice').classList.remove('rolling');paint();$('announcement').textContent='擲出 '+state.dice+'，到達'+E.INFO[E.TYPES[state.position]][1];openTask();
+    if(ticket!==animationTicket)return;
+    $('dice').classList.remove('rolling');$('dice').textContent=faces[state.dice-1];
+    $('diceLabel').textContent='擲出 '+state.dice+'！現在一步一步前進。';
+    for(let step=1;step<=state.dice;step++){
+      if(ticket!==animationTicket)return;
+      const before=animated?token.getBoundingClientRect():null;setPosition((from+step)%24);audio?.effect('step');
+      if(animated){
+        const after=token.getBoundingClientRect(),dx=before.left-after.left,dy=before.top-after.top;
+        if(token.animate){const hop=token.animate([{transform:'translate('+dx+'px,'+dy+'px) rotate(-6deg)'},{transform:'translate('+(dx/2)+'px,'+(dy/2-15)+'px) rotate(6deg)',offset:.5},{transform:'translate(0,0) rotate(0deg)'}],{duration:650,easing:'ease-in-out'});await hop.finished.catch(()=>{});}
+        else await new Promise(resolve=>setTimeout(resolve,650));
+        if(ticket!==animationTicket)return;
+        await new Promise(resolve=>setTimeout(resolve,150));
+      }
+    }
+    if(ticket!==animationTicket)return;
+    busy=false;audio?.effect('land');paint();$('announcement').textContent='擲出 '+state.dice+'，到達'+E.INFO[E.TYPES[state.position]][1];openTask();
   }
-  function start(){state=E.create(selected);corrupt=false;taskViewKey='';persist();paint();$('rollButton').focus();}
+  function start(){activateAudio();state=E.create(selected);corrupt=false;taskViewKey='';persist();paint();$('rollButton').focus();}
   $('startBoard').onclick=()=>{if(corrupt){$('restartDialog').showModal();return;}start();};
   $('rollButton').onclick=roll;$('resumeTask').onclick=openTask;$('buildButton').onclick=openBuild;
   $('hintButton').onclick=()=>{dispatch({type:'hint'});if(state.task.kind==='memory')$('taskTitle').focus()};$('demoButton').onclick=()=>dispatch({type:'demo'});
@@ -161,7 +191,9 @@
   $('confirmRestart').onclick=()=>{$('restartDialog').close();if(corrupt){start();return;}state=null;taskViewKey='';paint();$('startBoard').focus()};
   $('cancelRestart').onclick=()=>$('restartDialog').close();
   $('goHome').onclick=event=>{stopSpeech();if(!persist())event.preventDefault();else animationTicket++};
-  window.addEventListener('pagehide',()=>{animationTicket++;stopSpeech()});
+  window.addEventListener('pagehide',()=>{animationTicket++;stopSpeech();audio?.dispose()});
+  window.addEventListener('pageshow',event=>{if(event.persisted){animationTicket++;busy=false;$('dice').classList.remove('rolling');state=null;load();paint();if(state&&state.phase!=='ready')openTask();}});
+  document.addEventListener?.('visibilitychange',()=>{if(document.hidden){audio?.suspend();stopSpeech();}else activateAudio();});
   window.addEventListener('storage',event=>{if(event.key===E.KEY||event.key===null){animationTicket++;busy=false;taskDialog.close();state=null;corrupt=false;load();paint();$('announcement').textContent='已同步另一個分頁的旅程。';}});
   load();paint();if(state&&state.phase!=='ready')openTask();
 })();

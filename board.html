@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="/assets/board.css">
   <script defer src="/assets/board-engine.js"></script>
   <script defer src="/assets/board-bank.js"></script>
+  <script defer src="/assets/board-audio.js"></script>
   <script defer src="/assets/board-ui.js"></script>
 </head>
 <body>
@@ -51,7 +52,8 @@
           <section class="tip-card"><span aria-hidden="true">💫</span><div><strong>旅途小提醒</strong><p>完成任務就有建材，獨立首次完成再加一顆星。需要提示也沒關係！</p></div></section>
           <p class="save-status" id="saveStatus" role="status">進度只存在這個瀏覽器，可在首頁下載備份。</p>
           <button class="quiet hidden" id="retrySave">再試一次存檔</button>
-          <div class="preferences"><label><input type="checkbox" id="gentleMotion" checked> 輕柔移動</label><button class="quiet hidden" id="newJourney">開始新旅程</button></div>
+          <div class="preferences"><label><input type="checkbox" id="gentleMotion" checked> 移動動畫</label><label><input type="checkbox" id="musicSetting"> 輕音樂</label><label><input type="checkbox" id="effectsSetting"> 音效</label><button class="quiet hidden" id="newJourney">開始新旅程</button></div>
+          <p class="save-status" id="audioStatus" role="status">聲音預設關閉，勾選後開始播放。</p>
         </aside>
       </div>
       <p class="sr-only" id="announcement" role="status"></p>
