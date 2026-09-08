@@ -2,9 +2,25 @@
 
 正式入口：https://small3.vercel.app
 
+## 星球探險棋
+
+新遊戲：https://small3.vercel.app/board
+
+24 格環形地圖、三個角色，每局 12 次擲骰；數學硬幣托盤、國語閱讀、英文朗讀選物、森林記憶路線。
+完成學習任務獲得 2 建材，獨立首次完成額外獲得 1 星。提示、重試與示範皆可前進，不扣分、不倒退。
+驚喜、休息與建設格提供建材；每 4 建材升級一次，三種基地造型，最高 3 級。
+
+`board.html` / `assets/board.css` / `assets/board-ui.js` 是畫面，`assets/board-engine.js` 是純狀態轉換與存檔驗證。
+`npm run dev` 與 `npm test` 會從原遊戲題庫產生 `assets/board-bank.js`（不提交生成檔），避免兩份題庫分歧。
+狀態和家長紀錄使用 `learning-planet-board-v1` / `learning-planet-board-history-v1`，不改原學科的星星、解鎖與難度。
+擲骰落點先保存再播放移動；刷新會回到同一任務。家長紀錄按任務 ID 去重。
+備份格式升至 v2，包含探險棋；匯入舊 v1 備份時保留現有探險棋資料。
+
+中央插畫以內建 ImageGen 製作，存於 `assets/board-island.png`。提示：square polished 3D clay floating green island in deep indigo space, friendly blue-and-orange space outpost, large tree, cozy animal house, warm lights, no text or UI.
+
 ## 開發與部署
 
-正式遊戲的唯一入口是 `index.html`，備份工具是 `assets/backup.js`。
+首頁與原學科遊戲入口是 `index.html`，探險棋是 `board.html`，備份工具是 `assets/backup.js`。
 Node.js 22.13 以上即可執行，不需安裝第三方套件。
 
 - `npm run dev`：在 http://127.0.0.1:4173 預覽正式遊戲原始碼；修改後重新整理。

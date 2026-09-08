@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#101c43">
+  <meta name="description" content="丟骰子、完成四科小任務，用旅途中的建材打造自己的星球基地。">
+  <link rel="canonical" href="https://small3.vercel.app/board">
+  <title>星球探險棋 · 學習星球大冒險</title>
+  <link rel="stylesheet" href="/assets/board.css">
+  <script defer src="/assets/board-engine.js"></script>
+  <script defer src="/assets/board-bank.js"></script>
+  <script defer src="/assets/board-ui.js"></script>
+</head>
+<body>
+  <div class="game-shell">
+    <header class="page-header">
+      <a href="/" id="goHome" class="home-link">← 存檔回首頁</a>
+      <div class="wordmark"><span aria-hidden="true">✦</span> 學習星球 <span class="edition">探險棋</span></div>
+      <button class="quiet" id="helpButton" aria-label="查看探險棋玩法">怎麼玩？</button>
+    </header>
+    <main>
+      <div class="title-row"><div><p class="eyebrow">一小步，一個新發現</p><h1>星球探險棋</h1></div><div class="trip-pill" id="tripLabel">準備出發</div></div>
+      <div class="play-layout">
+        <section class="board-panel" aria-label="24 格星球探險地圖">
+          <div class="board" id="board">
+            <div class="base-center" id="baseCenter">
+              <img src="/assets/board-island.png" alt="星空中的浮島，有太空站、大樹與溫暖的小屋" width="1254" height="1254" fetchpriority="high">
+              <div class="base-overlay"><span class="base-level" id="baseLevel">LEVEL 0</span><h2 id="baseName">你的小小營地</h2><p id="baseCaption">收集建材，讓基地慢慢長大。</p><div class="base-milestones" id="baseMilestones" aria-label="基地建設進度"></div></div>
+            </div>
+          </div>
+          <div class="map-footer"><span id="positionLabel">🚀 從出發站開始，順時針前進</span><span>每一站，都有新發現 ✦</span></div>
+          <details class="legend"><summary>看看地圖上的格子</summary><div id="legendItems"></div></details>
+        </section>
+        <aside class="journey-panel" aria-label="旅程控制">
+          <section class="control-card" id="setupCard">
+            <p class="eyebrow">選一位探險夥伴</p><h2>今天，誰要出發？</h2>
+            <div class="characters" id="characters" aria-label="選擇角色"></div>
+            <p class="small-note">擲骰走 12 回合，一起蓋出自己的基地。沒有倒數，隨時可以存檔。</p>
+            <button class="primary" id="startBoard">開始我的探險 →</button>
+          </section>
+          <section class="control-card hidden" id="playCard">
+            <div class="traveler"><span id="avatar" aria-hidden="true">🐱</span><div><p class="eyebrow">我的探險夥伴</p><strong id="characterName">小橘</strong></div></div>
+            <div class="inventory"><div><span>⭐ 星星</span><strong id="starCount">0</strong></div><div><span>🧱 建材</span><strong id="supplyCount">0</strong></div></div>
+            <div class="dice-area"><span class="dice" id="dice" aria-hidden="true">⚀</span><p id="diceLabel">準備好，就丟骰子！</p></div>
+            <button class="primary" id="rollButton">🎲 丟骰子，出發！</button>
+            <button class="secondary hidden" id="resumeTask">繼續這一站</button>
+            <button class="secondary" id="buildButton">🏗️ 建造基地 · 4 建材</button>
+            <p class="small-note" id="buildNote">每 4 份建材，基地就能升一級。</p>
+          </section>
+          <section class="tip-card"><span aria-hidden="true">💫</span><div><strong>旅途小提醒</strong><p>完成任務就有建材，獨立首次完成再加一顆星。需要提示也沒關係！</p></div></section>
+          <p class="save-status" id="saveStatus" role="status">進度只存在這個瀏覽器，可在首頁下載備份。</p>
+          <button class="quiet hidden" id="retrySave">再試一次存檔</button>
+          <div class="preferences"><label><input type="checkbox" id="gentleMotion" checked> 輕柔移動</label><button class="quiet hidden" id="newJourney">開始新旅程</button></div>
+        </aside>
+      </div>
+      <p class="sr-only" id="announcement" role="status"></p>
+      <noscript><p>請開啟 JavaScript，才能擲骰與遊玩。<a href="/">回到首頁</a></p></noscript>
+    </main>
+    <footer>每一次嘗試，都在長大。<span>✦</span> 學習星球大冒險</footer>
+  </div>
+  <dialog id="taskDialog" class="task-dialog" aria-labelledby="taskTitle">
+    <div class="dialog-top"><span id="taskCategory" class="category-tag"></span><button class="quiet" id="closeTask">先看看地圖</button></div>
+    <h2 id="taskTitle" tabindex="-1"></h2><p class="task-copy" id="taskText"></p>
+    <div id="taskControls"></div>
+    <p id="taskFeedback" class="feedback" role="status"></p>
+    <p id="hintText" class="hint hidden"></p>
+    <div class="task-actions"><button class="secondary" id="hintButton">💡 給我提示</button><button class="quiet" id="demoButton">看示範，一起完成</button></div>
+    <button class="primary" id="taskAction"></button>
+  </dialog>
+  <dialog id="buildDialog" class="task-dialog" aria-labelledby="buildTitle">
+    <span class="category-tag">🏗️ 基地工坊</span><h2 id="buildTitle">基地要長成什麼樣子？</h2><p class="task-copy" id="buildDescription">花 4 份建材升級，也可以換個喜歡的造型。</p>
+    <div id="baseChoices" class="base-choices"></div><button class="secondary" id="cancelBuild">先把建材收好</button>
+  </dialog>
+  <dialog id="helpDialog" class="task-dialog" aria-labelledby="helpTitle">
+    <span class="category-tag">✦ 探險指南</span><h2 id="helpTitle">一邊玩，一邊把基地蓋起來</h2>
+    <ol class="instructions"><li>選好夥伴，丟骰子沿地圖前進。</li><li>遇到學習格，就幫朋友完成小任務。</li><li>完成任務拿建材，獨立首次完成再加星星。</li><li>每 4 份建材升級一次基地，最多 3 級。</li><li>走完 12 回合，看看今天的學習成果。</li></ol>
+    <p class="task-copy">不倒退、不扣星，也沒有倒數。卡住時可以看提示或示範。遊戲自動存檔；換裝置前請到首頁下載備份。</p><button class="primary" id="closeHelp">我知道了！</button>
+  </dialog>
+  <dialog id="restartDialog" class="task-dialog" aria-labelledby="restartTitle">
+    <h2 id="restartTitle">開始另一趟旅程？</h2><p class="task-copy">新的旅程會取代這一局的棋盤和基地。已保存的學習紀錄仍會保留。</p><button class="primary" id="confirmRestart">確定，開始新旅程</button><button class="secondary" id="cancelRestart" autofocus>繼續原來的旅程</button>
+  </dialog>
+</body>
+</html>

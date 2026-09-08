@@ -2,11 +2,12 @@
   'use strict';
   const PREFIX = 'learning-planet-';
   const subjects = { math: 3, chinese: 3, focus: 12, english: 6 };
-  const keys = [
+  const legacyKeys = [
     'levels', 'chinese-history', 'question-history-v1', 'history-v1', 'session-v1',
     ...Object.keys(subjects).map(s => 'session-v1-' + s),
     ...['space', 'shop', 'pets'].map(s => 'stories-v1-' + s)
   ].map(s => PREFIX + s);
+  const keys = [...legacyKeys,PREFIX+'board-v1',PREFIX+'board-history-v1'];
   const MAX_BYTES = 2 * 1024 * 1024;
   const object = x => !!x && typeof x === 'object' && !Array.isArray(x);
   const integer = (x, min, max) => Number.isInteger(x) && x >= min && x <= max;
@@ -17,6 +18,8 @@
   }
   function validValue(key, value) {
     if (value === null) return true;
+    if (key === PREFIX+'board-v1') return !!root.PlanetBoard && root.PlanetBoard.validState(value);
+    if (key === PREFIX+'board-history-v1') return !!root.PlanetBoard && root.PlanetBoard.validHistory(value);
     if (key === PREFIX + 'levels') return object(value) && Object.entries(value).every(([s, n]) => Object.hasOwn(subjects, s) && integer(n, 1, subjects[s]));
     if (key === PREFIX + 'chinese-history') return strings(value, 100);
     if (key === PREFIX + 'question-history-v1') return object(value) && Object.entries(value).every(([s, list]) => Object.hasOwn(subjects, s) && strings(list, 160));
@@ -30,13 +33,15 @@
     return false;
   }
   function capture(storage) {
-    return { format: 'learning-planet-backup', version: 1, createdAt: new Date().toISOString(), entries: Object.fromEntries(keys.map(k => [k, storage.getItem(k)])) };
+    return { format: 'learning-planet-backup', version: 2, createdAt: new Date().toISOString(), entries: Object.fromEntries(keys.map(k => [k, storage.getItem(k)])) };
   }
   function parse(text) {
     if (typeof text !== 'string' || text.length > MAX_BYTES) throw Error('備份檔案太大，請選擇 2 MB 以內的遊戲備份。');
     let data;
     try { data = JSON.parse(text); } catch { throw Error('無法讀取這個檔案，請選擇遊戲匯出的 JSON 備份。'); }
-    if (!object(data) || data.format !== 'learning-planet-backup' || data.version !== 1 || !object(data.entries) || Object.keys(data.entries).length !== keys.length || !keys.every(k => Object.hasOwn(data.entries, k))) throw Error('備份格式或版本不支援，原本的進度沒有變更。');
+    if (!object(data) || data.format !== 'learning-planet-backup' || ![1,2].includes(data.version) || !object(data.entries)) throw Error('備份格式或版本不支援，原本的進度沒有變更。');
+    const expected=data.version===1?legacyKeys:keys;
+    if(Object.keys(data.entries).length!==expected.length||!expected.every(k=>Object.hasOwn(data.entries,k)))throw Error('備份格式或版本不支援，原本的進度沒有變更。');
     for (const [key, raw] of Object.entries(data.entries)) {
       if (raw === null) continue;
       if (typeof raw !== 'string') throw Error('備份內容不完整，原本的進度沒有變更。');
@@ -49,7 +54,7 @@
   function restore(storage, data) {
     data = parse(JSON.stringify(data));
     const previous = capture(storage);
-    const write = entries => { for (const key of keys) entries[key] === null ? storage.removeItem(key) : storage.setItem(key, entries[key]); };
+    const write = entries => { for (const key of keys) if(Object.hasOwn(entries,key)) entries[key] === null ? storage.removeItem(key) : storage.setItem(key, entries[key]); };
     try { write(data.entries); }
     catch {
       try { write(previous.entries); }
@@ -62,7 +67,8 @@
     const stages = Object.values(history).reduce((sum, d) => sum + d.stages.length, 0);
     const saves = Object.keys(subjects).filter(s => JSON.parse(data.entries[PREFIX + 'session-v1-' + s] || 'null')).length;
     const stories = ['space', 'shop', 'pets'].filter(s => JSON.parse(data.entries[PREFIX + 'stories-v1-' + s] || 'null')).length;
-    return stages + ' 次闖關紀錄、' + saves + ' 科中途存檔、' + stories + ' 個故事進度';
+    const board=JSON.parse(data.entries[PREFIX+'board-v1']||'null');
+    return stages + ' 次闖關紀錄、' + saves + ' 科中途存檔、' + stories + ' 個故事進度'+(board?'、探險棋第 '+board.turn+' 回合':'');
   }
   function mount() {
     const $ = id => document.getElementById(id);
@@ -88,6 +94,7 @@
         if (file.size > MAX_BYTES) throw Error('檔案超過 2 MB，請選擇遊戲匯出的 JSON 備份。');
         pending = parse(await file.text());
         $('restoreBackupSummary').textContent = '這份備份包含 ' + summary(pending) + '。';
+        $('restoreBackupWarning').textContent = pending.version===1?'這是舊版備份，只取代原本四科與故事資料，探險棋會保留。建議先下載目前進度。':'匯入會取代這個網址上的遊戲進度，包含探險棋。建議先下載目前進度，日後可再匯入還原。';
         dialog.showModal();
       } catch (error) { pending = null; announce(error.message); }
     };

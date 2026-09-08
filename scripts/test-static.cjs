@@ -10,13 +10,20 @@ const { createServer } = require('./serve.cjs');
   const server = createServer(temp);
   try {
     build(temp);
-    for (const file of files) assert.equal(fs.readFileSync(path.join(temp, file), 'utf8'), fs.readFileSync(file, 'utf8'));
+    for (const file of files) assert.deepEqual(fs.readFileSync(path.join(temp, file)), fs.readFileSync(file));
     server.listen(0, '127.0.0.1'); await once(server, 'listening');
     const origin = 'http://127.0.0.1:' + server.address().port;
     const page = await fetch(origin); assert.equal(page.status, 200);
     const html = await page.text(); assert.match(html, /id="backupTools"/);
     const script = await fetch(origin + '/assets/backup.js'); assert.match(script.headers.get('content-type'), /javascript/);
     assert.match(await script.text(), /learning-planet-backup/);
+    for(const route of ['/board','/board/','/board.html']){
+      const board=await fetch(origin+route);assert.equal(board.status,200);assert.match(await board.text(),/id="board"/);
+    }
+    for(const asset of ['board-engine.js','board-ui.js','board-bank.js','board-records.js','board.css','board-island.png']){
+      const response=await fetch(origin+'/assets/'+asset);assert.equal(response.status,200);
+      assert.deepEqual(Buffer.from(await response.arrayBuffer()),fs.readFileSync('assets/'+asset));
+    }
     assert.equal((await fetch(origin + '/assets/missing.js')).status, 404);
     assert.equal(await (await fetch(origin + '/any-game-route')).text(), html);
     assert.equal(await (await fetch(origin + '/.git/config')).text(), html, 'Source files are never served');
