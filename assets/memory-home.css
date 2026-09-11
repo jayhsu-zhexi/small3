@@ -12,15 +12,27 @@ body:not(.in-mission) .header-controls .quiet-button { background: #06111b80; bo
 .mission-home { min-height: calc(100svh - 138px); display: flex; flex-direction: column; justify-content: center; gap: 28px; padding: 32px 0 24px; }
 .mission-hero { display: flex; align-items: center; position: relative; width: 100%; flex: 1; min-height: 310px; }
 .home-copy { max-width: 580px; width: 48%; }
-.mission-eyebrow { display: flex; align-items: center; gap: 12px; color: #b3d6e5; font-size: .875rem; font-weight: 600; letter-spacing: .08em; margin: 0 0 22px; }
-.mission-eyebrow > span { font: 600 .75rem Consolas, monospace; color: #8cf3ff; border: 1px solid #6cd5e55c; padding: 4px 7px; }
-.home-copy h1 { font-size: clamp(3.5rem, 6.4vw, 6rem); line-height: 1.04; letter-spacing: .09em; margin: 0 0 24px; color: #f2f8fc; }
-.home-copy h1 .title-accent { display: block; margin-top: 4px; color: #8fefff; text-shadow: 0 0 34px #35b9ea33; }
-.home-intro { color: #b8cfdf; font-size: 1.125rem; line-height: 1.8; margin: 0; letter-spacing: .03em; }
-.station-caption { display: flex; flex-direction: column; gap: 8px; right: 8px; bottom: 0; border: 0; padding: 0; min-width: 180px; text-align: right; }
-.signal-label { color: #ffd49d; font: .75rem/1.5 Consolas, 'Microsoft JhengHei', monospace; letter-spacing: .04em; }
-.signal-line { align-self: flex-end; height: 1px; width: 48px; background: #ffd49d80; }
-.station-caption small { color: #a5c2d2; font-size: .75rem; }
+.home-copy .home-title { margin: 0; line-height: 0; width: 100%; }
+.home-title img { display: block; width: 100%; height: auto; max-height: clamp(230px, 39svh, 365px); object-fit: contain; object-position: left center; filter: drop-shadow(0 8px 20px #020918aa); }
+.home-ui-art { display: block; flex: 0 0 auto; width: 40px; height: 40px; background-image: url('/assets/memory-home-icons.png'); background-size: 300% 200%; background-repeat: no-repeat; pointer-events: none; }
+.ui-station { background-position: 0 0; }
+.ui-reactor { background-position: 50% 0; }
+.ui-speaker { background-position: 100% 0; }
+.ui-help { background-position: 0 100%; }
+.ui-exit { background-position: 50% 100%; }
+.ui-power { background-position: 100% 100%; }
+.orbit-brand .home-ui-art { width: 58px; height: 58px; }
+.header-controls .icon-control { display: grid; place-items: center; width: 48px; height: 48px; padding: 3px; border: 1px solid #648ea450; border-radius: 7px; background: #06132099; position: relative; cursor: pointer; }
+.header-controls .icon-control:hover { border-color: #9ce8f6; background: #153242c9; }
+.audio-switch .audio-input { position: absolute; inset: 0; margin: 0; width: 100%; height: 100%; opacity: 0; z-index: 1; cursor: pointer; }
+.icon-control:has(input:focus-visible) { outline: 3px solid var(--amber); outline-offset: 4px; }
+.audio-switch input:not(:checked) + .home-ui-art { opacity: .55; }
+.audio-switch input:not(:checked) + .home-ui-art::after { content: ''; position: absolute; width: 36px; height: 3px; background: #ffb08c; transform: rotate(-45deg); left: 5px; top: 22px; box-shadow: 0 0 2px #07111c; }
+.mission-story { display: flex; align-items: center; gap: 9px; width: fit-content; padding: 8px 15px; margin-top: 3px; border: 1px solid #8ccee622; border-radius: 9px; background: linear-gradient(100deg, #102536a6, #06131b22); }
+.mission-story .control-art { width: 68px; height: 68px; }
+.mission-story .ui-power { width: 34px; height: 34px; }
+.mission-story .ui-station { width: 80px; height: 80px; }
+.story-arrow { color: #a0dff0; font: 1.5rem/1 Consolas, monospace; }
 .mission-setup { width: 100%; padding: 22px 26px 18px; background: linear-gradient(130deg, #122737f2, #071522ed); border: 1px solid #6c9bb24d; border-top-color: #8abacd80; border-radius: 4px; box-shadow: 0 16px 50px #0005, inset 0 1px #a9e3fc10; backdrop-filter: blur(18px); }
 .mission-setup::before { height: 2px; width: 80px; background: #8ff3ff; box-shadow: 0 0 16px #5fdaff55; }
 .sr-only { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip-path: inset(50%); white-space: nowrap !important; border: 0 !important; }
@@ -68,9 +80,10 @@ body:not(.in-mission) .orbit-footer { border: 0; font-size: .75rem; color: #6c8b
 @media (min-width: 1001px) and (max-height: 780px) {
   .mission-home { gap: 18px; padding: 20px 0 8px; }
   .mission-hero { min-height: 285px; }
-  .home-copy h1 { font-size: 4rem; margin-bottom: 18px; }
-  .mission-eyebrow { margin-bottom: 16px; }
-  .home-intro { font-size: 1rem; line-height: 1.7; }
+  .home-title img { max-height: 255px; }
+  .mission-story { padding: 4px 12px; }
+  .mission-story .control-art { width: 54px; height: 54px; }
+  .mission-story .ui-station { width: 64px; height: 64px; }
   .mission-setup { padding: 18px 22px 14px; }
 }
 @media (max-width: 1100px) {
@@ -82,7 +95,6 @@ body:not(.in-mission) .orbit-footer { border: 0; font-size: .75rem; color: #6c8b
   .mission-launch .control-art { width: 95px; height: 95px; }
   .mission-setup { padding: 20px; }
   .mission-home { gap: 24px; }
-  .home-copy h1 { font-size: 4rem; }
 }
 @media (max-width: 700px) {
   body:not(.in-mission) .orbit-shell { padding: 0 20px; }
@@ -96,11 +108,16 @@ body:not(.in-mission) .orbit-footer { border: 0; font-size: .75rem; color: #6c8b
   .mission-home { min-height: calc(100svh - 122px); padding: 26px 0 8px; gap: 24px; }
   .mission-hero { min-height: 260px; align-items: flex-start; }
   .home-copy { width: 100%; }
-  .mission-eyebrow { font-size: .8125rem; gap: 9px; margin-bottom: 18px; }
-  .home-copy h1 { font-size: 3.25rem; letter-spacing: .08em; line-height: 1.08; margin: 0 0 18px; }
-  .home-copy h1 .title-accent { display: block; }
-  .home-intro { font-size: 1rem; line-height: 1.7; }
-  .station-caption { display: none; }
+  .home-copy .home-title { max-width: 290px; margin: -8px 0 0; }
+  .home-title img { max-height: 212px; }
+  .orbit-brand .home-ui-art { width: 48px; height: 48px; }
+  .header-controls .icon-control { width: 43px; height: 43px; }
+  .header-controls .home-ui-art { width: 35px; height: 35px; }
+  .mission-story { gap: 6px; padding: 4px 9px; margin-top: 2px; }
+  .mission-story .control-art { width: 50px; height: 50px; }
+  .mission-story .ui-power { width: 28px; height: 28px; }
+  .mission-story .ui-station { width: 60px; height: 60px; }
+  .story-arrow { font-size: 1.125rem; }
   .mission-setup { padding: 17px 13px 13px; }
   .mission-controls { grid-template-columns: minmax(0, 1fr) 82px; gap: 16px 12px; }
   .mission-controls fieldset { grid-column: 1 / -1; }
@@ -132,5 +149,4 @@ body:not(.in-mission) .orbit-footer { border: 0; font-size: .75rem; color: #6c8b
   .mission-specs strong { font-size: 1.125rem; }
   .picture-rule { gap: 2px; }
   .picture-rule > .control-art { width: 23px; height: 23px; }
-  .mission-eyebrow { letter-spacing: 0; }
 }
