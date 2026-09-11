@@ -44,6 +44,8 @@
     b.append(art,number,bars);b.onclick=()=>{if(selected!==count)manualTime=false;selected=count;setup();savePreferences();};$('memoryCounts').appendChild(b);
   }
   function boardSpace(width,height,fit){if(!fit)return {width:Math.min(1160,Math.max(260,width-72)),height:Math.max(300,height-255),gap:10};const bounds=$('memoryBoard').getBoundingClientRect();return {width:Math.max(1,bounds.width-12),height:Math.max(1,bounds.height-12),gap:4};}
+  // Browser chrome changes visible height, but must not choose a different phone deck.
+  function portraitPhone(){return window.innerWidth<=600&&window.innerWidth<window.innerHeight;}
   function previewPlan(){
     const width=window.innerWidth,height=window.visualViewport?.height||window.innerHeight,fit=width<=1100||height<=600;
     if(!fit){const space=boardSpace(width,height,false);return E.plan(selected,space.width,space.height,space.gap);}
@@ -52,7 +54,7 @@
     const body=document.body,game=$('memoryGame'),home=$('memoryHome'),hidden=game.hidden,focused=document.activeElement;
     body.style.setProperty('--measure-page-height',(body.scrollHeight||height)+'px');body.style.setProperty('--mission-viewport',height+'px');
     body.classList.add('measuring-mission');body.classList.add('in-mission');body.classList.add('fit-board');game.hidden=false;const homeHidden=home.hidden;home.hidden=true;
-    try{const space=boardSpace(width,height,true);return E.plan(selected,space.width,space.height,space.gap);}
+    try{const space=boardSpace(width,height,true);return E.plan(selected,space.width,space.height,space.gap,portraitPhone());}
     finally{game.hidden=hidden;home.hidden=homeHidden;body.classList.remove('measuring-mission');body.classList.remove('in-mission');body.classList.remove('fit-board');if(focused&&document.activeElement!==focused)focused.focus({preventScroll:true});}
   }
   function setup(){
@@ -89,7 +91,7 @@
         // Maximize card size within the actual remaining space, including mobile browser bars.
         const tileSize=count=>Math.max(0,Math.min(128,(available-gap*(count-1))/count,(space-gap*(Math.ceil(state.size/count)-1))/Math.ceil(state.size/count)/1.25));
         if(boardFit&&boardFit.width===width&&Math.abs(boardFit.available-available)<1){cols=boardFit.cols;tileW=tileSize(cols);}
-        else{const rectangle=E.rectangle(state.size,available,space,gap);cols=rectangle.cols;tileW=rectangle.tile;}
+        else{const rectangle=E.rectangle(state.size,available,space,gap,portraitPhone()?E.PHONE_COLUMNS[selected]:0);cols=rectangle.cols;tileW=rectangle.tile;}
         boardFit={width,available,cols};tileW=Math.floor(tileW*100)/100;
       }else{
         boardFit=null;const space=boardSpace(width,height,false),rectangle=E.rectangle(state.size,space.width,space.height,gap);
