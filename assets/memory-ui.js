@@ -8,7 +8,7 @@
   const artworkFiles=['/assets/memory-card-shells.webp','/assets/memory-equipment-1.webp','/assets/memory-equipment-2.webp'];
   let theme='C',artworkReady=false,artworkLoading=false,artworkAttempt=0;
   try{const saved=window.localStorage.getItem(themeKey);if(themes.some(([key])=>key===saved))theme=saved;}catch{}
-  let selected=preferences.size,duration=preferences.duration,state=null,cards=[],raf=null,tickTimer=null,endTimer=null,launchTimer=null,launching=false,run=0,viewKey='',dialogMode='',particles=[],canvasDirty=false,lowTimeAnnounced=false,resultReport=null;
+  let selected=preferences.size,duration=preferences.duration,state=null,cards=[],raf=null,tickTimer=null,endTimer=null,launchTimer=null,launching=false,run=0,viewKey='',dialogMode='',particles=[],canvasDirty=false,lowTimeAnnounced=false,resultReport=null,boardFit=null;
   $('memoryMusic').checked=preferences.music;$('memorySound').checked=preferences.sound;
   function savePreferences(){records.savePreferences({size:selected,duration,music:$('memoryMusic').checked,sound:$('memorySound').checked});}
   function node(tag,text='',className=''){const n=document.createElement(tag);n.textContent=text;n.className=className;return n;}
@@ -57,16 +57,28 @@
   function clearEffects(){particles=[];if(raf!==null)cancelAnimationFrame(raf);raf=null;if(ctx&&canvasDirty)ctx.clearRect(0,0,window.innerWidth,window.innerHeight);canvasDirty=false;}
   function stop(){clearEffects();if(tickTimer!==null)clearTimeout(tickTimer);tickTimer=null;if(endTimer!==null)clearTimeout(endTimer);endTimer=null;if(launchTimer!==null)clearTimeout(launchTimer);launchTimer=null;launching=false;launchDialog.close();document.body.classList.remove('is-launching');}
   function layout(){
-    const width=window.innerWidth,gap=width<700?6:10;
+    // Pinch zoom magnifies the current board without changing remembered positions.
+    const viewport=window.visualViewport;if(state&&viewport&&viewport.scale!==1)return;
+    const width=window.innerWidth,height=viewport?.height||window.innerHeight,fit=!!state&&(width<=1100||height<=600);
+    document.body.classList.toggle('fit-board',fit);document.body.style.setProperty('--mission-viewport',height+'px');
     if(state){
-      const available=Math.min(1160,Math.max(260,width-(width<700?36:72))),maxCols=({16:4,24:6,32:8,40:8,52:13})[state.size];
-      const cols=width<480?Math.min(4,maxCols):Math.max(1,Math.min(maxCols,Math.floor((available+gap)/((width<700?68:78)+gap))));
-      const rows=Math.ceil(state.size/cols),idealH=Math.max(300,window.innerHeight-(width<480?320:255));
-      // Allow scrolling instead of shrinking high-count equipment below a readable size.
-      const tileW=Math.min((available-gap*(cols-1))/cols,128,Math.max(width<700?80:88,(idealH-gap*(rows-1))/rows/1.25));
+      let cols,tileW,gap=fit?4:10;
+      if(fit){
+        $('memoryBoardHint').hidden=true;
+        const bounds=$('memoryBoard').getBoundingClientRect(),available=Math.max(1,bounds.width-12),space=Math.max(1,bounds.height-12);
+        // Maximize card size within the actual remaining space, including mobile browser bars.
+        const tileSize=count=>Math.max(0,Math.min(128,(available-gap*(count-1))/count,(space-gap*(Math.ceil(state.size/count)-1))/Math.ceil(state.size/count)/1.25));
+        if(boardFit&&boardFit.width===width&&Math.abs(boardFit.available-available)<1){cols=boardFit.cols;tileW=tileSize(cols);}
+        else{cols=1;tileW=0;for(let count=1;count<=state.size;count++){const candidate=tileSize(count);if(candidate>tileW){cols=count;tileW=candidate;}}}
+        boardFit={width,available,cols};tileW=Math.floor(tileW*100)/100;
+      }else{
+        boardFit=null;const available=Math.min(1160,Math.max(260,width-72)),maxCols=({16:4,24:6,32:8,40:8,52:13})[state.size];
+        cols=Math.max(1,Math.min(maxCols,Math.floor((available+gap)/(78+gap))));const rows=Math.ceil(state.size/cols),idealH=Math.max(300,height-255);
+        tileW=Math.min((available-gap*(cols-1))/cols,128,Math.max(88,(idealH-gap*(rows-1))/rows/1.25));$('memoryBoardHint').hidden=rows*tileW*1.25+gap*(rows-1)<=idealH;
+      }
       $('memoryGrid').style.setProperty('--cols',cols);$('memoryGrid').style.setProperty('--gap',gap+'px');$('memoryGrid').style.setProperty('--grid-width',(cols*tileW+gap*(cols-1))+'px');$('memoryGrid').style.setProperty('--card-height',(tileW*1.25)+'px');
-      $('memoryBoardHint').hidden=rows*tileW*1.25+gap*(rows-1)<=idealH;for(const card of cards)card.classList.toggle('compact',tileW<80);
-    }
+      for(const card of cards)card.classList.toggle('compact',tileW<80);
+    }else boardFit=null;
     const ratio=Math.min(2,window.devicePixelRatio||1);canvas.width=Math.round(width*ratio);canvas.height=Math.round(window.innerHeight*ratio);if(ctx)ctx.setTransform(ratio,0,0,ratio,0,0);
   }
   function buildDeck(){cards=[];$('memoryGrid').replaceChildren();state.deck.forEach((id,index)=>{const b=node('button','','memory-card');b.type='button';b.dataset.index=String(index);b.style.setProperty('--arrival-delay',Math.min(index*12,250)+'ms');const inner=node('span','','card-inner'),back=node('span','','card-side card-back'),front=node('span','','card-side card-front');inner.setAttribute('aria-hidden','true');back.appendChild(node('span','','card-art'));front.append(node('span','','card-art'),equipment(id));inner.append(back,front);b.appendChild(inner);b.onclick=()=>advance({type:'flip',index});$('memoryGrid').appendChild(b);cards.push(b);});layout();}
@@ -74,7 +86,7 @@
     if(launching||settingPanels.some(([,id])=>$(id).open))return;if(!artworkReady){loadArtwork();return;}
     run++;stop();sound.suspend();dialog.close();dialogMode='';selected=Number(selected);
     const now=performance.now();state=E.act(E.create(selected,Math.random,now,duration),{type:'pause'},now).state;
-    viewKey='';hudView.clear();resultReport=null;lowTimeAnnounced=false;document.body.classList.add('in-mission');$('memoryHome').hidden=true;$('memoryGame').hidden=false;$('memoryStatus').textContent='正在前往太空站…';$('deckLabel').textContent=selected+' 張';prepareResults();
+    viewKey='';hudView.clear();resultReport=null;boardFit=null;lowTimeAnnounced=false;document.body.classList.add('in-mission');$('memoryHome').hidden=true;$('memoryGame').hidden=false;$('memoryStatus').textContent='正在前往太空站…';$('deckLabel').textContent=selected+' 張';prepareResults();
     buildDeck();render();sound.setEnabled($('memorySound').checked);sound.setMusic($('memoryMusic').checked);launching=true;$('memoryGame').scrollIntoView({block:'start',behavior:'auto'});
     if(reduced.matches){finishLaunch();return;}
     document.body.classList.add('is-launching');launchDialog.showModal();$('launchSkip').focus();
@@ -125,7 +137,7 @@
     if(!dialog.open)dialog.showModal();$('dialogTitle').focus();if(mode==='result'&&!document.hidden)sound.play(state.phase);
   }
   function resume(){dialog.close();if(state?.paused){sound.setEnabled($('memorySound').checked);sound.setMusic($('memoryMusic').checked);sound.startMusic();advance({type:'resume'});cards.find(b=>!b.disabled)?.focus({preventScroll:true});}}
-  function menu(){run++;stop();state=null;cards=[];dialog.close();sound.suspend();document.body.classList.remove('in-mission');$('memoryHome').hidden=false;$('memoryGame').hidden=true;setup();$('memoryStart').focus();}
+  function menu(){run++;stop();state=null;cards=[];dialog.close();sound.suspend();document.body.classList.remove('in-mission');$('memoryHome').hidden=false;$('memoryGame').hidden=true;setup();layout();$('memoryStart').focus();}
   $('memoryStart').onclick=start;$('memoryPause').onclick=()=>pause();$('memoryRestart').onclick=()=>pause('restart');$('memoryHelp').onclick=()=>pause('help');$('dialogResume').onclick=resume;$('dialogRestart').onclick=start;$('dialogMenu').onclick=menu;
   $('launchSkip').onclick=finishLaunch;launchDialog.addEventListener('cancel',event=>{event.preventDefault();finishLaunch();});
   $('timeMinus').onclick=()=>adjustTime(-1);$('timePlus').onclick=()=>adjustTime(1);
@@ -136,5 +148,7 @@
   window.addEventListener('keydown',event=>{if(event.key==='Escape'&&launching){event.preventDefault();finishLaunch();return;}if(event.key==='Escape'&&!dialog.open&&state&&['playing','resolving'].includes(state.phase)){event.preventDefault();pause();}});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)return;if(launching)finishLaunch(true);else if(state&&!state.paused&&['playing','resolving'].includes(state.phase))pause();sound.suspend();});
   window.addEventListener('pagehide',()=>{if(launching)finishLaunch(true);else if(state&&!state.paused&&['playing','resolving'].includes(state.phase))pause();sound.dispose();});window.addEventListener('resize',layout);reduced.addEventListener?.('change',()=>{if(reduced.matches){clearEffects();if(launching)finishLaunch();}});
+  window.visualViewport?.addEventListener('resize',layout);
+  if(window.ResizeObserver){const observer=new window.ResizeObserver(()=>{if(state)layout();});observer.observe($('memoryBoard'));}
   setup();layout();loadArtwork();
 })();
