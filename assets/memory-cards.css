@@ -12,13 +12,19 @@
 .memory-card .card-art { filter: drop-shadow(0 4px 2px #0009); transition: filter .2s; }
 .memory-card:not(:disabled):hover .card-art { filter: brightness(1.12) drop-shadow(0 0 5px var(--card-glow)); }
 .memory-card .card-front::before { content: ''; position: absolute; inset: 9%; border-radius: 10%; background: linear-gradient(125deg, #d6f7ff12, transparent 35%); z-index: 1; pointer-events: none; }
-.memory-card.matched .card-front { filter: drop-shadow(0 0 5px #71ffc0); }
+.memory-card.matched .card-front { filter: none; }
+.memory-card.matched .card-art, .memory-card.matched .equipment-art { opacity: .24; filter: grayscale(.9); transition: opacity .4s ease .25s, filter .4s ease .25s; }
+.memory-card.matched .card-front::before { opacity: 0; }
 .memory-card.matched .card-front::after, .memory-card.miss .card-front::after { content: '✓'; display: grid; place-items: center; position: absolute; right: 0; top: 0; z-index: 2; width: 19%; min-width: 14px; aspect-ratio: 1; border: 1px solid #c2ffdd; border-radius: 50%; background: #073b32; color: #c2ffdd; font: 800 clamp(10px, 1.25vw, 15px)/1 sans-serif; box-shadow: 0 2px 5px #0009; }
+.memory-card.matched .card-front::after { opacity: .5; box-shadow: none; }
 .memory-card.miss .card-front::after { content: '×'; background: #63301c; border-color: #ffd8b9; color: #ffe0be; }
 .memory-card.miss .card-front { filter: drop-shadow(0 0 5px #ff9a67); }
-.memory-card.matched .equipment-art { animation: equipment-connect .45s ease-out; }
-@keyframes equipment-connect { 50% { transform: translate(-50%, -50%) scale(1.08); filter: drop-shadow(0 0 8px #a5ffe0); } }
 .theme-picker { width: 47%; max-width: 500px; margin: 0 0 0 auto; align-self: flex-end; padding: 16px 12px 12px; border: 1px solid #819cb34d; border-radius: 12px; background: linear-gradient(135deg, #0c2133dc, #050f1ed9); box-shadow: 0 12px 40px #0005, inset 0 1px #dfedff15; backdrop-filter: blur(12px); }
+.theme-picker legend { padding: 0 8px; margin: 0; color: #deefff; font: 600 15px/1.4 "Segoe UI", "Microsoft JhengHei", sans-serif; }
+.theme-hint { margin: -3px 4px 17px; color: #aec7d9; font-size: 13px; line-height: 1.5; }
+.music-icon { display: grid; place-items: center; width: 36px; height: 36px; color: #d3efff; font: 30px/1 "Segoe UI Symbol", sans-serif; text-shadow: 0 0 10px #43ceff, 0 2px 2px #020918; }
+.music-switch input:not(:checked) + .music-icon { opacity: .4; text-shadow: none; }
+.music-switch input:not(:checked) + .music-icon::after { content: ''; position: absolute; width: 34px; height: 3px; background: #ffb08c; transform: rotate(-45deg); left: 6px; top: 22px; }
 .theme-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .theme-option { display: flex; flex-direction: column; align-items: center; position: relative; min-width: 0; border: 1px solid transparent; border-radius: 9px; padding: 9px 4px 7px; background: transparent; color: #a8bfce; transition: background .2s, border-color .2s; }
 .theme-option:hover { background: #233e5655; border-color: #9bc8de66; }
@@ -35,6 +41,9 @@
 .launch-button.is-loading .launch-play { font-size: 0; }
 .launch-button.is-loading .launch-play::after { content: '…'; font-size: 20px; }
 @media (max-width: 700px) {
+  .status-deck { grid-template-columns: 1.25fr .9fr .75fr 1.5fr 1fr; }
+  .status-deck strong { font-size: clamp(16px, 4.6vw, 20px); }
+  #shieldValue { font-size: clamp(13px, 3.6vw, 18px); }
   .mission-hero { flex-direction: column; gap: 24px; min-height: 0; }
   .theme-picker { width: 100%; max-width: 450px; align-self: center; padding: 12px 10px 9px; }
   .theme-options { gap: 8px; }
