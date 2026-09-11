@@ -10,14 +10,20 @@
     </div>
     <div class="station-caption"><span class="signal-label">RS–07 / 通訊失聯</span><span class="signal-line" aria-hidden="true"></span><small>等待能源重新連接</small></div>
   </div>
-  <div class="mission-setup">
-    <div class="dock-heading"><p>準備你的救援任務</p><span>第一次玩？從 16 張開始</span></div>
+  <div class="mission-setup" aria-label="救援任務設定">
     <div class="mission-controls">
-      <fieldset><legend>選擇卡牌數量</legend><div id="memoryCounts" class="count-options"></div></fieldset>
-      <div class="mission-specs"><div><span>任務時間</span><strong id="setupTime">03:00</strong></div><div><span>初始護盾</span><strong id="setupShield">16</strong></div><div><span>待配對</span><strong><b id="setupPairs">08</b><small> 組</small></strong></div></div>
-      <div class="mission-launch"><button id="memoryStart" class="launch-button">啟動救援 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/assets/memory-icons.svg#rocket"></use></svg></button></div>
+      <fieldset><legend class="sr-only">選擇卡牌數量</legend><div id="memoryCounts" class="count-options"></div></fieldset>
+      <div class="mission-specs">
+        <div class="setup-stat" title="任務時間"><span class="control-art art-clock" aria-hidden="true"></span><span class="sr-only">任務時間</span><strong id="setupTime">03:00</strong></div>
+        <div class="setup-stat" title="初始護盾"><span class="control-art art-shield" aria-hidden="true"></span><span class="sr-only">初始護盾</span><strong id="setupShield">16</strong></div>
+        <div class="setup-stat" title="待配對的組數"><span class="control-art art-pair" aria-hidden="true"></span><span class="sr-only">待配對</span><strong id="setupPairs">08</strong><span class="sr-only">組</span></div>
+      </div>
+      <div class="mission-launch"><button id="memoryStart" class="launch-button" aria-label="啟動救援" title="啟動救援"><span class="control-art art-rocket" aria-hidden="true"></span><span class="launch-play" aria-hidden="true">▶</span></button></div>
     </div>
-    <div class="dock-notes"><p><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="/assets/memory-icons.svg#shield"></use></svg>配錯一次，消耗 1 點護盾</p><p>連續配對成功，獲得連擊加分</p></div>
+    <div class="setup-rules">
+      <div class="picture-rule rule-miss" role="img" aria-label="兩張不同的卡牌會消耗 1 點護盾" title="配錯一次，消耗 1 點護盾"><span class="rule-card" aria-hidden="true"><span class="control-art art-clock"></span></span><span class="rule-card" aria-hidden="true"><span class="control-art art-star"></span></span><span class="rule-cross" aria-hidden="true">×</span><span class="rule-arrow" aria-hidden="true">→</span><span class="control-art art-shield" aria-hidden="true"></span><strong aria-hidden="true">−1</strong></div>
+      <div class="picture-rule rule-combo" role="img" aria-label="連續配對成功，每次額外多得 25 分，最高額外 225 分" title="連續配對成功，每次額外多得 25 分，最高額外 225 分"><span class="control-art art-pair" aria-hidden="true"></span><span class="rule-check" aria-hidden="true">✓</span><span class="control-art art-pair" aria-hidden="true"></span><span class="rule-check" aria-hidden="true">✓</span><span class="rule-arrow" aria-hidden="true">→</span><span class="control-art art-star" aria-hidden="true"></span><strong aria-hidden="true">+25</strong></div>
+    </div>
   </div>
 </section>
 <section id="memoryGame" class="mission-game" hidden aria-label="能源模組配對任務"><div class="game-heading"><div><p class="sector-label">RECOVERY IN PROGRESS</p><h1>能源模組配對 <span id="deckLabel">16 張</span></h1></div><button class="quiet-button" id="memoryPause">Ⅱ 暫停</button></div><div class="status-deck"><div class="hud-time"><span>剩餘時間</span><strong id="timeValue" role="timer" aria-live="off">03:00</strong></div><div><span>得分</span><strong id="scoreValue">0</strong></div><div class="hud-combo"><span>連擊</span><strong id="comboValue">×0</strong></div><div><span>護盾</span><strong id="shieldValue">16/16</strong></div><div><span>已配對</span><strong id="pairsValue">0/8</strong></div></div><div class="power-track" role="progressbar" id="powerTrack" aria-label="太空站修復進度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="powerFill"></div></div><div id="memoryGrid" class="memory-grid" aria-label="翻牌配對卡牌"></div><div class="game-footer"><p id="memoryStatus" role="status">找出兩張相同的模組。</p><span>翻牌 <strong id="flipsValue">0</strong> 次</span><button class="quiet-button" id="memoryRestart">↻ 重新開始</button></div></section></main><footer class="orbit-footer"><span>ORBIT RECOVERY PROGRAM</span><span id="audioStatus">音效會在開始操作後啟用。</span></footer></div>

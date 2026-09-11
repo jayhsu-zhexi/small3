@@ -7,7 +7,12 @@
   function node(tag,text='',className=''){const n=document.createElement(tag);n.textContent=text;n.className=className;return n;}
   function icon(id){const svg=document.createElementNS('http://www.w3.org/2000/svg','svg'),use=document.createElementNS('http://www.w3.org/2000/svg','use');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('fill','none');svg.setAttribute('stroke','currentColor');svg.setAttribute('stroke-width','1.8');svg.setAttribute('stroke-linecap','round');svg.setAttribute('stroke-linejoin','round');svg.setAttribute('aria-hidden','true');use.setAttribute('href','/assets/memory-icons.svg#'+id);svg.appendChild(use);return svg;}
   function clock(ms){const total=Math.ceil(ms/1000);return String(Math.floor(total/60)).padStart(2,'0')+':'+String(total%60).padStart(2,'0');}
-  for(const count of E.COUNTS){const b=node('button',String(count),'count-option');b.type='button';b.dataset.count=String(count);b.setAttribute('aria-label',count+' 張卡牌');b.onclick=()=>{selected=count;setup()};$('memoryCounts').appendChild(b);}
+  for(const [level,count] of E.COUNTS.entries()){
+    const b=node('button','','count-option'),art=node('span','','control-art art-cards'),number=node('strong',String(count),'count-number'),bars=node('span','','difficulty-bars');
+    b.type='button';b.dataset.count=String(count);b.setAttribute('aria-label',count+' 張卡牌');b.setAttribute('title',count+' 張卡牌'+(level===0?'，第一次玩可以從這裡開始':''));art.setAttribute('aria-hidden','true');bars.setAttribute('aria-hidden','true');
+    for(let i=0;i<5;i++)bars.appendChild(node('i','',i<=level?'lit':''));
+    b.append(art,number,bars);b.onclick=()=>{selected=count;setup()};$('memoryCounts').appendChild(b);
+  }
   function setup(){for(const b of $('memoryCounts').children)b.setAttribute('aria-pressed',String(Number(b.dataset.count)===selected));$('setupTime').textContent=clock(E.SECONDS[selected]*1000);$('setupShield').textContent=selected;$('setupPairs').textContent=String(selected/2).padStart(2,'0');}
   function clearEffects(){particles=[];if(ctx)ctx.clearRect(0,0,window.innerWidth,window.innerHeight);}
   function stop(){if(raf!==null)cancelAnimationFrame(raf);raf=null;if(endTimer!==null)clearTimeout(endTimer);endTimer=null;clearEffects();}
