@@ -26,11 +26,11 @@
   function loadArtwork(){
     if(artworkLoading||artworkReady)return;
     const attempt=++artworkAttempt;let remaining=artworkFiles.length;
-    artworkLoading=true;$('memoryStart').disabled=true;$('memoryStart').classList.add('is-loading');$('memoryStart').setAttribute('aria-busy','true');$('artworkStatus').hidden=false;$('artworkStatus').textContent='正在準備卡牌…';
+    artworkLoading=true;$('memoryStartCaption').textContent='準備卡牌中…';$('memoryStart').disabled=true;$('memoryStart').classList.add('is-loading');$('memoryStart').setAttribute('aria-busy','true');$('artworkStatus').hidden=false;$('artworkStatus').textContent='正在準備卡牌…';
     const timeout=setTimeout(()=>finish(false),20000);
     function finish(ok){
       if(attempt!==artworkAttempt||!artworkLoading)return;
-      clearTimeout(timeout);artworkLoading=false;artworkReady=ok;$('memoryStart').disabled=false;$('memoryStart').classList.remove('is-loading');$('memoryStart').setAttribute('aria-busy','false');
+      clearTimeout(timeout);artworkLoading=false;artworkReady=ok;$('memoryStartCaption').textContent=ok?'開始救援':'重試載入';$('memoryStart').disabled=false;$('memoryStart').classList.remove('is-loading');$('memoryStart').setAttribute('aria-busy','false');
       $('memoryStart').setAttribute('aria-label',ok?'啟動救援':'重新載入卡牌');$('memoryStart').setAttribute('title',ok?'啟動救援':'重新載入卡牌');$('artworkStatus').hidden=ok;$('artworkStatus').textContent=ok?'卡牌已準備好。':'卡牌圖片暫時無法載入，請點火箭重試。';
     }
     for(const src of artworkFiles){const img=new window.Image();img.onload=()=>{if(--remaining===0)finish(true)};img.onerror=()=>finish(false);img.src=src;}

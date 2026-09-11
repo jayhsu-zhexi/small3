@@ -197,3 +197,38 @@ body:not(.in-mission) .orbit-footer { border: 0; font-size: .75rem; color: #6c8b
   .settings-dialog .settings-heading h2 { font-size: 1.25rem; }
   .settings-dialog .theme-options { gap: 6px; }
 }
+/* Visible names explain the illustrated controls on touch screens. */
+.home-control-caption{display:none}
+body:not(.in-mission) .home-control-caption{display:block;font:600 14px/1.4 "Segoe UI","Microsoft JhengHei",sans-serif;letter-spacing:0;color:#d6edf5;white-space:nowrap}
+body:not(.in-mission) .orbit-header{height:94px}
+body:not(.in-mission) .orbit-brand{display:flex;flex-direction:column;gap:0}
+body:not(.in-mission) .orbit-brand .home-ui-art{width:42px;height:42px}
+body:not(.in-mission) .header-controls .icon-control{width:52px;height:68px;padding:3px;gap:2px;align-content:center}
+body:not(.in-mission) .header-controls .home-ui-art,body:not(.in-mission) .music-icon{width:34px;height:34px}
+body:not(.in-mission) .switch-caption::after{content:'關';margin-left:3px;color:#ffb998;font-size:12px}
+body:not(.in-mission) input:checked~.switch-caption::after{content:'開';color:#a7f5d8}
+.home-play-hint{font-size:16px;line-height:1.7;color:#d3eaf4;margin:10px 0 0}
+.mission-controls .home-field-label{font-size:16px;font-weight:650;margin-bottom:6px;color:#e5f5fc}
+.home-choice-hint{font-size:14px;line-height:1.6;color:#b6d0df;margin:0 0 12px}
+.mission-specs .setup-caption{font-size:14px;line-height:1.4;color:#d4eaf6;margin:0 0 5px}
+.setting-action-hint{font-size:14px;line-height:1.5;color:#b6cdda;margin-top:5px;text-align:center}
+.setup-setting .setting-action-hint,.appearance-setting .setting-action-hint{color:#a5edff}
+.mission-launch .start-caption{float:none;display:block;color:#ffe6c5;font-size:18px;letter-spacing:1px;line-height:1.5;margin:6px 0 2px}
+.picture-rule{height:auto;flex-wrap:wrap;align-content:flex-start}
+.rule-caption{flex-basis:100%;font-size:14px;line-height:1.5;margin-top:5px}
+@media(max-width:700px){
+  body:not(.in-mission) .header-controls{gap:5px}
+  body:not(.in-mission) .header-controls .icon-control{width:48px;padding:2px}
+  .mission-controls{grid-template-columns:minmax(0,1fr)}
+  .mission-controls fieldset,.mission-specs,.mission-launch{grid-column:1/-1}
+  .mission-specs{gap:10px;align-items:stretch}
+  .mission-specs>.setup-stat{padding:8px 3px;justify-content:center}
+  .mission-specs .control-art{width:52px;height:52px;margin-bottom:6px}
+  .mission-launch .launch-button{min-height:72px;flex-direction:row;gap:12px;padding:8px 14px}
+  .mission-launch .control-art{width:54px;height:54px}
+  .mission-launch .start-caption{margin:0;font-size:20px}
+  .mission-launch .launch-play{font-size:16px}
+  .appearance-setting{flex-wrap:wrap;gap:8px 12px}
+  .appearance-setting .setting-action-hint{margin:0}
+  .setup-rules{display:grid;grid-template-columns:1fr;gap:12px}
+}
