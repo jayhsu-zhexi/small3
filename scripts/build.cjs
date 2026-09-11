@@ -1,7 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
-const files = ['index.html', 'board.html', 'detective.html', 'parcels.html', 'crossing.html', 'memory.html', 'assets/memory-engine.js', 'assets/memory-ui.js', 'assets/memory-audio.js', 'assets/memory.css', 'assets/memory-home.css', 'assets/memory-home-v2.png', 'assets/memory-controls.png', 'assets/memory-title.png', 'assets/memory-home-icons.png', 'assets/memory-icons.svg', 'assets/memory-background.png', 'assets/attention-ui.js', 'assets/attention.css', 'assets/detective-ui.js', 'assets/detective.css', 'assets/backup.js', 'assets/board-engine.js', 'assets/board-bank.js', 'assets/board-ui.js', 'assets/board-audio.js', 'assets/board-records.js', 'assets/board.css', 'assets/board-island.png'];
+const files = ['index.html', 'board.html', 'detective.html', 'parcels.html', 'crossing.html', 'memory.html', 'assets/memory-engine.js', 'assets/memory-ui.js', 'assets/memory-audio.js', 'assets/memory.css', 'assets/memory-home.css', 'assets/memory-cards.css', 'assets/memory-card-shells.png', 'assets/memory-equipment-1.png', 'assets/memory-equipment-2.png', 'assets/memory-home-v2.png', 'assets/memory-controls.png', 'assets/memory-title.png', 'assets/memory-home-icons.png', 'assets/memory-icons.svg', 'assets/memory-background.png', 'assets/attention-ui.js', 'assets/attention.css', 'assets/detective-ui.js', 'assets/detective.css', 'assets/backup.js', 'assets/board-engine.js', 'assets/board-bank.js', 'assets/board-ui.js', 'assets/board-audio.js', 'assets/board-records.js', 'assets/board.css', 'assets/board-island.png'];
 function build(output = path.resolve(__dirname, '../dist')) {
   const root = path.resolve(__dirname, '..');
   for (const file of files) {

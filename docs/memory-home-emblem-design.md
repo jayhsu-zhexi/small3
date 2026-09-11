@@ -10,4 +10,4 @@
 - `assets/memory-home-icons.png`：1536 × 1024 的六格圖集，依序為太空站、反應爐、喇叭、問號、出口與閃電。
 - `docs/memory-home-emblem-prompts.json`：兩項素材的完整生成提示詞。
 
-卡片 A／B／C 設計仍是待選提案，保存在 `outputs/memory-card-options/`，尚未套用至遊戲卡牌。
+卡片 A／B／C 已加入首頁外觀選擇，預設使用 C「太空裝備艙」，並記住同一瀏覽器的選擇。三款共用 26 種立體道具，套用不同卡框及卡背；實作與素材記錄見 `docs/memory-card-themes.md`。

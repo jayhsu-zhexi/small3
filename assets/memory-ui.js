@@ -3,9 +3,33 @@
   const E=window.OrbitMemory,$=id=>document.getElementById(id),canvas=$('particles'),ctx=canvas.getContext('2d'),dialog=$('missionDialog');
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
   const sound=window.OrbitAudio.create(message=>{$('audioStatus').textContent=message});
+  const themes=[['A','金屬反應爐'],['B','水晶能源'],['C','太空裝備艙']],themeKey='learning-planet-memory-theme-v1';
+  const artworkFiles=['/assets/memory-card-shells.png','/assets/memory-equipment-1.png','/assets/memory-equipment-2.png'];
+  let theme='C',artworkReady=false,artworkLoading=false,artworkAttempt=0;
+  try{const saved=window.localStorage.getItem(themeKey);if(themes.some(([key])=>key===saved))theme=saved;}catch{}
   let selected=16,state=null,cards=[],raf=null,endTimer=null,run=0,viewKey='',dialogMode='',particles=[],lastDraw=0,lowTimeAnnounced=false;
   function node(tag,text='',className=''){const n=document.createElement(tag);n.textContent=text;n.className=className;return n;}
-  function icon(id){const svg=document.createElementNS('http://www.w3.org/2000/svg','svg'),use=document.createElementNS('http://www.w3.org/2000/svg','use');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('fill','none');svg.setAttribute('stroke','currentColor');svg.setAttribute('stroke-width','1.8');svg.setAttribute('stroke-linecap','round');svg.setAttribute('stroke-linejoin','round');svg.setAttribute('aria-hidden','true');use.setAttribute('href','/assets/memory-icons.svg#'+id);svg.appendChild(use);return svg;}
+  function equipment(id){const art=node('span','','equipment-art equipment-sheet-'+(id<13?1:2)),cell=id%13;art.style.backgroundPosition=(cell%4*100/3)+'% '+(Math.floor(cell/4)*100/3)+'%';return art;}
+  function chooseTheme(key,save=false){theme=key;document.body.dataset.cardTheme=theme;for(const b of $('memoryThemes').children)b.setAttribute('aria-pressed',String(b.dataset.theme===theme));if(save)try{window.localStorage.setItem(themeKey,theme);}catch{}}
+  for(const [key,name] of themes){
+    const b=node('button','','theme-option'),fan=node('span','','theme-fan'),back=node('span','','preview-card preview-back'),front=node('span','','preview-card preview-front');
+    b.type='button';b.dataset.theme=key;b.setAttribute('aria-label',key+' '+name);b.setAttribute('title',key+' '+name);fan.setAttribute('aria-hidden','true');
+    back.appendChild(node('span','','card-art'));front.append(node('span','','card-art'),equipment(0));fan.append(back,front);
+    b.append(fan,node('span',key,'theme-letter'));b.onclick=()=>chooseTheme(key,true);$('memoryThemes').appendChild(b);
+  }
+  chooseTheme(theme);
+  function loadArtwork(){
+    if(artworkLoading||artworkReady)return;
+    const attempt=++artworkAttempt;let remaining=artworkFiles.length;
+    artworkLoading=true;$('memoryStart').disabled=true;$('memoryStart').classList.add('is-loading');$('memoryStart').setAttribute('aria-busy','true');$('artworkStatus').hidden=false;$('artworkStatus').textContent='正在準備卡牌…';
+    const timeout=setTimeout(()=>finish(false),20000);
+    function finish(ok){
+      if(attempt!==artworkAttempt||!artworkLoading)return;
+      clearTimeout(timeout);artworkLoading=false;artworkReady=ok;$('memoryStart').disabled=false;$('memoryStart').classList.remove('is-loading');$('memoryStart').setAttribute('aria-busy','false');
+      $('memoryStart').setAttribute('aria-label',ok?'啟動救援':'重新載入卡牌');$('memoryStart').setAttribute('title',ok?'啟動救援':'重新載入卡牌');$('artworkStatus').hidden=ok;$('artworkStatus').textContent=ok?'卡牌已準備好。':'卡牌圖片暫時無法載入，請點火箭重試。';
+    }
+    for(const src of artworkFiles){const img=new window.Image();img.onload=()=>{if(--remaining===0)finish(true)};img.onerror=()=>finish(false);img.src=src;}
+  }
   function clock(ms){const total=Math.ceil(ms/1000);return String(Math.floor(total/60)).padStart(2,'0')+':'+String(total%60).padStart(2,'0');}
   for(const [level,count] of E.COUNTS.entries()){
     const b=node('button','','count-option'),art=node('span','','control-art art-cards'),number=node('strong',String(count),'count-number'),bars=node('span','','difficulty-bars');
@@ -16,11 +40,11 @@
   function setup(){for(const b of $('memoryCounts').children)b.setAttribute('aria-pressed',String(Number(b.dataset.count)===selected));$('setupTime').textContent=clock(E.SECONDS[selected]*1000);$('setupShield').textContent=selected;$('setupPairs').textContent=String(selected/2).padStart(2,'0');}
   function clearEffects(){particles=[];if(ctx)ctx.clearRect(0,0,window.innerWidth,window.innerHeight);}
   function stop(){if(raf!==null)cancelAnimationFrame(raf);raf=null;if(endTimer!==null)clearTimeout(endTimer);endTimer=null;clearEffects();}
-  function layout(){const width=window.innerWidth,gap=width<700?6:10;if(state){const cols=width<360?4:width<700?(state.size<=24?4:6):({16:4,24:6,32:8,40:8,52:13})[state.size],rows=Math.ceil(state.size/cols),available=Math.min(1160,Math.max(260,width-(width<700?36:72))),idealH=Math.max(300,window.innerHeight-255),tileW=Math.min((available-gap*(cols-1))/cols,120,Math.max(48,(idealH-gap*(rows-1))/rows/1.16));$('memoryGrid').style.setProperty('--cols',cols);$('memoryGrid').style.setProperty('--gap',gap+'px');$('memoryGrid').style.setProperty('--grid-width',(cols*tileW+gap*(cols-1))+'px');$('memoryGrid').style.setProperty('--card-height',(tileW*1.16)+'px');for(const card of cards)card.classList.toggle('compact',tileW<80);}
+  function layout(){const width=window.innerWidth,gap=width<700?6:10;if(state){const cols=width<360?4:width<700?(state.size<=24?4:6):({16:4,24:6,32:8,40:8,52:13})[state.size],rows=Math.ceil(state.size/cols),available=Math.min(1160,Math.max(260,width-(width<700?36:72))),idealH=Math.max(300,window.innerHeight-255),tileW=Math.min((available-gap*(cols-1))/cols,128,Math.max(48,(idealH-gap*(rows-1))/rows/1.25));$('memoryGrid').style.setProperty('--cols',cols);$('memoryGrid').style.setProperty('--gap',gap+'px');$('memoryGrid').style.setProperty('--grid-width',(cols*tileW+gap*(cols-1))+'px');$('memoryGrid').style.setProperty('--card-height',(tileW*1.25)+'px');for(const card of cards)card.classList.toggle('compact',tileW<80);}
     const ratio=Math.min(2,window.devicePixelRatio||1);canvas.width=Math.round(width*ratio);canvas.height=Math.round(window.innerHeight*ratio);if(ctx)ctx.setTransform(ratio,0,0,ratio,0,0);
   }
-  function buildDeck(){cards=[];$('memoryGrid').replaceChildren();state.deck.forEach((id,index)=>{const b=node('button','','memory-card');b.type='button';b.dataset.index=String(index);const inner=node('span','','card-inner'),back=node('span','','card-side card-back'),front=node('span','','card-side card-front');inner.setAttribute('aria-hidden','true');back.append(icon('orbit'),node('small','RS–07'));front.append(icon(E.SYMBOLS[id][0]),node('span',E.SYMBOLS[id][1],'symbol-label'));inner.append(back,front);b.appendChild(inner);b.onclick=()=>advance({type:'flip',index});$('memoryGrid').appendChild(b);cards.push(b);});layout();}
-  function start(){run++;stop();dialog.close();dialogMode='';selected=Number(selected);state=E.create(selected,Math.random,performance.now());viewKey='';lowTimeAnnounced=false;document.body.classList.add('in-mission');$('memoryHome').hidden=true;$('memoryGame').hidden=false;$('memoryStatus').textContent='找出兩張相同的模組，重新連接能源。';$('deckLabel').textContent=selected+' 張';buildDeck();render();sound.setEnabled($('memorySound').checked);schedule();cards[0].focus({preventScroll:true});$('memoryGame').scrollIntoView({block:'start',behavior:'auto'});}
+  function buildDeck(){cards=[];$('memoryGrid').replaceChildren();state.deck.forEach((id,index)=>{const b=node('button','','memory-card');b.type='button';b.dataset.index=String(index);const inner=node('span','','card-inner'),back=node('span','','card-side card-back'),front=node('span','','card-side card-front');inner.setAttribute('aria-hidden','true');back.appendChild(node('span','','card-art'));front.append(node('span','','card-art'),equipment(id));inner.append(back,front);b.appendChild(inner);b.onclick=()=>advance({type:'flip',index});$('memoryGrid').appendChild(b);cards.push(b);});layout();}
+  function start(){if(!artworkReady){loadArtwork();return;}run++;stop();dialog.close();dialogMode='';selected=Number(selected);state=E.create(selected,Math.random,performance.now());viewKey='';lowTimeAnnounced=false;document.body.classList.add('in-mission');$('memoryHome').hidden=true;$('memoryGame').hidden=false;$('memoryStatus').textContent='找出兩張相同的模組，重新連接能源。';$('deckLabel').textContent=selected+' 張';buildDeck();render();sound.setEnabled($('memorySound').checked);schedule();cards[0].focus({preventScroll:true});$('memoryGame').scrollIntoView({block:'start',behavior:'auto'});}
   function render(){if(!state)return;$('timeValue').textContent=clock(state.remainingMs);$('timeValue').parentElement.classList.toggle('critical',state.remainingMs<=30000);$('scoreValue').textContent=state.score.toLocaleString('en-US');$('comboValue').textContent='×'+state.combo;$('shieldValue').textContent=state.shields+'/'+state.size;$('pairsValue').textContent=state.matched.length/2+'/'+state.size/2;$('flipsValue').textContent=state.flips;const percent=state.matched.length/state.size*100;$('powerFill').style.width=percent+'%';$('powerTrack').setAttribute('aria-valuenow',String(Math.round(percent)));$('memoryPause').disabled=!['playing','resolving'].includes(state.phase);$('memoryGrid').classList.toggle('obscured',state.paused);
     const key=[state.phase,state.paused,state.open.join(','),state.matched.join(',')].join('|');if(key!==viewKey){viewKey=key;const focused=document.activeElement;cards.forEach((b,i)=>{const matched=state.matched.includes(i),open=state.open.includes(i),visible=matched||open;b.classList.toggle('flipped',visible);b.classList.toggle('matched',matched);b.classList.toggle('miss',open&&state.open.length===2&&state.deck[state.open[0]]!==state.deck[state.open[1]]);b.disabled=matched||state.paused||state.phase!=='playing';b.setAttribute('aria-label','第 '+(i+1)+' 張，'+(matched?'已配對：'+E.SYMBOLS[state.deck[i]][1]:open?E.SYMBOLS[state.deck[i]][1]:'未翻開'));});if(focused?.dataset?.index!==undefined&&focused.disabled&&state.phase==='playing')cards.find(b=>!b.disabled)?.focus({preventScroll:true});}
     if(state.remainingMs<=30000&&!lowTimeAnnounced&&state.phase==='playing'){lowTimeAnnounced=true;$('memoryStatus').textContent='剩餘 30 秒，留意能源倒數。';}
@@ -47,5 +71,5 @@
   window.addEventListener('keydown',event=>{if(event.key==='Escape'&&!dialog.open&&state&&['playing','resolving'].includes(state.phase)){event.preventDefault();pause();}});
   document.addEventListener('visibilitychange',()=>{if(document.hidden&&state&&!state.paused&&['playing','resolving'].includes(state.phase))pause();});
   window.addEventListener('pagehide',()=>{if(state&&!state.paused&&['playing','resolving'].includes(state.phase))pause();sound.dispose();});window.addEventListener('resize',layout);reduced.addEventListener?.('change',()=>{if(reduced.matches)clearEffects();});
-  setup();layout();
+  setup();layout();loadArtwork();
 })();

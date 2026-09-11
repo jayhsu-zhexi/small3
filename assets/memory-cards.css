@@ -1,0 +1,45 @@
+/* Generated shells share the same equipment, so every theme keeps all 26 pairs. */
+[data-card-theme="A"], [data-theme="A"] { --back-size: 335.94% 212.43%; --back-position: 4.145% 4.125%; --front-size: 336.765% 225.838%; --front-position: 4.141% 90.909%; --shell-radius: 9% / 7%; --shell-clip: inset(0 round 9% / 7%); --card-glow: #65eaff; }
+[data-card-theme="B"], [data-theme="B"] { --back-size: 335.122% 213.619%; --back-position: 49.793% 4.433%; --front-size: 335.122% 226.733%; --front-position: 49.793% 90.781%; --shell-radius: 0; --shell-clip: polygon(11% 0, 89% 0, 100% 8%, 100% 92%, 89% 100%, 11% 100%, 0 92%, 0 8%); --card-glow: #b9a4ff; }
+[data-card-theme="C"], [data-theme="C"] { --back-size: 327.924% 212.037%; --back-position: 96.126% 4.132%; --front-size: 327.924% 224.510%; --front-position: 96.126% 91.181%; --shell-radius: 12% / 9%; --shell-clip: inset(0 round 12% / 9%); --card-glow: #ffc269; }
+.card-art { display: block; position: absolute; inset: 0; background-image: url('/assets/memory-card-shells.png'); background-size: var(--back-size); background-position: var(--back-position); background-repeat: no-repeat; border-radius: var(--shell-radius); clip-path: var(--shell-clip); pointer-events: none; }
+.card-front .card-art, .preview-front .card-art { background-size: var(--front-size); background-position: var(--front-position); }
+.equipment-art { position: absolute; display: block; width: 73%; aspect-ratio: 1; top: 50%; left: 50%; transform: translate(-50%, -50%); border-radius: 16%; background-size: 400% 400%; background-repeat: no-repeat; pointer-events: none; filter: drop-shadow(0 4px 3px #0009); }
+.equipment-sheet-1 { background-image: url('/assets/memory-equipment-1.png'); }
+.equipment-sheet-2 { background-image: url('/assets/memory-equipment-2.png'); }
+.memory-card .card-side, .memory-card.matched .card-front, .memory-card:not(:disabled):hover .card-back { border: 0; background: none; box-shadow: none; border-radius: 9%; overflow: visible; }
+.memory-card .card-back::before, .memory-card .card-back::after { content: none; }
+.memory-card .card-art { filter: drop-shadow(0 4px 2px #0009); transition: filter .2s; }
+.memory-card:not(:disabled):hover .card-art { filter: brightness(1.12) drop-shadow(0 0 5px var(--card-glow)); }
+.memory-card .card-front::before { content: ''; position: absolute; inset: 9%; border-radius: 10%; background: linear-gradient(125deg, #d6f7ff12, transparent 35%); z-index: 1; pointer-events: none; }
+.memory-card.matched .card-front { filter: drop-shadow(0 0 5px #71ffc0); }
+.memory-card.matched .card-front::after, .memory-card.miss .card-front::after { content: '✓'; display: grid; place-items: center; position: absolute; right: 0; top: 0; z-index: 2; width: 19%; min-width: 14px; aspect-ratio: 1; border: 1px solid #c2ffdd; border-radius: 50%; background: #073b32; color: #c2ffdd; font: 800 clamp(10px, 1.25vw, 15px)/1 sans-serif; box-shadow: 0 2px 5px #0009; }
+.memory-card.miss .card-front::after { content: '×'; background: #63301c; border-color: #ffd8b9; color: #ffe0be; }
+.memory-card.miss .card-front { filter: drop-shadow(0 0 5px #ff9a67); }
+.memory-card.matched .equipment-art { animation: equipment-connect .45s ease-out; }
+@keyframes equipment-connect { 50% { transform: translate(-50%, -50%) scale(1.08); filter: drop-shadow(0 0 8px #a5ffe0); } }
+.theme-picker { width: 47%; max-width: 500px; margin: 0 0 0 auto; align-self: flex-end; padding: 16px 12px 12px; border: 1px solid #819cb34d; border-radius: 12px; background: linear-gradient(135deg, #0c2133dc, #050f1ed9); box-shadow: 0 12px 40px #0005, inset 0 1px #dfedff15; backdrop-filter: blur(12px); }
+.theme-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.theme-option { display: flex; flex-direction: column; align-items: center; position: relative; min-width: 0; border: 1px solid transparent; border-radius: 9px; padding: 9px 4px 7px; background: transparent; color: #a8bfce; transition: background .2s, border-color .2s; }
+.theme-option:hover { background: #233e5655; border-color: #9bc8de66; }
+.theme-option[aria-pressed="true"] { border-color: var(--card-glow); background: radial-gradient(ellipse at 50% 40%, #2e4f6480, #122339); box-shadow: 0 0 18px color-mix(in srgb, var(--card-glow) 18%, transparent), inset 0 0 15px #a8e3ff0d; color: #f4fbff; }
+.theme-option[aria-pressed="true"]::after { content: '✓'; display: grid; place-items: center; position: absolute; top: -7px; right: -5px; width: 22px; height: 22px; border-radius: 50%; background: var(--card-glow); color: #0d2235; font: 800 14px/1 sans-serif; box-shadow: 0 0 10px #041220; }
+.theme-fan { display: block; position: relative; width: 100%; aspect-ratio: 1; margin-bottom: 7px; perspective: 600px; }
+.preview-card { display: block; position: absolute; width: 65%; aspect-ratio: 4 / 5; top: 6%; filter: drop-shadow(0 4px 3px #0008); }
+.preview-back { left: 3%; transform: rotate(-12deg); }
+.preview-front { right: 2%; transform: rotate(9deg); transition: transform .25s; }
+.theme-option:hover .preview-front { transform: translateY(-3px) rotate(5deg); }
+.theme-letter { font: 700 15px/1 Consolas, monospace; letter-spacing: 2px; }
+.artwork-status { margin: -12px 0 0; color: #e6c494; font-size: 13px; text-align: center; }
+.mission-launch .launch-button.is-loading { opacity: .6; cursor: wait; }
+.launch-button.is-loading .launch-play { font-size: 0; }
+.launch-button.is-loading .launch-play::after { content: '…'; font-size: 20px; }
+@media (max-width: 700px) {
+  .mission-hero { flex-direction: column; gap: 24px; min-height: 0; }
+  .theme-picker { width: 100%; max-width: 450px; align-self: center; padding: 12px 10px 9px; }
+  .theme-options { gap: 8px; }
+  .theme-option { padding: 7px 3px 6px; }
+  .theme-fan { max-width: 115px; }
+  .theme-letter { font-size: 14px; }
+  .memory-card .equipment-art { width: 76%; }
+}
