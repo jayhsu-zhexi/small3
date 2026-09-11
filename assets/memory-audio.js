@@ -45,7 +45,7 @@
       tick();
     }
     async function activate(){
-      if(!enabled&&!(active&&music))return;
+      if(!enabled&&!music)return;
       const ticket=epoch;
       try{
         const Context=root.AudioContext||root.webkitAudioContext;if(!Context)throw Error();
@@ -58,6 +58,15 @@
     function startMusic(reset=false){if(reset){clearMusic();step=0;tension=0;}active=true;return activate();}
     function stopMusic(){active=false;clearMusic();}
     function play(kind){
+      if(kind==='launch'){
+        // Reactor charge, engine sweep and arrival lock, timed to the warp sequence.
+        tone(55,0,1.45,.022,'sine',false,155);
+        tone(140,.12,1.2,.018,'triangle',false,1120);
+        [440,660,880].forEach((hz,i)=>tone(hz,.2+i*.21,.17,.017));
+        tone(110,.95,.7,.026,'sine',false,42);
+        tone(1480,1.3,.65,.016,'sine',false,370);
+        [660,990,1320].forEach((hz,i)=>tone(hz,1.7+i*.07,.3,.019));
+      }
       if(kind==='flip'){tone(480,0,.065,.022,'triangle');tone(720,.04,.05,.018);}
       if(kind==='match'){
         // A charging sweep resolves into three bright docking-confirmation pings.
@@ -71,8 +80,18 @@
         tone(430,.15,.14,.019,'triangle',false,160);
         tone(92,.03,.2,.018,'sine');
       }
-      if(kind==='won')[523,659,784,1047].forEach((hz,i)=>tone(hz,i*.13,.5));
-      if(kind==='lost')[392,294,196].forEach((hz,i)=>tone(hz,i*.18,.42,.03,'triangle'));
+      if(kind==='won'){
+        tone(130,0,.65,.024,'triangle',false,1040);
+        tone(65,.2,1.2,.022,'sine',false,130);
+        [523,659,784,1047].forEach((hz,i)=>tone(hz,.4+i*.16,.7,.028));
+        [1568,2093].forEach((hz,i)=>tone(hz,1.15+i*.18,.6,.012));
+      }
+      if(kind==='lost'){
+        tone(480,0,.9,.023,'triangle',false,70);
+        tone(110,.15,1.1,.021,'sine',false,42);
+        [330,247].forEach((hz,i)=>tone(hz,.8+i*.3,.33,.023));
+        tone(165,1.35,.5,.016);
+      }
     }
     function suspend(){epoch++;awake=false;stopMusic();stopVoices();if(context&&context.state==='running')Promise.resolve(context.suspend()).catch(()=>{});}
     function dispose(){epoch++;awake=false;stopMusic();stopVoices();if(context){const instance=context;context=null;Promise.resolve(instance.close()).catch(()=>{});}}

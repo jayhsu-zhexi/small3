@@ -76,6 +76,15 @@ body:not(.in-mission) .header-controls .quiet-button { background: #06111b80; bo
 .rule-arrow { color: #849fae; font: 1.125rem/1 sans-serif; margin: 0 3px; }
 .rule-miss strong { color: #ffbfaa; }
 .rule-combo strong { color: #ffe0a0; }
+.mission-time-control { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px; margin-top: 20px; color: #b9d2df; font-size: 14px; }
+.mission-time-control #timeControlLabel { white-space: nowrap; }
+.time-stepper { display: flex; align-items: center; border: 1px solid #6296ae; border-radius: 5px; background: #0c2231; }
+.time-stepper button { width: 44px; min-height: 44px; padding: 0; border: 0; border-radius: 4px; background: #234658; color: #c5f2ff; font-size: 23px; }
+.time-stepper button:hover:not(:disabled) { background: #356176; }
+.time-stepper button:disabled { opacity: .35; }
+.time-stepper output { min-width: 96px; padding: 0 12px; text-align: center; color: #e0f7ff; font: 600 20px Consolas,"Microsoft JhengHei",monospace; white-space: nowrap; }
+#timeControlHint { color: #92b2c4; font-size: 13px; }
+@media(max-width:700px){.mission-time-control { gap: 8px 12px; margin-top: 16px; }.time-stepper { flex: 1; }.time-stepper output { flex: 1; min-width: 0; }#timeControlHint { width: 100%; font-size: 12px; }}
 body:not(.in-mission) .orbit-footer { border: 0; font-size: .75rem; color: #6c8b9f; padding: 14px 0 24px; }
 @media (min-width: 1001px) and (max-height: 780px) {
   .mission-home { gap: 18px; padding: 20px 0 8px; }
