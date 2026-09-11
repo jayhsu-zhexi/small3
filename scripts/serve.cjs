@@ -6,6 +6,8 @@ function createServer(root = path.resolve(__dirname, '..')) {
   const publicFiles = new Map(require('./build.cjs').files.map(file=>['/'+file,[file,types[path.extname(file)]]]));
   publicFiles.set('/board',['board.html',types['.html']]);
   publicFiles.set('/board/',['board.html',types['.html']]);
+  publicFiles.set('/detective',['detective.html',types['.html']]);
+  publicFiles.set('/detective/',['detective.html',types['.html']]);
   return http.createServer((req, res) => {
     if (!['GET', 'HEAD'].includes(req.method)) { res.writeHead(405).end(); return; }
     const pathname = new URL(req.url, 'http://localhost').pathname;

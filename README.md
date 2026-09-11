@@ -25,6 +25,15 @@
 
 中央插畫以內建 ImageGen 製作，存於 `assets/board-island.png`。提示：square polished 3D clay floating green island in deep indigo space, friendly blue-and-orange space outpost, large tree, cozy animal house, warm lights, no text or UI.
 
+## 花園小偵探
+
+入口：https://small3.vercel.app/detective（首頁與探險棋也有入口）。
+每局 5 個單一變化案件，觀察物品數為 4、4、5、5、6；包含消失、移動、新增。
+孩子自己按「我看好了」，沒有倒數；提示可重看原圖，答案揭曉後並排比較。
+優先使用已擁有的樂園物品；未購買也能用基本物品遊玩。頁面不載入樂園動畫和音樂。
+完成一局給 3 顆可花費的樂園星星，提示或重試不減少獎勵，不改棋盤回合或學科評分。
+案件、提示次數、重試次數與最近 100 局紀錄保存在棋盤存檔的可選 `detective` 欄位；畫面顯示最近 10 局，隨備份及新旅程保留。
+
 ## 開發與部署
 
 首頁與原學科遊戲入口是 `index.html`，探險棋是 `board.html`，備份工具是 `assets/backup.js`。

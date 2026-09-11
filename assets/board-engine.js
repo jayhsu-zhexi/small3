@@ -32,9 +32,57 @@
     return t.kind==='choice' && text(t.answer) && Array.isArray(t.choices) && t.choices.length===4 && t.choices.every(text) && new Set(t.choices).size===4 && t.choices.includes(t.answer) && (t.subject!=='english'||text(t.word));
   }
   function validEvent(e) { return obj(e) && text(e.id) && subject(e.subject) && modes.includes(e.mode) && text(e.title) && Number.isFinite(e.at); }
+  const DETECTIVE_ITEMS={ball:['⚽','足球'],watering:['🪴','盆栽'],apple:['🍎','蘋果'],butterfly:['🦋','蝴蝶'],hat:['👒','草帽'],rabbit:['🐰','小兔'],...Object.fromEntries(Object.entries(FACILITIES).map(([id,v])=>['facility-'+id,v.slice(0,2)])),...Object.fromEntries(Object.entries(ANIMALS).map(([id,v])=>['animal-'+id,v.slice(0,2)])),...Object.fromEntries(Object.entries(DECORATIONS).map(([id,v])=>['decor-'+id,v.slice(0,2)]))};
+  const DETECTIVE_KINDS={remove:'消失',move:'移動',add:'新增'};
+  function validCase(c){
+    if(!obj(c)||!Object.hasOwn(DETECTIVE_KINDS,c.kind)||!integer(c.attempts,0,10000)||!integer(c.hints,0,10000)||typeof c.solved!=='boolean'||![c.before,c.after].every(a=>Array.isArray(a)&&a.length===9&&a.every(id=>id===null||Object.hasOwn(DETECTIVE_ITEMS,id))&&new Set(a.filter(Boolean)).size===a.filter(Boolean).length))return false;
+    const diff=c.before.map((id,i)=>id!==c.after[i]?i:-1).filter(i=>i>=0);
+    if(c.kind==='remove')return diff.length===1&&c.before[diff[0]]!==null&&c.after[diff[0]]===null;
+    if(c.kind==='add')return diff.length===1&&c.before[diff[0]]===null&&c.after[diff[0]]!==null;
+    return diff.length===2&&diff.some(i=>c.before[i]===null)&&diff.some(i=>c.after[i]===null)&&c.before.filter(Boolean).slice().sort().join('|')===c.after.filter(Boolean).slice().sort().join('|');
+  }
+  function validDetective(d){
+    if(!obj(d)||!Array.isArray(d.records)||d.records.length>100||!d.records.every(r=>obj(r)&&text(r.id)&&Number.isFinite(r.at)&&Array.isArray(r.results)&&r.results.length===5&&r.results.every(v=>obj(v)&&Object.hasOwn(DETECTIVE_KINDS,v.kind)&&integer(v.attempts,0,10000)&&integer(v.hints,0,10000))))return false;
+    if(d.session===null)return true;
+    const t=d.session;
+    return obj(t)&&text(t.id)&&Number.isFinite(t.startedAt)&&integer(t.round,0,4)&&['observe','search','result','finished'].includes(t.phase)&&Array.isArray(t.cases)&&t.cases.length===5&&t.cases.every(validCase)&&t.cases.every((c,i)=>c.solved===(i<t.round||i===t.round&&['result','finished'].includes(t.phase)))&&(t.phase!=='finished'||t.round===4);
+  }
+  function detectiveCases(s,rng){
+    const park=parkOf(s),owned=[...park.animals.map(id=>'animal-'+id),...park.facilities.map(id=>'facility-'+id),...park.decorations.map(id=>'decor-'+id)];
+    const base=Object.keys(DETECTIVE_ITEMS).filter(id=>!id.includes('-'));
+    return [4,4,5,5,6].map((count,round)=>{
+      const pool=[...shuffle(owned,rng),...shuffle(base,rng)],items=[...new Set(pool)].slice(0,count),before=Array(9).fill(null),positions=shuffle([0,1,2,3,4,5,6,7,8],rng);
+      items.forEach((id,i)=>{before[positions[i]]=id});const after=before.slice(),kind=['remove','move','add','move','remove'][round];
+      if(kind==='remove')after[positions[0]]=null;
+      if(kind==='move'){after[positions[count]]=before[positions[0]];after[positions[0]]=null;}
+      if(kind==='add')after[positions[count]]=pool.find(id=>!items.includes(id));
+      return {kind,before,after,attempts:0,hints:0,solved:false};
+    });
+  }
+  function detectiveAct(s,action,rng,now){
+    s.detective=s.detective||{session:null,records:[]};const d=s.detective,t=d.session;
+    if(action.type==='detectiveStart'){
+      if(t&&t.phase!=='finished')return false;
+      d.session={id:'detective-'+now+'-'+Math.random().toString(36).slice(2,9),round:0,phase:'observe',cases:detectiveCases(s,rng),startedAt:now};return true;
+    }
+    if(!t||t.phase==='finished')return false;const c=t.cases[t.round];
+    if(action.type==='detectiveLook'&&t.phase==='observe'){t.phase='search';return true;}
+    if(action.type==='detectiveHint'&&t.phase==='search'){c.hints=Math.min(10000,c.hints+1);t.phase='observe';return true;}
+    if(action.type==='detectiveAnswer'&&t.phase==='search'&&integer(action.position,0,8)){
+      if(c.before[action.position]!==c.after[action.position]){c.solved=true;t.phase='result';}else c.attempts=Math.min(10000,c.attempts+1);return true;
+    }
+    if(action.type==='detectiveNext'&&t.phase==='result'){
+      if(t.round<4){t.round++;t.phase='observe';}else{
+        t.phase='finished';s.park.stars=Math.min(100000,s.park.stars+3);
+        d.records.push({id:t.id,at:now,results:t.cases.map(c=>({kind:c.kind,attempts:c.attempts,hints:c.hints}))});d.records=d.records.slice(-100);
+      }return true;
+    }
+    return false;
+  }
   function validState(s) {
     if (!obj(s)||s.version!==1||!text(s.id)||!Object.hasOwn(CHARACTERS,s.character)||!Object.hasOwn(BASES,s.baseStyle)||!integer(s.position,0,23)||!integer(s.turn,0,TOTAL)||!integer(s.dice,0,6)||!integer(s.stars,0,TOTAL)||!integer(s.supplies,0,100000)||!integer(s.baseLevel,0,3)||!integer(s.revision,0,100000)||!['ready','task','encounter','reward','finished'].includes(s.phase)||!Array.isArray(s.events)||s.events.length>TOTAL||!s.events.every(validEvent)||!Array.isArray(s.seen)||s.seen.length>TOTAL||!s.seen.every(text)||!obj(s.input)||!Array.isArray(s.input.sequence)||s.input.sequence.length>3||!s.input.sequence.every(d=>dirs.includes(d))||!obj(s.input.coins)||Object.entries(s.input.coins).some(([k,v])=>!['1','5','10'].includes(k)||!integer(v,0,30))||!Number.isFinite(s.startedAt)) return false;
     if(s.park!==undefined&&!validPark(s.park))return false;
+    if(s.detective!==undefined&&!validDetective(s.detective))return false;
     if (s.phase==='finished'&&s.turn!==TOTAL || s.phase==='ready'&&s.turn===TOTAL || s.turn===0&&s.phase!=='ready') return false;
     if (s.phase==='task'&&!validTask(s.task)) return false;
     if (s.task!==null&&!validTask(s.task)) return false;
@@ -82,6 +130,7 @@
   function act(previous,action,bank,rng=Math.random,now=Date.now()) {
     if(!validState(previous))throw Error('無法讀取這趟旅程');
     const s=clone(previous),t=s.task;s.park=clone(parkOf(s));
+    if(typeof action.type==='string'&&action.type.startsWith('detective')){if(!detectiveAct(s,action,rng,now))return previous;s.revision++;return s;}
     switch(action.type){
       case 'roll':
         if(s.phase!=='ready'||s.turn>=TOTAL)return previous;
@@ -133,7 +182,7 @@
     }
     h.games=h.games.slice(-100);return h;
   }
-  function nextJourney(previous,now=Date.now()){if(!validState(previous))throw Error('無法讀取樂園');const s=create(previous.character,now);s.park=clone(parkOf(previous));s.supplies=previous.supplies;s.baseStyle=previous.baseStyle;s.baseLevel=previous.baseLevel;return s;}
-  const api={FACILITIES,DECORATIONS,ANIMALS,parkOf,nextJourney,KEY,HISTORY_KEY,TOTAL,TYPES,INFO,CHARACTERS,BASES,STAGES,dirs,create,act,archive,validState,validHistory,encounter};
+  function nextJourney(previous,now=Date.now()){if(!validState(previous))throw Error('無法讀取樂園');const s=create(previous.character,now);s.park=clone(parkOf(previous));s.supplies=previous.supplies;s.baseStyle=previous.baseStyle;s.baseLevel=previous.baseLevel;if(previous.detective)s.detective=clone(previous.detective);return s;}
+  const api={DETECTIVE_ITEMS,DETECTIVE_KINDS,validDetective,FACILITIES,DECORATIONS,ANIMALS,parkOf,nextJourney,KEY,HISTORY_KEY,TOTAL,TYPES,INFO,CHARACTERS,BASES,STAGES,dirs,create,act,archive,validState,validHistory,encounter};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.PlanetBoard=api;
 })(typeof window==='undefined'?{}:window);
