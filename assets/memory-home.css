@@ -159,3 +159,41 @@ body:not(.in-mission) .orbit-footer { border: 0; font-size: .75rem; color: #6c8b
   .picture-rule { gap: 2px; }
   .picture-rule > .control-art { width: 23px; height: 23px; }
 }
+
+/* Home settings stay compact; their full controls live in native modal dialogs. */
+.appearance-setting { display: flex; flex-direction: column; align-items: center; gap: 10px; align-self: flex-end; width: 150px; margin-left: auto; padding: 14px 18px; border: 1px solid #779cb966; border-radius: 10px; background: linear-gradient(135deg, #173347dc, #071522e8); color: #d6eaf4; box-shadow: 0 10px 30px #0005; }
+#themeSettingsPreview { display: block; width: 100px; }
+#themeSettingsPreview .theme-fan { margin: 0; }
+.appearance-setting-label { display: flex; align-items: center; gap: 9px; font-size: .875rem; white-space: nowrap; }
+.appearance-setting-label strong { color: var(--card-glow); font: 700 1.125rem Consolas, monospace; }
+.appearance-setting:hover { border-color: var(--card-glow); background: linear-gradient(135deg, #244b62e8, #102336ef); }
+.mission-specs>.setup-setting { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 0; padding: 6px 3px 9px; border: 1px solid #7199b366; border-radius: 7px; background: linear-gradient(150deg, #23445580, #10222f99); box-shadow: inset 0 1px #c8f6ff12; }
+.mission-specs>.setup-setting:hover { border-color: #9ae8ff; background: #244b60a6; }
+.settings-dialog { width: min(620px, calc(100% - 32px)); max-width: 620px; padding: 26px; border-color: #6fb6cd; background: linear-gradient(145deg, #163043, #071522); border-radius: 12px; }
+.settings-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 18px; }
+.settings-dialog .settings-heading h2 { margin: 0; font-size: 1.5rem; line-height: 1.4; }
+.settings-heading .settings-close { display: grid; place-items: center; flex: 0 0 44px; width: 44px; height: 44px; padding: 0; font-size: 1.75rem; color: #d4eef9; }
+.settings-dialog .settings-hint { margin: 0 0 22px; color: #b2cedd; font-size: 1rem; line-height: 1.8; }
+.settings-dialog .settings-themes { width: 100%; margin: 0; padding: 0; border: 0; }
+.settings-dialog .theme-options { gap: 12px; }
+.settings-dialog .theme-fan { max-width: 160px; }
+.settings-dialog .settings-selection { margin: 20px 0; color: #d4f2ff; font-size: 1rem; text-align: center; }
+.settings-dialog .settings-done { margin-top: 22px; min-height: 50px; font-size: 1rem; }
+.time-settings-dialog { max-width: 420px; text-align: center; }
+.time-settings-dialog .settings-art { width: 80px; height: 80px; margin: 8px auto 14px; }
+.time-settings-dialog .settings-recommendation { margin: 0 0 18px; color: #a8c7d9; font-size: .875rem; }
+.time-settings-dialog .time-stepper { width: min(100%, 300px); justify-content: space-between; margin: 0 auto 20px; }
+.time-settings-dialog .time-stepper output { flex: 1; min-width: 0; font-size: 1.875rem; }
+.time-settings-dialog #timeControlHint { font-size: 1rem; }
+@media(max-width:700px) {
+  .appearance-setting { flex-direction: row; align-self: flex-start; width: auto; margin: -8px 0 0; padding: 8px 14px; gap: 16px; }
+  #themeSettingsPreview { width: 65px; }
+  .mission-specs>.setup-setting { padding: 5px 2px 8px; }
+  .settings-dialog { padding: 20px 18px; }
+  .settings-dialog .theme-options { gap: 8px; }
+}
+@media(max-width:360px) {
+  .settings-dialog { padding: 18px 14px; }
+  .settings-dialog .settings-heading h2 { font-size: 1.25rem; }
+  .settings-dialog .theme-options { gap: 6px; }
+}

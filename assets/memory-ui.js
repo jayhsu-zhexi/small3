@@ -12,13 +12,13 @@
   for(let i=0;i<28;i++){const trail=node('i');trail.style.setProperty('--angle',(i*360/28)+'deg');trail.style.setProperty('--delay',((i%5)*.045)+'s');$('launchTrails').appendChild(trail);}
   for(let i=0;i<20;i++){const spark=node('i');spark.style.setProperty('--angle',(i*18)+'deg');spark.style.setProperty('--delay',((i%4)*.065)+'s');spark.style.setProperty('--distance',(110+i%5*25)+'px');$('resultSparks').appendChild(spark);}
   function equipment(id){const art=node('span','','equipment-art equipment-sheet-'+(id<13?1:2)),cell=id%13;art.style.backgroundPosition=(cell%4*100/3)+'% '+(Math.floor(cell/4)*100/3)+'%';return art;}
-  function chooseTheme(key,save=false){theme=key;document.body.dataset.cardTheme=theme;for(const b of $('memoryThemes').children)b.setAttribute('aria-pressed',String(b.dataset.theme===theme));if(save)try{window.localStorage.setItem(themeKey,theme);}catch{}}
+  function themeFan(){const fan=node('span','','theme-fan'),back=node('span','','preview-card preview-back'),front=node('span','','preview-card preview-front');fan.setAttribute('aria-hidden','true');back.appendChild(node('span','','card-art'));front.append(node('span','','card-art'),equipment(0));fan.append(back,front);return fan;}
+  function chooseTheme(key,save=false){theme=key;document.body.dataset.cardTheme=theme;const name=themes.find(([id])=>id===theme)[1];for(const b of $('memoryThemes').children)b.setAttribute('aria-pressed',String(b.dataset.theme===theme));$('currentTheme').textContent=theme;$('memoryThemeSettings').setAttribute('aria-label','選擇卡牌外觀，目前 '+theme+' '+name);$('themeSelection').textContent='目前選擇：'+theme+' '+name;if(save)try{window.localStorage.setItem(themeKey,theme);}catch{}}
   for(const [key,name] of themes){
-    const b=node('button','','theme-option'),fan=node('span','','theme-fan'),back=node('span','','preview-card preview-back'),front=node('span','','preview-card preview-front');
-    b.type='button';b.dataset.theme=key;b.setAttribute('aria-label',key+' '+name);b.setAttribute('title',key+' '+name);fan.setAttribute('aria-hidden','true');
-    back.appendChild(node('span','','card-art'));front.append(node('span','','card-art'),equipment(0));fan.append(back,front);
-    b.append(fan,node('span',key,'theme-letter'));b.onclick=()=>chooseTheme(key,true);$('memoryThemes').appendChild(b);
+    const b=node('button','','theme-option');b.type='button';b.dataset.theme=key;b.setAttribute('aria-label',key+' '+name);b.setAttribute('title',key+' '+name);
+    b.append(themeFan(),node('span',key,'theme-letter'));b.onclick=()=>chooseTheme(key,true);$('memoryThemes').appendChild(b);
   }
+  $('themeSettingsPreview').appendChild(themeFan());
   chooseTheme(theme);
   function loadArtwork(){
     if(artworkLoading||artworkReady)return;
@@ -39,8 +39,17 @@
     for(let i=0;i<5;i++)bars.appendChild(node('i','',i<=level?'lit':''));
     b.append(art,number,bars);b.onclick=()=>{if(selected!==count)duration=E.SECONDS[count];selected=count;setup()};$('memoryCounts').appendChild(b);
   }
-  function setup(){for(const b of $('memoryCounts').children)b.setAttribute('aria-pressed',String(Number(b.dataset.count)===selected));const time=clock(duration===null?null:duration*1000);$('setupTime').textContent=time;if(duration===null){const icon=node('span','','cinematic-icon icon-infinity');icon.setAttribute('aria-hidden','true');$('memoryTimeValue').replaceChildren(node('span','不限時','sr-only'),icon);}else $('memoryTimeValue').textContent=time;$('timeMinus').disabled=duration===180;$('timePlus').disabled=duration===null;$('timeMinus').setAttribute('aria-label',duration===null?'改為 10 分鐘':'減少 1 分鐘');$('timePlus').setAttribute('aria-label',duration===600?'改為不限時間':'增加 1 分鐘');$('timeMinus').setAttribute('title',$('timeMinus').getAttribute('aria-label'));$('timePlus').setAttribute('title',$('timePlus').getAttribute('aria-label'));$('setupShield').textContent=E.SHIELDS[selected];$('setupPairs').textContent=String(selected/2).padStart(2,'0');}
+  function setup(){for(const b of $('memoryCounts').children)b.setAttribute('aria-pressed',String(Number(b.dataset.count)===selected));const time=clock(duration===null?null:duration*1000);$('setupTime').textContent=time;$('memoryTimeSettings').setAttribute('aria-label','調整任務時間，目前 '+(duration===null?'不限時':time));$('timeRecommendation').textContent=selected+' 張卡牌・建議 '+clock(E.SECONDS[selected]*1000);if(duration===null){const icon=node('span','','cinematic-icon icon-infinity');icon.setAttribute('aria-hidden','true');$('memoryTimeValue').replaceChildren(node('span','不限時','sr-only'),icon);}else $('memoryTimeValue').textContent=time;$('timeMinus').disabled=duration===180;$('timePlus').disabled=duration===null;$('timeMinus').setAttribute('aria-label',duration===null?'改為 10 分鐘':'減少 1 分鐘');$('timePlus').setAttribute('aria-label',duration===600?'改為不限時間':'增加 1 分鐘');$('timeMinus').setAttribute('title',$('timeMinus').getAttribute('aria-label'));$('timePlus').setAttribute('title',$('timePlus').getAttribute('aria-label'));$('setupShield').textContent=E.SHIELDS[selected];$('setupPairs').textContent=String(selected/2).padStart(2,'0');}
   function adjustTime(direction){duration=direction>0?(duration===null||duration===600?null:Math.min(600,duration+60)):(duration===null?600:Math.max(180,duration-60));setup();}
+  const settingPanels=[['memoryTimeSettings','timeSettingsDialog','timeSettingsTitle','timeSettingsClose','timeSettingsDone'],['memoryThemeSettings','themeSettingsDialog','themeSettingsTitle','themeSettingsClose','themeSettingsDone']];
+  for(const [triggerId,panelId,titleId,closeId,doneId] of settingPanels){
+    const trigger=$(triggerId),panel=$(panelId);
+    function close(){if(!panel.open)return;panel.close();trigger.setAttribute('aria-expanded','false');trigger.focus({preventScroll:true});}
+    trigger.onclick=()=>{if(state||launching||settingPanels.some(([,id])=>$(id).open))return;panel.showModal();trigger.setAttribute('aria-expanded','true');$(titleId).focus({preventScroll:true});};
+    $(closeId).onclick=close;$(doneId).onclick=close;
+    panel.addEventListener('cancel',event=>{event.preventDefault();close();});
+    panel.addEventListener('click',event=>{if(event.target!==panel)return;const rect=panel.getBoundingClientRect();if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)close();});
+  }
   function clearEffects(){particles=[];if(ctx)ctx.clearRect(0,0,window.innerWidth,window.innerHeight);}
   function stop(){if(raf!==null)cancelAnimationFrame(raf);raf=null;if(endTimer!==null)clearTimeout(endTimer);endTimer=null;if(launchTimer!==null)clearTimeout(launchTimer);launchTimer=null;launching=false;launchDialog.close();document.body.classList.remove('is-launching');clearEffects();}
   function layout(){const width=window.innerWidth,gap=width<700?6:10;if(state){const cols=width<360?4:width<700?(state.size<=24?4:6):({16:4,24:6,32:8,40:8,52:13})[state.size],rows=Math.ceil(state.size/cols),available=Math.min(1160,Math.max(260,width-(width<700?36:72))),idealH=Math.max(300,window.innerHeight-255),tileW=Math.min((available-gap*(cols-1))/cols,128,Math.max(48,(idealH-gap*(rows-1))/rows/1.25));$('memoryGrid').style.setProperty('--cols',cols);$('memoryGrid').style.setProperty('--gap',gap+'px');$('memoryGrid').style.setProperty('--grid-width',(cols*tileW+gap*(cols-1))+'px');$('memoryGrid').style.setProperty('--card-height',(tileW*1.25)+'px');for(const card of cards)card.classList.toggle('compact',tileW<80);}
@@ -48,7 +57,7 @@
   }
   function buildDeck(){cards=[];$('memoryGrid').replaceChildren();state.deck.forEach((id,index)=>{const b=node('button','','memory-card');b.type='button';b.dataset.index=String(index);b.style.setProperty('--arrival-delay',Math.min(index*12,250)+'ms');const inner=node('span','','card-inner'),back=node('span','','card-side card-back'),front=node('span','','card-side card-front');inner.setAttribute('aria-hidden','true');back.appendChild(node('span','','card-art'));front.append(node('span','','card-art'),equipment(id));inner.append(back,front);b.appendChild(inner);b.onclick=()=>advance({type:'flip',index});$('memoryGrid').appendChild(b);cards.push(b);});layout();}
   function start(){
-    if(launching)return;if(!artworkReady){loadArtwork();return;}
+    if(launching||settingPanels.some(([,id])=>$(id).open))return;if(!artworkReady){loadArtwork();return;}
     run++;stop();sound.suspend();dialog.close();dialogMode='';selected=Number(selected);
     const now=performance.now();state=E.act(E.create(selected,Math.random,now,duration),{type:'pause'},now).state;
     viewKey='';lowTimeAnnounced=false;document.body.classList.add('in-mission');$('memoryHome').hidden=true;$('memoryGame').hidden=false;$('memoryStatus').textContent='正在前往太空站…';$('deckLabel').textContent=selected+' 張';
