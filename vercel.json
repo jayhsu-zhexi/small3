@@ -6,6 +6,22 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
+      "source": "/crossing",
+      "destination": "/crossing.html"
+    },
+    {
+      "source": "/crossing/",
+      "destination": "/crossing.html"
+    },
+    {
+      "source": "/parcels",
+      "destination": "/parcels.html"
+    },
+    {
+      "source": "/parcels/",
+      "destination": "/parcels.html"
+    },
+    {
       "source": "/detective",
       "destination": "/detective.html"
     },
@@ -22,7 +38,7 @@
       "destination": "/board.html"
     },
     {
-      "source": "/((?!assets/|board(?:/|$)|board.html$|detective(?:/|$)|detective.html$).*)",
+      "source": "/((?!assets/|(?:board|detective|parcels|crossing)(?:/|$|\\.html$)).*)",
       "destination": "/index.html"
     }
   ]

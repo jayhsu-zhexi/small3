@@ -1,7 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
-const files = ['index.html', 'board.html', 'detective.html', 'assets/detective-ui.js', 'assets/detective.css', 'assets/backup.js', 'assets/board-engine.js', 'assets/board-bank.js', 'assets/board-ui.js', 'assets/board-audio.js', 'assets/board-records.js', 'assets/board.css', 'assets/board-island.png'];
+const files = ['index.html', 'board.html', 'detective.html', 'parcels.html', 'crossing.html', 'assets/attention-ui.js', 'assets/attention.css', 'assets/detective-ui.js', 'assets/detective.css', 'assets/backup.js', 'assets/board-engine.js', 'assets/board-bank.js', 'assets/board-ui.js', 'assets/board-audio.js', 'assets/board-records.js', 'assets/board.css', 'assets/board-island.png'];
 function build(output = path.resolve(__dirname, '../dist')) {
   const root = path.resolve(__dirname, '..');
   for (const file of files) {

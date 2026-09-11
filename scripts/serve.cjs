@@ -8,6 +8,7 @@ function createServer(root = path.resolve(__dirname, '..')) {
   publicFiles.set('/board/',['board.html',types['.html']]);
   publicFiles.set('/detective',['detective.html',types['.html']]);
   publicFiles.set('/detective/',['detective.html',types['.html']]);
+  for(const route of ['parcels','crossing']){publicFiles.set('/'+route,[route+'.html',types['.html']]);publicFiles.set('/'+route+'/',[route+'.html',types['.html']]);}
   return http.createServer((req, res) => {
     if (!['GET', 'HEAD'].includes(req.method)) { res.writeHead(405).end(); return; }
     const pathname = new URL(req.url, 'http://localhost').pathname;

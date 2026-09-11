@@ -21,7 +21,8 @@ const { createServer } = require('./serve.cjs');
       const board=await fetch(origin+route);assert.equal(board.status,200);assert.match(await board.text(),/id="board"/);
     }
     for(const route of ['/detective','/detective/','/detective.html']){const response=await fetch(origin+route);assert.equal(response.status,200);assert.match(await response.text(),/id="detectiveScene"/);}
-    for(const asset of ['detective-ui.js','detective.css','board-engine.js','board-ui.js','board-audio.js','board-bank.js','board-records.js','board.css','board-island.png']){
+    for(const game of ['parcels','crossing'])for(const route of ['/'+game,'/'+game+'/', '/'+game+'.html']){const response=await fetch(origin+route);assert.equal(response.status,200);assert.match(await response.text(),/id="attentionScene"/);}
+    for(const asset of ['attention-ui.js','attention.css','detective-ui.js','detective.css','board-engine.js','board-ui.js','board-audio.js','board-bank.js','board-records.js','board.css','board-island.png']){
       const response=await fetch(origin+'/assets/'+asset);assert.equal(response.status,200);
       assert.deepEqual(Buffer.from(await response.arrayBuffer()),fs.readFileSync('assets/'+asset));
     }

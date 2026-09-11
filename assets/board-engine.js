@@ -79,10 +79,65 @@
     }
     return false;
   }
+  const PARCEL_COLORS={red:'紅色',blue:'藍色',yellow:'黃色'},PARCEL_MARKS={star:['⭐','星星'],heart:['♥','愛心'],circle:['●','圓點']};
+  const ATTENTION_TOTALS={parcels:5,crossing:12};
+  function parcelMatch(item,rule){return item.color===rule.color&&(!rule.mark||item.mark===rule.mark)&&(!rule.smallOnly||item.size==='small');}
+  function parcelRounds(rng){
+    const all=[];for(const color of Object.keys(PARCEL_COLORS))for(const mark of Object.keys(PARCEL_MARKS))for(const size of ['small','large'])all.push({color,mark,size});
+    return Array.from({length:5},(_,i)=>{
+      const rule={color:Object.keys(PARCEL_COLORS)[sample(3,rng)],mark:i?Object.keys(PARCEL_MARKS)[sample(3,rng)]:null,smallOnly:i>=3};
+      const targets=shuffle(all.filter(x=>parcelMatch(x,rule)),rng).slice(0,rule.smallOnly?1:2),wrong=all.filter(x=>!parcelMatch(x,rule));
+      const near=shuffle(wrong.filter(x=>Number(x.color!==rule.color)+Number(!!rule.mark&&x.mark!==rule.mark)+Number(rule.smallOnly&&x.size!=='small')===1),rng);
+      const choices=shuffle([...targets,...[...new Set([...near,...shuffle(wrong,rng)])].slice(0,6-targets.length)],rng);
+      return {rule,choices,selected:[],errors:0,hints:0,solved:false};
+    });
+  }
+  function crossingRounds(rng){const trial=(green,police=false)=>({green,police,errors:0,misses:0,hints:0,solved:false});return [trial(true),trial(false),...shuffle([trial(true),trial(false),trial(true),trial(false)],rng),trial(true,true),...shuffle([trial(false),trial(true),trial(true,true),trial(true),trial(false)],rng)];}
+  function validAttentionTrial(c,game){
+    if(!obj(c)||!integer(c.errors,0,10000)||!integer(c.hints,0,10000)||typeof c.solved!=='boolean')return false;
+    if(game==='crossing')return typeof c.green==='boolean'&&typeof c.police==='boolean'&&integer(c.misses,0,10000);
+    if(!obj(c.rule)||!Object.hasOwn(PARCEL_COLORS,c.rule.color)||!(c.rule.mark===null||Object.hasOwn(PARCEL_MARKS,c.rule.mark))||typeof c.rule.smallOnly!=='boolean'||!Array.isArray(c.choices)||c.choices.length!==6||!c.choices.every(x=>obj(x)&&Object.hasOwn(PARCEL_COLORS,x.color)&&Object.hasOwn(PARCEL_MARKS,x.mark)&&['small','large'].includes(x.size))||new Set(c.choices.map(x=>x.color+':'+x.mark+':'+x.size)).size!==6||!Array.isArray(c.selected)||!c.selected.every(x=>integer(x,0,5))||new Set(c.selected).size!==c.selected.length)return false;
+    const targets=c.choices.map((x,i)=>parcelMatch(x,c.rule)?i:-1).filter(i=>i>=0);return targets.length>0&&targets.length<6&&(!c.solved||targets.length===c.selected.length&&targets.every(i=>c.selected.includes(i)));
+  }
+  function validAttention(d,game){
+    const total=ATTENTION_TOTALS[game];if(!obj(d)||!Array.isArray(d.records)||d.records.length>100||!d.records.every(r=>obj(r)&&text(r.id)&&Number.isFinite(r.at)&&Array.isArray(r.results)&&r.results.length===total&&r.results.every(c=>obj(c)&&integer(c.errors,0,10000)&&integer(c.hints,0,10000)&&(game!=='crossing'||integer(c.misses,0,10000)))))return false;
+    if(d.session===null)return true;const t=d.session;
+    if(!obj(t)||!text(t.id)||!Number.isFinite(t.startedAt)||!integer(t.round,0,total-1)||!['ready','active','feedback','finished'].includes(t.phase)||!(t.activeAt===null||Number.isFinite(t.activeAt))||!['', 'correct','retry','missed'].includes(t.feedback)||!Array.isArray(t.trials)||t.trials.length!==total||!t.trials.every(c=>validAttentionTrial(c,game)))return false;
+    if(t.phase==='finished'&&t.round!==total-1||t.phase==='active'&&game==='crossing'&&t.activeAt===null)return false;
+    if(t.phase==='feedback'&&!t.feedback||t.phase!=='feedback'&&t.feedback!=='')return false;
+    return t.trials.every((c,i)=>c.solved===(i<t.round||i===t.round&&(t.phase==='finished'||t.phase==='feedback'&&t.feedback==='correct')));
+  }
+  function crossingDuration(c){return c.green&&!c.police?4500:3200;}
+  function attentionAct(s,a,rng,now){
+    if(!Object.hasOwn(ATTENTION_TOTALS,a.game))return false;const game=a.game;s[game]=s[game]||{session:null,records:[]};const d=s[game],t=d.session;
+    if(a.type==='attentionStart'){if(t&&t.phase!=='finished')return false;d.session={id:game+'-'+now+'-'+Math.random().toString(36).slice(2,9),round:0,phase:'ready',activeAt:null,feedback:'',startedAt:now,trials:game==='parcels'?parcelRounds(rng):crossingRounds(rng)};return true;}
+    if(!t||t.phase==='finished')return false;const c=t.trials[t.round];
+    if(a.type==='attentionBegin'&&t.phase==='ready'){t.phase='active';t.activeAt=game==='crossing'?now:null;return true;}
+    if(a.type==='attentionPause'&&t.phase==='active'&&game==='crossing'){t.phase='ready';t.activeAt=null;return true;}
+    if(a.type==='attentionHint'&&t.phase==='active'&&game==='parcels'){c.hints=Math.min(10000,c.hints+1);return true;}
+    if(a.type==='attentionSelect'&&game==='parcels'&&t.phase==='active'&&integer(a.position,0,5)){c.selected=c.selected.includes(a.position)?c.selected.filter(i=>i!==a.position):[...c.selected,a.position];return true;}
+    if(a.type==='attentionCheck'&&game==='parcels'&&t.phase==='active'&&c.selected.length){const correct=c.choices.every((x,i)=>parcelMatch(x,c.rule)===c.selected.includes(i));c.solved=correct;if(!correct)c.errors=Math.min(10000,c.errors+1);t.phase='feedback';t.feedback=correct?'correct':'retry';return true;}
+    if(game==='crossing'&&t.phase==='active'&&['attentionGo','attentionWait'].includes(a.type)){
+      if(a.signalAt!==t.activeAt)return false;const elapsed=now-t.activeAt,duration=crossingDuration(c),canGo=c.green&&!c.police;
+      if(a.type==='attentionWait'&&elapsed<duration)return false;
+      if(canGo&&a.type==='attentionGo'&&elapsed<duration){c.solved=true;t.feedback='correct';}
+      else if(!canGo&&a.type==='attentionWait'){c.solved=true;t.feedback='correct';}
+      else if(canGo){c.misses=Math.min(10000,c.misses+1);t.feedback='missed';}
+      else{c.errors=Math.min(10000,c.errors+1);t.feedback='retry';}
+      t.phase='feedback';t.activeAt=null;return true;
+    }
+    if(a.type==='attentionNext'&&t.phase==='feedback'){
+      if(!c.solved){t.phase='ready';if(game==='parcels')c.selected=[];}
+      else if(t.round+1<ATTENTION_TOTALS[game]){t.round++;t.phase='ready';}
+      else{t.phase='finished';s.park.stars=Math.min(100000,s.park.stars+3);d.records.push({id:t.id,at:now,results:t.trials.map(c=>game==='parcels'?{errors:c.errors,hints:c.hints}:{errors:c.errors,misses:c.misses,hints:c.hints})});d.records=d.records.slice(-100);}
+      t.feedback='';t.activeAt=null;return true;
+    }return false;
+  }
   function validState(s) {
     if (!obj(s)||s.version!==1||!text(s.id)||!Object.hasOwn(CHARACTERS,s.character)||!Object.hasOwn(BASES,s.baseStyle)||!integer(s.position,0,23)||!integer(s.turn,0,TOTAL)||!integer(s.dice,0,6)||!integer(s.stars,0,TOTAL)||!integer(s.supplies,0,100000)||!integer(s.baseLevel,0,3)||!integer(s.revision,0,100000)||!['ready','task','encounter','reward','finished'].includes(s.phase)||!Array.isArray(s.events)||s.events.length>TOTAL||!s.events.every(validEvent)||!Array.isArray(s.seen)||s.seen.length>TOTAL||!s.seen.every(text)||!obj(s.input)||!Array.isArray(s.input.sequence)||s.input.sequence.length>3||!s.input.sequence.every(d=>dirs.includes(d))||!obj(s.input.coins)||Object.entries(s.input.coins).some(([k,v])=>!['1','5','10'].includes(k)||!integer(v,0,30))||!Number.isFinite(s.startedAt)) return false;
     if(s.park!==undefined&&!validPark(s.park))return false;
     if(s.detective!==undefined&&!validDetective(s.detective))return false;
+    for(const game of Object.keys(ATTENTION_TOTALS))if(s[game]!==undefined&&!validAttention(s[game],game))return false;
     if (s.phase==='finished'&&s.turn!==TOTAL || s.phase==='ready'&&s.turn===TOTAL || s.turn===0&&s.phase!=='ready') return false;
     if (s.phase==='task'&&!validTask(s.task)) return false;
     if (s.task!==null&&!validTask(s.task)) return false;
@@ -131,6 +186,7 @@
     if(!validState(previous))throw Error('無法讀取這趟旅程');
     const s=clone(previous),t=s.task;s.park=clone(parkOf(s));
     if(typeof action.type==='string'&&action.type.startsWith('detective')){if(!detectiveAct(s,action,rng,now))return previous;s.revision++;return s;}
+    if(typeof action.type==='string'&&action.type.startsWith('attention')){if(!attentionAct(s,action,rng,now))return previous;s.revision++;return s;}
     switch(action.type){
       case 'roll':
         if(s.phase!=='ready'||s.turn>=TOTAL)return previous;
@@ -182,7 +238,7 @@
     }
     h.games=h.games.slice(-100);return h;
   }
-  function nextJourney(previous,now=Date.now()){if(!validState(previous))throw Error('無法讀取樂園');const s=create(previous.character,now);s.park=clone(parkOf(previous));s.supplies=previous.supplies;s.baseStyle=previous.baseStyle;s.baseLevel=previous.baseLevel;if(previous.detective)s.detective=clone(previous.detective);return s;}
-  const api={DETECTIVE_ITEMS,DETECTIVE_KINDS,validDetective,FACILITIES,DECORATIONS,ANIMALS,parkOf,nextJourney,KEY,HISTORY_KEY,TOTAL,TYPES,INFO,CHARACTERS,BASES,STAGES,dirs,create,act,archive,validState,validHistory,encounter};
+  function nextJourney(previous,now=Date.now()){if(!validState(previous))throw Error('無法讀取樂園');const s=create(previous.character,now);s.park=clone(parkOf(previous));s.supplies=previous.supplies;s.baseStyle=previous.baseStyle;s.baseLevel=previous.baseLevel;if(previous.detective)s.detective=clone(previous.detective);for(const game of Object.keys(ATTENTION_TOTALS))if(previous[game])s[game]=clone(previous[game]);return s;}
+  const api={PARCEL_COLORS,PARCEL_MARKS,ATTENTION_TOTALS,parcelMatch,crossingDuration,validAttention,DETECTIVE_ITEMS,DETECTIVE_KINDS,validDetective,FACILITIES,DECORATIONS,ANIMALS,parkOf,nextJourney,KEY,HISTORY_KEY,TOTAL,TYPES,INFO,CHARACTERS,BASES,STAGES,dirs,create,act,archive,validState,validHistory,encounter};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.PlanetBoard=api;
 })(typeof window==='undefined'?{}:window);
