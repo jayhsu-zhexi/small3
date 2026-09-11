@@ -2,6 +2,7 @@
   'use strict';
   // Original four-bar synth ostinato: pulsing bass, arpeggios and soft electronic percussion.
   const roots=[73.416,65.406,58.270,65.406],thirds=[3,4,4,4],motif=[0,7,12,15,7,12,15,7];
+  const MUSIC_GAIN=2.4;
   function create(onError=()=>{}){
     let context=null,enabled=true,music=true,active=false,awake=false,timer=null,step=0,nextAt=0,tension=0,epoch=0;
     const voices=new Set();
@@ -15,6 +16,7 @@
     function canPlayMusic(){return active&&music&&awake&&context?.state==='running';}
     function tone(hz,start,duration,volume=.035,type='sine',isMusic=false,slide=0){
       if(!awake||!context||context.state!=='running'||(isMusic?!active||!music:!enabled))return;
+      if(isMusic)volume*=MUSIC_GAIN;
       const osc=context.createOscillator(),gain=context.createGain(),at=context.currentTime+Math.max(0,start),voice={osc,gain,music:isMusic};
       voices.add(voice);osc.type=type;osc.frequency.setValueAtTime(hz,at);
       if(slide)osc.frequency.exponentialRampToValueAtTime(slide,at+duration);
@@ -26,7 +28,7 @@
       const beat=step%8,bar=Math.floor(step/8)%4,rootNote=roots[bar],delay=at-context.currentTime;
       const interval=motif[beat]===15?12+thirds[bar]:motif[beat];
       tone(rootNote*2*Math.pow(2,interval/12),delay,.17,.014,'triangle',true);
-      if(beat%2===0){tone(rootNote,delay,.32,.019,'sine',true);tone(118,delay,.1,.018,'sine',true,46);}
+      if(beat%2===0){tone(rootNote,delay,.32,.019,'sine',true);tone(rootNote*4,delay,.22,.007,'triangle',true);tone(118,delay,.1,.018,'sine',true,46);}
       tone(1400+beat*60,delay,.025,.0028,'sine',true);
       if(beat===0)tone(rootNote/2,delay,1.4,.012,'sine',true);
       if(tension>.55&&beat%2===1)tone(rootNote*4,delay+.1,.07,.007,'triangle',true);
