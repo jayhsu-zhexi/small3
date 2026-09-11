@@ -6,6 +6,14 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
+      "source": "/memory",
+      "destination": "/memory.html"
+    },
+    {
+      "source": "/memory/",
+      "destination": "/memory.html"
+    },
+    {
       "source": "/crossing",
       "destination": "/crossing.html"
     },
@@ -38,7 +46,7 @@
       "destination": "/board.html"
     },
     {
-      "source": "/((?!assets/|(?:board|detective|parcels|crossing)(?:/|$|\\.html$)).*)",
+      "source": "/((?!assets/|(?:board|detective|parcels|crossing|memory)(?:/|$|\\.html$)).*)",
       "destination": "/index.html"
     }
   ]

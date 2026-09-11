@@ -22,7 +22,8 @@ const { createServer } = require('./serve.cjs');
     }
     for(const route of ['/detective','/detective/','/detective.html']){const response=await fetch(origin+route);assert.equal(response.status,200);assert.match(await response.text(),/id="detectiveScene"/);}
     for(const game of ['parcels','crossing'])for(const route of ['/'+game,'/'+game+'/', '/'+game+'.html']){const response=await fetch(origin+route);assert.equal(response.status,200);assert.match(await response.text(),/id="attentionScene"/);}
-    for(const asset of ['attention-ui.js','attention.css','detective-ui.js','detective.css','board-engine.js','board-ui.js','board-audio.js','board-bank.js','board-records.js','board.css','board-island.png']){
+    for(const route of ['/memory','/memory/','/memory.html']){const response=await fetch(origin+route);assert.equal(response.status,200);assert.match(await response.text(),/id="memoryGrid"/);}
+    for(const asset of ['memory-engine.js','memory-ui.js','memory-audio.js','memory.css','memory-icons.svg','memory-background.png','attention-ui.js','attention.css','detective-ui.js','detective.css','board-engine.js','board-ui.js','board-audio.js','board-bank.js','board-records.js','board.css','board-island.png']){
       const response=await fetch(origin+'/assets/'+asset);assert.equal(response.status,200);
       assert.deepEqual(Buffer.from(await response.arrayBuffer()),fs.readFileSync('assets/'+asset));
     }
