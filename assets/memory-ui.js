@@ -5,16 +5,16 @@
   const sound=window.OrbitAudio.create(message=>{$('audioStatus').textContent=message});
   const records=window.OrbitRecords.create(()=>window.localStorage),preferences=records.loadPreferences(),hudView=new Map();
   const themes=[['A','金屬反應爐'],['B','水晶能源'],['C','太空裝備艙']],themeKey='learning-planet-memory-theme-v1';
-  const artworkFiles=['/assets/memory-card-shells.webp','/assets/memory-equipment-1.webp','/assets/memory-equipment-2.webp'];
+  const artworkFiles=['/assets/memory-card-shells.webp','/assets/memory-equipment-1.webp','/assets/memory-equipment-2.webp','/assets/memory-equipment-3.webp'];
   let theme='C',artworkReady=false,artworkLoading=false,artworkAttempt=0;
   try{const saved=window.localStorage.getItem(themeKey);if(themes.some(([key])=>key===saved))theme=saved;}catch{}
-  let selected=preferences.size,duration=preferences.duration,state=null,cards=[],raf=null,tickTimer=null,endTimer=null,launchTimer=null,launching=false,run=0,viewKey='',dialogMode='',particles=[],canvasDirty=false,lowTimeAnnounced=false,resultReport=null,boardFit=null;
+  let selected=preferences.size,duration=preferences.duration,manualTime=preferences.manualTime,planned=null,state=null,cards=[],raf=null,tickTimer=null,endTimer=null,launchTimer=null,launching=false,run=0,viewKey='',dialogMode='',particles=[],canvasDirty=false,lowTimeAnnounced=false,resultReport=null,boardFit=null;
   $('memoryMusic').checked=preferences.music;$('memorySound').checked=preferences.sound;
-  function savePreferences(){records.savePreferences({size:selected,duration,music:$('memoryMusic').checked,sound:$('memorySound').checked});}
+  function savePreferences(){records.savePreferences({size:selected,duration,manualTime,music:$('memoryMusic').checked,sound:$('memorySound').checked});}
   function node(tag,text='',className=''){const n=document.createElement(tag);n.textContent=text;n.className=className;return n;}
   for(let i=0;i<28;i++){const trail=node('i');trail.style.setProperty('--angle',(i*360/28)+'deg');trail.style.setProperty('--delay',((i%5)*.045)+'s');$('launchTrails').appendChild(trail);}
   for(let i=0;i<20;i++){const spark=node('i');spark.style.setProperty('--angle',(i*18)+'deg');spark.style.setProperty('--delay',((i%4)*.065)+'s');spark.style.setProperty('--distance',(110+i%5*25)+'px');$('resultSparks').appendChild(spark);}
-  function equipment(id){const art=node('span','','equipment-art equipment-sheet-'+(id<13?1:2)),cell=id%13;art.style.backgroundPosition=(cell%4*100/3)+'% '+(Math.floor(cell/4)*100/3)+'%';return art;}
+  function equipment(id){const extra=id>=26,art=node('span','','equipment-art equipment-sheet-'+(extra?3:id<13?1:2)),cell=extra?id-26:id%13,columns=extra?2:4;art.style.backgroundPosition=(cell%columns*100/(columns-1))+'% '+(Math.floor(cell/columns)*100/(columns-1))+'%';return art;}
   function themeFan(){const fan=node('span','','theme-fan'),back=node('span','','preview-card preview-back'),front=node('span','','preview-card preview-front');fan.setAttribute('aria-hidden','true');back.appendChild(node('span','','card-art'));front.append(node('span','','card-art'),equipment(0));fan.append(back,front);return fan;}
   function chooseTheme(key,save=false){theme=key;document.body.dataset.cardTheme=theme;const name=themes.find(([id])=>id===theme)[1];for(const b of $('memoryThemes').children)b.setAttribute('aria-pressed',String(b.dataset.theme===theme));$('currentTheme').textContent=theme;$('memoryThemeSettings').setAttribute('aria-label','選擇卡牌外觀，目前 '+theme+' '+name);$('themeSelection').textContent='目前選擇：'+theme+' '+name;if(save)try{window.localStorage.setItem(themeKey,theme);}catch{}}
   for(const [key,name] of themes){
@@ -38,13 +38,33 @@
   function prepareResults(){for(const id of ['resultWinArt','resultLossArt']){const img=$(id);if(img.dataset.src){img.onload=()=>img.classList.add('is-ready');img.onerror=()=>{img.classList.remove('is-ready');img.removeAttribute('src');img.dataset.src='/assets/memory-result-'+(id==='resultWinArt'?'win':'loss')+'.webp';};img.src=img.dataset.src;delete img.dataset.src;}}}
   function clock(ms){if(ms===null)return '∞';const total=Math.ceil(ms/1000);return String(Math.floor(total/60)).padStart(2,'0')+':'+String(total%60).padStart(2,'0');}
   for(const [level,count] of E.COUNTS.entries()){
-    const b=node('button','','count-option'),art=node('span','','control-art art-cards'),number=node('strong',String(count),'count-number'),bars=node('span','','difficulty-bars');
-    b.type='button';b.dataset.count=String(count);b.setAttribute('aria-label',count+' 張卡牌');b.setAttribute('title',count+' 張卡牌'+(level===0?'，第一次玩可以從這裡開始':''));art.setAttribute('aria-hidden','true');bars.setAttribute('aria-hidden','true');
+    const b=node('button','','count-option'),art=node('span','','control-art art-cards'),number=node('strong',count+'+','count-number'),bars=node('span','','difficulty-bars');
+    b.type='button';b.dataset.count=String(count);b.setAttribute('aria-label',count+' 張起，最多 '+(count+E.EXTRA[count])+' 張');b.setAttribute('title',count+' 張起，依畫面補齊完整配對'+(level===0?'，第一次玩可以從這裡開始':''));art.setAttribute('aria-hidden','true');bars.setAttribute('aria-hidden','true');
     for(let i=0;i<5;i++)bars.appendChild(node('i','',i<=level?'lit':''));
-    b.append(art,number,bars);b.onclick=()=>{if(selected!==count)duration=E.SECONDS[count];selected=count;setup();savePreferences();};$('memoryCounts').appendChild(b);
+    b.append(art,number,bars);b.onclick=()=>{if(selected!==count)manualTime=false;selected=count;setup();savePreferences();};$('memoryCounts').appendChild(b);
   }
-  function setup(){for(const b of $('memoryCounts').children)b.setAttribute('aria-pressed',String(Number(b.dataset.count)===selected));const time=clock(duration===null?null:duration*1000);$('setupTime').textContent=time;$('memoryTimeSettings').setAttribute('aria-label','調整任務時間，目前 '+(duration===null?'不限時':time));$('timeRecommendation').textContent=selected+' 張卡牌・建議 '+clock(E.SECONDS[selected]*1000);if(duration===null){const icon=node('span','','cinematic-icon icon-infinity');icon.setAttribute('aria-hidden','true');$('memoryTimeValue').replaceChildren(node('span','不限時','sr-only'),icon);}else $('memoryTimeValue').textContent=time;$('timeMinus').disabled=duration===180;$('timePlus').disabled=duration===null;$('timeMinus').setAttribute('aria-label',duration===null?'改為 10 分鐘':'減少 1 分鐘');$('timePlus').setAttribute('aria-label',duration===600?'改為不限時間':'增加 1 分鐘');$('timeMinus').setAttribute('title',$('timeMinus').getAttribute('aria-label'));$('timePlus').setAttribute('title',$('timePlus').getAttribute('aria-label'));$('setupShield').textContent=E.SHIELDS[selected];$('setupPairs').textContent=String(selected/2).padStart(2,'0');}
-  function adjustTime(direction){duration=direction>0?(duration===null||duration===600?null:Math.min(600,duration+60)):(duration===null?600:Math.max(180,duration-60));setup();savePreferences();}
+  function boardSpace(width,height,fit){if(!fit)return {width:Math.min(1160,Math.max(260,width-72)),height:Math.max(300,height-255),gap:10};const bounds=$('memoryBoard').getBoundingClientRect();return {width:Math.max(1,bounds.width-12),height:Math.max(1,bounds.height-12),gap:4};}
+  function previewPlan(){
+    const width=window.innerWidth,height=window.visualViewport?.height||window.innerHeight,fit=width<=1100||height<=600;
+    if(!fit){const space=boardSpace(width,height,false);return E.plan(selected,space.width,space.height,space.gap);}
+    // Measure the real mission shell synchronously, before the browser paints.
+    // Preserve the home page's height so measuring never shifts its scroll position.
+    const body=document.body,game=$('memoryGame'),home=$('memoryHome'),hidden=game.hidden,focused=document.activeElement;
+    body.style.setProperty('--measure-page-height',(body.scrollHeight||height)+'px');body.style.setProperty('--mission-viewport',height+'px');
+    body.classList.add('measuring-mission');body.classList.add('in-mission');body.classList.add('fit-board');game.hidden=false;const homeHidden=home.hidden;home.hidden=true;
+    try{const space=boardSpace(width,height,true);return E.plan(selected,space.width,space.height,space.gap);}
+    finally{game.hidden=hidden;home.hidden=homeHidden;body.classList.remove('measuring-mission');body.classList.remove('in-mission');body.classList.remove('fit-board');if(focused&&document.activeElement!==focused)focused.focus({preventScroll:true});}
+  }
+  function setup(){
+    if(state)return;planned=previewPlan();if(!manualTime)duration=planned.seconds;
+    for(const b of $('memoryCounts').children)b.setAttribute('aria-pressed',String(Number(b.dataset.count)===selected));
+    $('setupCards').textContent=planned.size;$('setupLayout').textContent=planned.cols+' × '+planned.rows;
+    $('setupPlan').setAttribute('aria-label','本次 '+planned.size+' 張，'+planned.size/2+' 組配對，'+planned.cols+' 欄 '+planned.rows+' 列');
+    const time=clock(duration===null?null:duration*1000);$('setupTime').textContent=time;$('memoryTimeSettings').setAttribute('aria-label','調整任務時間，目前 '+(duration===null?'不限時':time));$('timeRecommendation').textContent=planned.size+' 張卡牌・建議 '+clock(planned.seconds*1000);
+    if(duration===null){const icon=node('span','','cinematic-icon icon-infinity');icon.setAttribute('aria-hidden','true');$('memoryTimeValue').replaceChildren(node('span','不限時','sr-only'),icon);}else $('memoryTimeValue').textContent=time;
+    $('timeMinus').disabled=duration===180;$('timePlus').disabled=duration===null;$('timeMinus').setAttribute('aria-label',duration===null?'改為 10 分鐘':'減少 1 分鐘');$('timePlus').setAttribute('aria-label',duration===600?'改為不限時間':'增加 1 分鐘');$('timeMinus').setAttribute('title',$('timeMinus').getAttribute('aria-label'));$('timePlus').setAttribute('title',$('timePlus').getAttribute('aria-label'));$('setupShield').textContent=planned.shields;$('setupPairs').textContent=String(planned.size/2).padStart(2,'0');
+  }
+  function adjustTime(direction){manualTime=true;duration=direction>0?(duration===null||duration===600?null:Math.min(600,duration+60)):(duration===null?600:Math.max(180,duration-60));setup();savePreferences();}
   const settingPanels=[['memoryTimeSettings','timeSettingsDialog','timeSettingsTitle','timeSettingsClose','timeSettingsDone'],['memoryThemeSettings','themeSettingsDialog','themeSettingsTitle','themeSettingsClose','themeSettingsDone']];
   for(const [triggerId,panelId,titleId,closeId,doneId] of settingPanels){
     const trigger=$(triggerId),panel=$(panelId);
@@ -69,24 +89,23 @@
         // Maximize card size within the actual remaining space, including mobile browser bars.
         const tileSize=count=>Math.max(0,Math.min(128,(available-gap*(count-1))/count,(space-gap*(Math.ceil(state.size/count)-1))/Math.ceil(state.size/count)/1.25));
         if(boardFit&&boardFit.width===width&&Math.abs(boardFit.available-available)<1){cols=boardFit.cols;tileW=tileSize(cols);}
-        else{cols=1;tileW=0;for(let count=1;count<=state.size;count++){const candidate=tileSize(count);if(candidate>tileW){cols=count;tileW=candidate;}}}
+        else{const rectangle=E.rectangle(state.size,available,space,gap);cols=rectangle.cols;tileW=rectangle.tile;}
         boardFit={width,available,cols};tileW=Math.floor(tileW*100)/100;
       }else{
-        boardFit=null;const available=Math.min(1160,Math.max(260,width-72)),maxCols=({16:4,24:6,32:8,40:8,52:13})[state.size];
-        cols=Math.max(1,Math.min(maxCols,Math.floor((available+gap)/(78+gap))));const rows=Math.ceil(state.size/cols),idealH=Math.max(300,height-255);
-        tileW=Math.min((available-gap*(cols-1))/cols,128,Math.max(88,(idealH-gap*(rows-1))/rows/1.25));$('memoryBoardHint').hidden=rows*tileW*1.25+gap*(rows-1)<=idealH;
+        boardFit=null;const space=boardSpace(width,height,false),rectangle=E.rectangle(state.size,space.width,space.height,gap);
+        cols=rectangle.cols;tileW=rectangle.tile;$('memoryBoardHint').hidden=true;
       }
       $('memoryGrid').style.setProperty('--cols',cols);$('memoryGrid').style.setProperty('--gap',gap+'px');$('memoryGrid').style.setProperty('--grid-width',(cols*tileW+gap*(cols-1))+'px');$('memoryGrid').style.setProperty('--card-height',(tileW*1.25)+'px');
       for(const card of cards)card.classList.toggle('compact',tileW<80);
-    }else boardFit=null;
+    }else{boardFit=null;setup();}
     const ratio=Math.min(2,window.devicePixelRatio||1);canvas.width=Math.round(width*ratio);canvas.height=Math.round(window.innerHeight*ratio);if(ctx)ctx.setTransform(ratio,0,0,ratio,0,0);
   }
   function buildDeck(){cards=[];$('memoryGrid').replaceChildren();state.deck.forEach((id,index)=>{const b=node('button','','memory-card');b.type='button';b.dataset.index=String(index);b.style.setProperty('--arrival-delay',Math.min(index*12,250)+'ms');const inner=node('span','','card-inner'),back=node('span','','card-side card-back'),front=node('span','','card-side card-front');inner.setAttribute('aria-hidden','true');back.appendChild(node('span','','card-art'));front.append(node('span','','card-art'),equipment(id));inner.append(back,front);b.appendChild(inner);b.onclick=()=>advance({type:'flip',index});$('memoryGrid').appendChild(b);cards.push(b);});layout();}
   function start(){
     if(launching||settingPanels.some(([,id])=>$(id).open))return;if(!artworkReady){loadArtwork();return;}
     run++;stop();sound.suspend();dialog.close();dialogMode='';selected=Number(selected);
-    const now=performance.now();state=E.act(E.create(selected,Math.random,now,duration),{type:'pause'},now).state;
-    viewKey='';hudView.clear();resultReport=null;boardFit=null;lowTimeAnnounced=false;document.body.classList.add('in-mission');$('memoryHome').hidden=true;$('memoryGame').hidden=false;$('memoryStatus').textContent='正在前往太空站…';$('deckLabel').textContent=selected+' 張';prepareResults();
+    const now=performance.now(),size=state?state.size:planned.size;state=E.act(E.create(size,Math.random,now,duration),{type:'pause'},now).state;
+    savePreferences();viewKey='';hudView.clear();resultReport=null;boardFit=null;lowTimeAnnounced=false;document.body.classList.add('in-mission');$('memoryHome').hidden=true;$('memoryGame').hidden=false;$('memoryStatus').textContent='正在前往太空站…';$('deckLabel').textContent=state.size+' 張';prepareResults();
     buildDeck();render();sound.setEnabled($('memorySound').checked);sound.setMusic($('memoryMusic').checked);launching=true;$('memoryGame').scrollIntoView({block:'start',behavior:'auto'});
     if(reduced.matches){finishLaunch();return;}
     document.body.classList.add('is-launching');launchDialog.showModal();$('launchSkip').focus();
@@ -103,7 +122,7 @@
   function render(){if(!state)return;const timed=state.remainingMs!==null;
     update('clock',clock(state.remainingMs),value=>{sound.setTension(timed?1-state.remainingMs/45000:0);$('timeValue').textContent=value;$('timeValue').setAttribute('aria-label',timed?'剩餘時間 '+value:'不限時間');});
     update('critical',timed&&state.remainingMs<=30000,value=>$('timeValue').parentElement.classList.toggle('critical',value));
-    textValue('scoreValue',state.score.toLocaleString('en-US'));textValue('comboValue','×'+state.combo);textValue('shieldValue',state.shields+'/'+E.SHIELDS[state.size]);textValue('pairsValue',state.matched.length/2+'/'+state.size/2);textValue('flipsValue',state.flips);
+    textValue('scoreValue',state.score.toLocaleString('en-US'));textValue('comboValue','×'+state.combo);textValue('shieldValue',state.shields+'/'+state.initialShields);textValue('pairsValue',state.matched.length/2+'/'+state.size/2);textValue('flipsValue',state.flips);
     update('power',state.matched.length/state.size*100,value=>{$('powerFill').style.width=value+'%';$('powerTrack').setAttribute('aria-valuenow',String(Math.round(value)));});
     update('pauseDisabled',!['playing','resolving'].includes(state.phase),value=>{$('memoryPause').disabled=value;});update('paused',state.paused,value=>$('memoryGrid').classList.toggle('obscured',value));
     const key=[state.phase,state.paused,state.open.join(','),state.matched.join(',')].join('|');if(key!==viewKey){viewKey=key;const focused=document.activeElement;cards.forEach((b,i)=>{const matched=state.matched.includes(i),open=state.open.includes(i),visible=matched||open;b.classList.toggle('flipped',visible);b.classList.toggle('matched',matched);b.classList.toggle('miss',open&&state.open.length===2&&state.deck[state.open[0]]!==state.deck[state.open[1]]);b.disabled=matched||state.paused||state.phase!=='playing';b.setAttribute('aria-label','第 '+(i+1)+' 張，'+(matched?'已配對：'+E.SYMBOLS[state.deck[i]][1]:open?E.SYMBOLS[state.deck[i]][1]:'未翻開'));});if(focused?.dataset?.index!==undefined&&focused.disabled&&state.phase==='playing')cards.find(b=>!b.disabled)?.focus({preventScroll:true});}
@@ -150,5 +169,6 @@
   window.addEventListener('pagehide',()=>{if(launching)finishLaunch(true);else if(state&&!state.paused&&['playing','resolving'].includes(state.phase))pause();sound.dispose();});window.addEventListener('resize',layout);reduced.addEventListener?.('change',()=>{if(reduced.matches){clearEffects();if(launching)finishLaunch();}});
   window.visualViewport?.addEventListener('resize',layout);
   if(window.ResizeObserver){const observer=new window.ResizeObserver(()=>{if(state)layout();});observer.observe($('memoryBoard'));}
-  setup();layout();loadArtwork();
+  document.fonts?.ready.then(()=>{if(!state)setup();});
+  layout();loadArtwork();
 })();

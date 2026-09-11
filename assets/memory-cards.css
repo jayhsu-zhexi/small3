@@ -1,4 +1,4 @@
-/* Generated shells share the same equipment, so every theme keeps all 26 pairs. */
+/* Generated shells share the same equipment, so every theme keeps the same 30 distinct symbols. */
 [data-card-theme="A"], [data-theme="A"] { --back-size: 335.94% 212.43%; --back-position: 4.145% 4.125%; --front-size: 336.765% 225.838%; --front-position: 4.141% 90.909%; --shell-radius: 9% / 7%; --shell-clip: inset(0 round 9% / 7%); --card-glow: #65eaff; }
 [data-card-theme="B"], [data-theme="B"] { --back-size: 335.122% 213.619%; --back-position: 49.793% 4.433%; --front-size: 335.122% 226.733%; --front-position: 49.793% 90.781%; --shell-radius: 0; --shell-clip: polygon(11% 0, 89% 0, 100% 8%, 100% 92%, 89% 100%, 11% 100%, 0 92%, 0 8%); --card-glow: #b9a4ff; }
 [data-card-theme="C"], [data-theme="C"] { --back-size: 327.924% 212.037%; --back-position: 96.126% 4.132%; --front-size: 327.924% 224.510%; --front-position: 96.126% 91.181%; --shell-radius: 12% / 9%; --shell-clip: inset(0 round 12% / 9%); --card-glow: #ffc269; }
@@ -52,3 +52,4 @@
   .theme-letter { font-size: 14px; }
   .memory-card .equipment-art { width: 76%; }
 }
+.equipment-art.equipment-sheet-3{background-image:url('/assets/memory-equipment-3.webp');background-size:200% 200%}

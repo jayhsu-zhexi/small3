@@ -4,14 +4,14 @@ function storage(initial=[]){const values=new Map(initial);return {values,getIte
 function mission({size=16,pairs=size/2,attempts=pairs,phase='won'}={}){return {size,matched:Array.from({length:pairs*2},(_,i)=>i),flips:attempts*2,attempts,phase,score:pairs*100,bestCombo:pairs};}
 
 const device=storage(),store=R.create(()=>device);
-assert.deepEqual({...store.loadPreferences()},{size:16,duration:180,music:true,sound:true});
+assert.deepEqual({...store.loadPreferences()},{size:16,duration:180,manualTime:false,music:true,sound:true});
 for(const duration of [180,210,570,600,null]){
   store.savePreferences({size:52,duration,music:false,sound:false});
-  assert.deepEqual({...R.create(()=>device).loadPreferences()},{size:52,duration,music:false,sound:false});
+  assert.deepEqual({...R.create(()=>device).loadPreferences()},{size:52,duration,manualTime:duration!==300,music:false,sound:false});
 }
 for(const value of [null,[],true,'bad',{size:'52',duration:'300',music:0,sound:'false'}]){
   const source=storage([[R.PREFS_KEY,JSON.stringify(value)]]);
-  assert.deepEqual({...R.create(()=>source).loadPreferences()},{size:16,duration:180,music:true,sound:true});
+  assert.deepEqual({...R.create(()=>source).loadPreferences()},{size:16,duration:180,manualTime:false,music:true,sound:true});
 }
 for(const duration of [0,179,181,601]){
   const source=storage([[R.PREFS_KEY,JSON.stringify({size:24,duration})]]);
@@ -46,3 +46,10 @@ const malformed=[null,{}, {size:16,duration:180,outcome:'won',pairs:8,flips:2,at
 assert.equal(R.create(()=>storage([[R.HISTORY_KEY,JSON.stringify(malformed)]])).record(mission(),180).previous,null);
 assert.equal(history.record(mission({phase:'playing'}),180),null,'Interrupted or unfinished missions are not recorded as completed runs');
 console.log('PASS: device preferences validate and survive reload; progress is bounded, tolerates unavailable/corrupt storage, and only compares honest outcomes with matching deck/time settings.');
+const paddedHistory=R.create(()=>storage());paddedHistory.record(mission({size:40}),300);paddedHistory.record(mission({size:42,attempts:30}),null);
+assert.equal(paddedHistory.record(mission({size:42,attempts:25}),300).previous,null,'A 40+ tier does not compare different actual counts or clocks');
+assert.equal(paddedHistory.record(mission({size:42,attempts:23}),300).previous.attempts,25);
+for(const size of [18,26,28,34,36,42,44,46,54,56,58,60])assert.ok(paddedHistory.record(mission({size}),300));
+for(const size of [17,20,30,38,48,50,62])assert.equal(paddedHistory.record(mission({size,pairs:0,attempts:0,phase:'lost'}),300),null);
+store.savePreferences({size:52,duration:300,manualTime:true});assert.equal(R.create(()=>device).loadPreferences().manualTime,true);
+store.savePreferences({size:52,duration:360,manualTime:false});assert.equal(R.create(()=>device).loadPreferences().manualTime,false);

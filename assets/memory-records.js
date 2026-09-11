@@ -5,10 +5,11 @@
   const validTime=value=>value===null||(Number.isFinite(value)&&value>=180&&value<=600&&value%30===0);
   function preferences(value){
     const input=value&&typeof value==='object'?value:{},size=COUNTS.includes(input.size)?input.size:16;
-    return {size,duration:validTime(input.duration)?input.duration:SECONDS[size],music:typeof input.music==='boolean'?input.music:true,sound:typeof input.sound==='boolean'?input.sound:true};
+    const duration=validTime(input.duration)?input.duration:SECONDS[size];
+    return {size,duration,manualTime:typeof input.manualTime==='boolean'?input.manualTime:duration!==SECONDS[size],music:typeof input.music==='boolean'?input.music:true,sound:typeof input.sound==='boolean'?input.sound:true};
   }
   function validRun(value){
-    return value&&COUNTS.includes(value.size)&&validTime(value.duration)&&['won','lost'].includes(value.outcome)&&
+    return value&&Number.isInteger(value.size)&&value.size%2===0&&COUNTS.some((base,i)=>value.size>=base&&value.size<=base+[2,4,4,6,8][i])&&validTime(value.duration)&&['won','lost'].includes(value.outcome)&&
       ['pairs','flips','attempts','score','bestCombo'].every(key=>Number.isSafeInteger(value[key])&&value[key]>=0)&&
       value.pairs<=value.size/2&&value.pairs<=value.attempts&&value.bestCombo<=value.pairs&&
       value.attempts===Math.floor(value.flips/2)&&(value.outcome!=='won'||value.pairs===value.size/2);
