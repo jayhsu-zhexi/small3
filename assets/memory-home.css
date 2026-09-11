@@ -14,7 +14,7 @@ body:not(.in-mission) .header-controls .quiet-button { background: #06111b80; bo
 .home-copy { max-width: 580px; width: 48%; }
 .home-copy .home-title { margin: 0; line-height: 0; width: 100%; }
 .home-title img { display: block; width: 100%; height: auto; max-height: clamp(230px, 39svh, 365px); object-fit: contain; object-position: left center; filter: drop-shadow(0 8px 20px #020918aa); }
-.home-ui-art { display: block; flex: 0 0 auto; width: 40px; height: 40px; background-image: url('/assets/memory-home-icons.png'); background-size: 300% 200%; background-repeat: no-repeat; pointer-events: none; }
+.home-ui-art { display: block; flex: 0 0 auto; width: 40px; height: 40px; background-image: url('/assets/memory-home-icons.webp'); background-size: 300% 200%; background-repeat: no-repeat; pointer-events: none; }
 .ui-station { background-position: 0 0; }
 .ui-reactor { background-position: 50% 0; }
 .ui-speaker { background-position: 100% 0; }
@@ -36,7 +36,7 @@ body:not(.in-mission) .header-controls .quiet-button { background: #06111b80; bo
 .mission-setup { width: 100%; padding: 22px 26px 18px; background: linear-gradient(130deg, #122737f2, #071522ed); border: 1px solid #6c9bb24d; border-top-color: #8abacd80; border-radius: 4px; box-shadow: 0 16px 50px #0005, inset 0 1px #a9e3fc10; backdrop-filter: blur(18px); }
 .mission-setup::before { height: 2px; width: 80px; background: #8ff3ff; box-shadow: 0 0 16px #5fdaff55; }
 .sr-only { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip-path: inset(50%); white-space: nowrap !important; border: 0 !important; }
-.control-art { display: block; width: 80px; height: 80px; flex: 0 0 auto; background-image: url('/assets/memory-controls.png'); background-repeat: no-repeat; background-size: 300% 200%; pointer-events: none; }
+.control-art { display: block; width: 80px; height: 80px; flex: 0 0 auto; background-image: url('/assets/memory-controls.webp'); background-repeat: no-repeat; background-size: 300% 200%; pointer-events: none; }
 .art-cards { background-position: 0 0; }
 .art-clock { background-position: 50% 0; }
 .art-shield { background-position: 100% 0; }

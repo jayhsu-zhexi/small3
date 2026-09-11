@@ -2,7 +2,7 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 function createServer(root = path.resolve(__dirname, '..')) {
-  const types={'.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.svg':'image/svg+xml','.html':'text/html; charset=utf-8'};
+  const types={'.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.webp':'image/webp','.svg':'image/svg+xml','.html':'text/html; charset=utf-8'};
   const publicFiles = new Map(require('./build.cjs').files.map(file=>['/'+file,[file,types[path.extname(file)]]]));
   publicFiles.set('/board',['board.html',types['.html']]);
   publicFiles.set('/board/',['board.html',types['.html']]);

@@ -24,7 +24,7 @@
       if(s.open.length===2){
         s.attempts++;s.phase='resolving';const match=s.deck[s.open[0]]===s.deck[s.open[1]];s.revealMs=match?650:1100;
         if(match){s.matched.push(...s.open);s.combo++;s.bestCombo=Math.max(s.bestCombo,s.combo);s.score+=100+Math.min(9,s.combo-1)*25;emit('match',s.open);
-          if(s.matched.length===s.size){s.phase='won';s.bonus=(s.remainingMs===null?0:Math.floor(s.remainingMs/1000)*2)+s.shields*10;s.score+=s.bonus;emit('won');}
+          if(s.matched.length===s.size){s.phase='won';s.bonus=(s.remainingMs===null?0:Math.floor(s.remainingMs/1000)*2)+s.shields*10;emit('won');}
         }
       }
     }
