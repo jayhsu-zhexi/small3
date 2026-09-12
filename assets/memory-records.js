@@ -1,6 +1,6 @@
 (function(root){
   'use strict';
-  const COUNTS=[16,24,32,40,52],SECONDS={16:180,24:210,32:240,40:270,52:300};
+  const COUNTS=[16,32,40,52,74],SECONDS={16:180,32:240,40:270,52:300,74:420};
   const PREFS_KEY='learning-planet-memory-preferences-v1',HISTORY_KEY='learning-planet-memory-progress-v1',LIMIT=50;
   const validTime=value=>value===null||(Number.isFinite(value)&&value>=180&&value<=600&&value%30===0);
   function preferences(value){
@@ -9,7 +9,7 @@
     return {size,duration,manualTime:typeof input.manualTime==='boolean'?input.manualTime:duration!==SECONDS[size],music:typeof input.music==='boolean'?input.music:true,sound:typeof input.sound==='boolean'?input.sound:true};
   }
   function validRun(value){
-    return value&&Number.isInteger(value.size)&&value.size%2===0&&COUNTS.some((base,i)=>value.size>=base&&value.size<=base+[2,4,4,6,8][i])&&validTime(value.duration)&&['won','lost'].includes(value.outcome)&&
+    return value&&Number.isInteger(value.size)&&value.size%2===0&&[16,24,32,40,52,74].some((base,i)=>value.size>=base&&value.size<=base+[2,4,4,6,8,10][i])&&validTime(value.duration)&&['won','lost'].includes(value.outcome)&&
       ['pairs','flips','attempts','score','bestCombo'].every(key=>Number.isSafeInteger(value[key])&&value[key]>=0)&&
       value.pairs<=value.size/2&&value.pairs<=value.attempts&&value.bestCombo<=value.pairs&&
       value.attempts===Math.floor(value.flips/2)&&(value.outcome!=='won'||value.pairs===value.size/2);

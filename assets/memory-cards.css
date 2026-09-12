@@ -5,6 +5,7 @@
 .card-art { display: block; position: absolute; inset: 0; background-image: url('/assets/memory-card-shells.webp'); background-size: var(--back-size); background-position: var(--back-position); background-repeat: no-repeat; border-radius: var(--shell-radius); clip-path: var(--shell-clip); pointer-events: none; }
 .card-front .card-art, .preview-front .card-art { background-size: var(--front-size); background-position: var(--front-position); }
 .equipment-art { position: absolute; display: block; width: 73%; aspect-ratio: 1; top: 50%; left: 50%; transform: translate(-50%, -50%); border-radius: 16%; background-size: 400% 400%; background-repeat: no-repeat; pointer-events: none; filter: drop-shadow(0 4px 3px #0009); }
+.equipment-glyph{display:grid;place-items:center;background:#102f48;border:2px solid #81dbed;font-family:'Segoe UI Emoji','Apple Color Emoji',sans-serif;font-size:clamp(18px,4vw,48px);line-height:1}
 .equipment-sheet-1 { background-image: url('/assets/memory-equipment-1.webp'); }
 .equipment-sheet-2 { background-image: url('/assets/memory-equipment-2.webp'); }
 .memory-card .card-side, .memory-card.matched .card-front, .memory-card:not(:disabled):hover .card-back { border: 0; background: none; box-shadow: none; border-radius: 9%; overflow: visible; }
