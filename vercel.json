@@ -5,6 +5,8 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
+    {"source": "/survival", "destination": "/survival.html"},
+    {"source": "/survival/", "destination": "/survival.html"},
     {"source": "/vault", "destination": "/vault.html"},
     {"source": "/vault/", "destination": "/vault.html"},
     {
@@ -48,7 +50,7 @@
       "destination": "/board.html"
     },
     {
-      "source": "/((?!assets/|(?:board|detective|parcels|crossing|memory|vault)(?:/|$|\\.html$)).*)",
+      "source": "/((?!assets/|(?:board|detective|parcels|crossing|memory|vault|survival)(?:/|$|\\.html$)).*)",
       "destination": "/index.html"
     }
   ]
