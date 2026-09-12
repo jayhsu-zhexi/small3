@@ -1,0 +1,48 @@
+# COASTLINE KART generated artwork
+
+Mode: built-in ImageGen. Three generation calls, no CLI fallback.
+
+## Complete visual mockup
+
+Saved: `docs/kart-visual-design.png`.
+
+Use case: ui-mockup. Create a polished complete visual design sheet for an original 3D browser kart racing game named COASTLINE KART / 海岸甩尾. Two complete 16:9 game screens stacked vertically on one portrait sheet. Top: native game home screen, cinematic sunset coastal raceway with mint teal open-wheel kart and helmeted driver, warm peach sky, turquoise sea, palms, rock island, winding elevated asphalt track with red white curbs and guardrails. Left aligned game title, Traditional Chinese buttons 單圈計時 and 三圈競速 and 開始比賽, refined navy translucent panel, cream and orange typography. Bottom: actual third-person chase-camera racing gameplay, teal kart foreground driving toward curved undulating seaside road, three colorful rival karts, gold boost pickup, hazard cones, drift sparks, soft shadows. Complete legible game HUD with lap 1/3, position 2/4, total and lap time upper edge, 96 KM/H speed dial lower right, track minimap upper right, compact touch steering left and throttle/brake/drift right. Original premium stylized low-poly 3D indie racing aesthetics, chamfered kart body, distinct tires, restrained bloom and warm light, no logos of existing franchises, no watermarks. This is a visual design artifact to guide real WebGL 3D implementation, not website marketing.
+
+## Production home artwork
+
+Saved: `assets/kart-home.png`. The completed mockup was supplied as a style reference, not an edit target. Both images were visually inspected before use. The mockup established the visual direction before game implementation; the production image is consumed by the home screen stylesheet.
+
+Use case: stylized-concept. Production game menu background for COASTLINE KART, original polished 3D coastal kart racing. Use the provided design sheet only as a visual STYLE REFERENCE. Generate a SINGLE 16:9 landscape cinematic illustration with NO TEXT, NO UI, NO LOGOS or watermark. Large mint-teal open-wheel kart with black tires, rear engine, white helmeted driver, seen rear three-quarter view occupying the RIGHT HALF foreground. Warm peach sunset sky and turquoise sea, winding elevated asphalt coastal circuit with red white curbs, guardrails, island rocks, distant lighthouse and palm trees. Premium stylized detailed 3D materials and soft sun reflections, optimistic arcade racing mood, not photoreal. Left half darker shaded palms and coastal scenery with calm negative space for HTML menu overlay; keep central-right kart cleanly visible. Entire frame is one scene, not split panels. Match the teal/navy/cream/orange palette and kart character of the reference, no pre-rendered buttons or lettering.
+
+## In-game road material
+
+Saved: `assets/kart-asphalt.png`. Generated tileable asphalt albedo used on the actual 3D road mesh with repeated UVs, inspected before integration.
+
+Use case: stylized-concept. Asset type: seamless tileable asphalt albedo texture for actual 3D kart racing track. Create one square top-down orthographic surface texture, neutral even lighting, muted medium charcoal slate gray asphalt with very fine compact aggregate, restrained tiny warm stone flecks and subtle wear, premium stylized 3D racing aesthetic. Absolutely no lane markings, no curbs, no tire tracks, no objects, no shadows, no text, no logos, no vignette. Seamlessly tileable edges. Low contrast subtle material detail; no large cracks. The image will repeat over a 16-meter-wide coastal racing road.
+
+## Refined motorsport revision
+Built-in ImageGen, using the initial homepage as a composition reference. Selected output replaces `assets/kart-home.png`.
+
+Use case: stylized-concept. Primary request: completely restyle this original browser kart racing game menu artwork toward mature premium semi-photorealistic motorsport, NOT cartoon, NOT low poly, NOT a toy. The reference image is a composition reference only; replace its stylized treatment. SINGLE wide 16:9 production background, no UI, no text, no logos. RIGHT foreground: realistic racing go-kart, exposed brushed aluminum tube frame, dark graphite aerodynamic nose and sidepods with restrained petrol-teal accents, visible rear engine and exhaust, worn black slick tires and detailed machined wheel hubs, adult-proportioned driver in charcoal racing suit and white full-face helmet with reflective dark visor. Camera low rear three-quarter. Environment: credible winding coastal racing circuit, finely textured dark asphalt and red/ivory painted curbs, metal safety barriers, distant rocky coast and lighthouse, realistic ocean and sparse palm vegetation. Cinematic late-afternoon overcast coastal light, muted steel blue sea, subtle warm light breaking through clouds, realistic soft shadows, slight atmospheric haze. Left half dark subdued negative space for a readable menu. High-end independent motorsport game key art with realistic material response, believable proportions, sophisticated limited palette. No candy colors, no childish shapes, no miniature diorama, no exaggerated kart proportions, no plastic toy gloss, no giant fantasy rocks, no watermark.
+
+## Runtime texture assets (built-in ImageGen)
+
+### assets/kart-rock.png
+Use case: stylized-concept. Asset type: seamless tileable game albedo texture. Generate a square photorealistic coastal granite cliff surface, weathered gray slate stone with fine cracks, mineral grains and sparse muted lichen, irregular natural layered fractures. Front orthographic surface filling entire frame, even diffuse neutral lighting, no perspective, no large cast shadows, no sky or water, no objects, no text, no borders. Texture will wrap 3D coastal rock meshes. Seamless all edges. Realistic material, not cartoon.
+
+
+### assets/kart-carbon.png
+Use case: stylized-concept. Asset type: seamless tileable game albedo texture. Square photorealistic dark graphite carbon fiber twill composite used for racing kart body panels. Fine diagonal interwoven strands, subtle scuffs and resin detail. Flat orthographic full-frame surface, uniform diffuse illumination, restrained charcoal contrast so it can be tinted petrol teal. No bright baked reflections, no labels, no text, no objects, no borders. Seamless edges. Premium realistic motorsport material.
+
+
+### assets/kart-sky.png
+Use case: photorealistic-natural. Asset type: 360 degree equirectangular game sky environment, wide 2:1 image. A seamless panoramic coastal sky, horizon precisely halfway vertically, atmospheric steel-blue late afternoon clouds with subtle warm sunlight filtering through in one direction, realistic detailed layered clouds above, flat muted deep blue ocean below, no foreground land, no buildings, no boats, no text or borders. Equirectangular spherical mapping, continuous left/right edges, soft low contrast horizon, no exaggerated sunset colors. Intended for actual 3D racing game sky background and metal reflections, not a menu.
+
+## Player vehicle sprites (built-in ImageGen)
+### assets/kart-player-rear.png
+Use case: stylized-concept. Asset type: transparent racing-game player vehicle sprite. Single premium photorealistic racing go-kart and seated adult driver, COMPLETE kart isolated with genuinely transparent background, no ground plane and no cast ground shadow. Rear chase-camera view looking slightly down at 25 degrees, looking exactly along the kart's forward axis; rear axle is closest to viewer, driver faces away. Exposed brushed aluminum tube chassis and rear bumper, graphite and petrol teal carbon-fiber side pods, realistic wide worn black slick rear tires, machined silver wheel rims, finned exposed engine behind driver on right, exhaust. Driver in charcoal racing suit and white full-face helmet. Believable adult racing kart proportions. All four tires visible as appropriate for rear view. Full silhouette contained with 8 percent clear padding. Diffuse coastal daylight with soft highlights, fine realistic mechanical detail, no cartoon, no low poly, no ground, no scenery, no words, no logo, no watermark. Portrait or square composition, one vehicle only, not an atlas.
+### assets/kart-player-left.png
+Use case: precise-object-edit. Edit target: reference transparent rear-view go-kart sprite. Produce the SAME exact kart, driver, suit, helmet, engine position, tires, carbon fiber, lighting and scale with transparent background. Change ONLY its orientation: kart nose points 25 degrees toward image left, rear remains nearest camera, camera stays elevated 25 degrees, creating a rear three-quarter left-turn sprite. Keep physical engine on driver's right; do not mirror engine or vehicle. Whole vehicle centered and fully inside square frame, consistent size with reference, 8 percent clear padding. Genuinely transparent background alpha, no ground, no shadows on a ground plane, no scene, no letters. One vehicle only. Premium realistic detail.
+
+### assets/kart-player-right.png
+Use case: precise-object-edit. Edit target: reference transparent rear-view go-kart sprite. Produce the SAME exact kart, driver, suit, helmet, engine position, tires, carbon fiber, lighting and scale with transparent background. Change ONLY its orientation: kart nose points 25 degrees toward image right, rear remains nearest camera, camera stays elevated 25 degrees, creating a rear three-quarter right-turn sprite. Keep physical engine on driver's right; do not mirror engine or vehicle. Whole vehicle centered and fully inside square frame, consistent size with reference, 8 percent clear padding. Genuinely transparent background alpha, no ground, no shadows on a ground plane, no scene, no letters. One vehicle only. Premium realistic detail.

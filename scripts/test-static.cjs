@@ -22,6 +22,7 @@ const { createServer } = require('./serve.cjs');
     }
     for(const route of ['/detective','/detective/','/detective.html']){const response=await fetch(origin+route);assert.equal(response.status,200);assert.match(await response.text(),/id="detectiveScene"/);}
     for(const game of ['parcels','crossing'])for(const route of ['/'+game,'/'+game+'/', '/'+game+'.html']){const response=await fetch(origin+route);assert.equal(response.status,200);assert.match(await response.text(),/id="attentionScene"/);}
+    for(const route of ['/kart','/kart/','/kart.html']){const response=await fetch(origin+route);assert.equal(response.status,200);assert.match(await response.text(),/id="kartWorld"/);}
     for(const route of ["/survival","/survival/","/survival.html"]){const response=await fetch(origin+route);assert.equal(response.status,200);assert.match(await response.text(),/id="world"/);}
     for(const route of ['/vault','/vault/','/vault.html']){const response=await fetch(origin+route);assert.equal(response.status,200);assert.match(await response.text(),/id="dial"/);}
     for(const route of ['/memory','/memory/','/memory.html']){const response=await fetch(origin+route);assert.equal(response.status,200);assert.match(await response.text(),/id="memoryGrid"/);}
