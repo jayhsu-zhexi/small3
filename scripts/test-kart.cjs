@@ -5,7 +5,7 @@ let s=E.create('trial');for(let i=0;i<180;i++)E.step(s,{throttle:1},1/60);assert
 for(let i=0;i<60;i++)E.step(s,{throttle:1},1/60);assert.ok(s.cars[0].v>7);const speed=s.cars[0].v;for(let i=0;i<20;i++)E.step(s,{brake:true},1/60);assert.ok(s.cars[0].v<speed);const frozen=JSON.stringify(s);E.pause(s);const paused=JSON.stringify(s);E.step(s,{throttle:1},.05);assert.equal(JSON.stringify(s),paused);E.resume(s);assert.equal(s.phase,'racing');assert.notEqual(frozen,paused);
 s=E.create();s.phase='racing';s.cars[0].v=20;E.step(s,{boost:true,throttle:1},.05);assert.equal(s.cars[0].charges,0);assert.ok(s.cars[0].boost>2);E.step(s,{boost:true},.05);assert.equal(s.cars[0].charges,0);
 s=E.create();s.phase='racing';const p=s.cars[0];p.v=23;for(let i=0;i<45;i++){p.n=0;p.h=0;E.step(s,{throttle:1,steer:.3,drift:true},1/60);}assert.ok(p.drift>=.65);E.step(s,{throttle:1},1/60);assert.ok(p.boost>1);assert.ok(s.events.some(e=>e.kind==='miniBoost'));
-s=E.create();s.phase='racing';s.cars[0].v=25;s.cars[0].n=9.14;s.cars[0].h=1;E.step(s,{steer:1},.05);assert.ok(s.cars[0].n<=9.15);assert.ok(s.cars[0].v<20);const hit=s.cars[0].hit;E.step(s,{},.05);assert.ok(s.cars[0].hit<hit);
+s=E.create();s.phase='racing';s.cars[0].v=25;s.cars[0].n=9.14;s.cars[0].h=1;E.step(s,{steer:-1},.05);assert.ok(s.cars[0].n<=9.15);assert.ok(s.cars[0].v<20);const hit=s.cars[0].hit;E.step(s,{},.05);assert.ok(s.cars[0].hit<hit);
 s=E.create();s.phase='racing';const pickup=E.PICKUPS[0];s.cars[0].d=pickup.d-.3;s.cars[0].n=pickup.n;s.cars[0].v=20;E.step(s,{throttle:1},.05);assert.equal(s.cars[0].charges,2);assert.equal(s.score,100);E.step(s,{},.05);assert.equal(s.score,100);
 s=E.create();s.phase='racing';const obstacle=E.OBSTACLES[0];s.cars[0].d=obstacle.d-.3;s.cars[0].n=obstacle.n;s.cars[0].v=20;E.step(s,{},.05);assert.ok(s.events.some(e=>e.kind==='hit'));assert.ok(s.cars[0].v<12);
 for(const mode of ['trial','race']){s=E.create(mode);let frames=0;while(s.phase!=='finished'&&frames++<24000){E.step(s,E.ai(s.cars[0]),1/60);for(const c of s.cars){for(const k of ['d','n','v','h','lateral'])assert.ok(Number.isFinite(c[k]));assert.ok(Math.abs(c.n)<=9.15001);}}assert.equal(s.phase,'finished');assert.equal(s.cars[0].laps.length,mode==='trial'?1:3);assert.ok(s.cars[0].laps.every(t=>t>15&&t<180));assert.ok(Math.abs(s.cars[0].laps.reduce((a,b)=>a+b,0)-s.time)<1e-7);const score=s.score,time=s.time;E.step(s,{throttle:1},.05);assert.equal(s.score,score);assert.equal(s.time,time);assert.equal(s.cars[0].checkpoint,mode==='trial'?9:25);}
@@ -33,7 +33,7 @@ audioTest().catch(error=>{console.error(error);process.exitCode=1;});
 // Actual renderer image-selection policy, asset packaging and PNG validation.
 const rendererRoot={};vm.runInNewContext(fs.readFileSync('assets/kart-render.js','utf8'),{window:rendererRoot});
 const view=rendererRoot.KartRenderer.spriteView;
-assert.equal(view(-.3),'left');assert.equal(view(.3),'right');assert.equal(view(0,'left'),'rear');assert.equal(view(.14,'right'),'right');assert.equal(view(NaN),'rear');
+assert.equal(view(-.3),'right');assert.equal(view(.3),'left');assert.equal(view(0,'left'),'rear');assert.equal(view(.14,'right'),'right');assert.equal(view(NaN),'rear');
 const publicFiles=require('./build.cjs').files;
 for(const name of ['rock','carbon','sky','player-rear','player-left','player-right']){
  const file='assets/kart-'+name+'.png',data=fs.readFileSync(file);assert.ok(publicFiles.includes(file));assert.equal(data.subarray(1,4).toString(),'PNG');assert.ok(data.readUInt32BE(16)>256);if(name.startsWith('player'))assert.equal(data[25],6,'Vehicle sprites must preserve RGBA transparency');
@@ -42,10 +42,10 @@ console.log('PASS: vehicle sprite direction/hysteresis and six packaged image as
 const {createPose,advancePose}=rendererRoot.KartRenderer;
 const pose=createPose();advancePose(pose,.6,1/60);assert.ok(pose.heading>0&&pose.heading<.6);
 for(let i=0;i<30;i++){advancePose(pose,.6,1/60);assert.ok(Math.abs(Object.values(pose.weights).reduce((a,b)=>a+b,0)-1)<1e-9);}
-assert.ok(pose.weights.right>.99);const beforeLean=pose.lean;advancePose(pose,-.6,1/60);assert.ok(Math.abs(pose.lean-beforeLean)<.02,'Reversal must ease without a sudden body snap');
+assert.ok(pose.weights.left>.99);const beforeLean=pose.lean;advancePose(pose,-.6,1/60);assert.ok(Math.abs(pose.lean-beforeLean)<.02,'Reversal must ease without a sudden body snap');
 for(let i=0;i<90;i++)advancePose(pose,0,1/60);assert.ok(pose.weights.rear>.999);assert.ok(Math.abs(pose.lean)<.0001);
 const low=createPose(),high=createPose();for(let i=0;i<30;i++)advancePose(low,.5,1/30);for(let i=0;i<120;i++)advancePose(high,.5,1/120);assert.ok(Math.abs(low.heading-high.heading)<1e-8);assert.ok(Math.abs(low.weights.right-high.weights.right)<.001);
-const calm=createPose();advancePose(calm,.6,1/60,true);assert.equal(calm.lean,0);assert.equal(calm.weights.right,1);
+const calm=createPose();advancePose(calm,.6,1/60,true);assert.equal(calm.lean,0);assert.equal(calm.weights.left,1);
 const missing=createPose();for(let i=0;i<60;i++)advancePose(missing,.6,1/60,false,{rear:true});assert.equal(missing.weights.rear,1);
 console.log('PASS: eased turning/recentering/reversal, normalized image blend, frame-rate consistency, missing-pose fallback and reduced motion.');
 const trail=rendererRoot.KartRenderer.createTrail(),advanceTrail=rendererRoot.KartRenderer.advanceTrail;
@@ -105,11 +105,25 @@ for(const m of E.MAPS){
 }
 const steerRace=E.create();steerRace.phase='racing';steerRace.cars[0].v=30;
 for(let i=0;i<24;i++)E.step(steerRace,{throttle:1,steer:1},1/60);
-const moved=steerRace.cars[0].n;assert.ok(moved>.5&&moved<2);assert.ok(steerRace.cars[0].lateral<=5);
+const moved=steerRace.cars[0].n;assert.ok(moved<-.5&&moved>-2);assert.ok(steerRace.cars[0].lateral<=5);
 for(let i=0;i<60;i++)E.step(steerRace,{throttle:1},1/60);
 assert.ok(Math.abs(steerRace.cars[0].h)<.001);assert.ok(Math.abs(steerRace.cars[0].lateral)<.02);
-assert.ok(steerRace.cars[0].n-moved<1.2,'Releasing must stop lateral drift promptly');
-for(let i=0;i<30;i++)E.step(steerRace,{throttle:1,steer:-1},1/60);assert.ok(steerRace.cars[0].lateral<0);
+assert.ok(Math.abs(steerRace.cars[0].n-moved)<1.2,'Releasing must stop lateral drift promptly');
+for(let i=0;i<30;i++)E.step(steerRace,{throttle:1,steer:-1},1/60);assert.ok(steerRace.cars[0].lateral>0);
 console.log('PASS: four-map road following, bounded lane change, release recentering and reversal.');
 const gateSource=fs.readFileSync('assets/kart-render.js','utf8');assert.ok(gateSource.includes('gate.visible=true;'));assert.ok(!gateSource.includes(')>26;'));assert.ok(gateSource.includes('Fixed side chequered flags'));
 console.log('PASS: finish gate is never proximity-hidden; permanent side chequered flags are present.');
+for(const map of E.MAPS)for(const side of [-1,1]){
+ const game=E.forTrack(map.id),race=game.create();race.phase='racing';const car=race.cars[0];car.n=side*9.14;car.v=18;let impacts=0;const start=car.d;
+ for(let i=0;i<180;i++){game.step(race,{throttle:1,steer:-side},1/60);impacts+=race.events.filter(e=>e.kind==='hit').length;}
+ assert.ok(impacts<=1,'Continuous wall contact must not repeatedly cut speed');
+ assert.ok(car.d-start>25,'Can slide forward along barrier');assert.ok(car.v>12);
+ for(let i=0;i<100;i++)game.step(race,{throttle:1,steer:side},1/60);
+ assert.ok(Math.abs(car.n)<7,'Opposite direction exits either barrier');assert.equal(car.wallContact,false);
+}
+const threeBox={};vm.runInNewContext(fs.readFileSync('assets/vendor/three-0.160.1.min.js','utf8'),threeBox);const T=threeBox.THREE;
+for(const map of E.MAPS){const game=E.forTrack(map.id);for(let i=0;i<12;i++){const d=game.TRACK.length*i/12,p=game.sample(d),cam=new T.PerspectiveCamera(62,1,.1,1100);cam.position.set(p.x-Math.sin(p.heading)*17,p.y+9,p.z-Math.cos(p.heading)*17);cam.lookAt(p.x+Math.sin(p.heading)*5,p.y+1.2,p.z+Math.cos(p.heading)*5);cam.updateMatrixWorld();
+for(const steer of [-1,1]){const race=game.create();race.phase='racing';race.cars[0].d=d;race.cars[0].v=20;for(let j=0;j<12;j++)game.step(race,{steer,throttle:1},1/60);const car=race.cars[0],world=game.sample(d,car.n),screen=new T.Vector3(world.x,world.y,world.z).project(cam);assert.ok(screen.x*steer>0,'Input must match actual camera screen direction');assert.equal(view(car.h),steer>0?'right':'left');}}}
+console.log('PASS: both barriers remain escapable on four maps; left/right movement and sprite directions match actual Three camera projection at 48 track positions.');
+for(const side of [-1,1]){const race=E.create();race.phase='racing';const car=race.cars[0];car.n=side*9.15;car.v=0;for(let i=0;i<180;i++)E.step(race,{throttle:1,steer:side},1/60);assert.ok(Math.abs(car.n)<7);assert.ok(car.v>10,'Can leave barrier from a standstill');}
+console.log('PASS: either barrier can be escaped from zero speed.');

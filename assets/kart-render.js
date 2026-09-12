@@ -1,11 +1,11 @@
 (function(root){'use strict';
-function spriteView(h,previous='rear'){if(!Number.isFinite(h))return 'rear';if(h<-.18)return 'left';if(h>.18)return 'right';if(Math.abs(h)<.10)return 'rear';return previous;}
+function spriteView(h,previous='rear'){if(!Number.isFinite(h))return 'rear';if(h<-.18)return 'right';if(h>.18)return 'left';if(Math.abs(h)<.10)return 'rear';return previous;}
 // Visual easing is independent of simulation: no added steering/input latency.
 function createPose(){return {heading:0,lean:0,view:'rear',weights:{rear:1,left:0,right:0}};}
 function advancePose(p,h,dt,reduced=false,ready={rear:true,left:true,right:true}){
  const step=Math.max(0,Math.min(.1,Number.isFinite(dt)?dt:0)),target=Number.isFinite(h)?Math.max(-1.15,Math.min(1.15,h)):0;
  p.heading+=(target-p.heading)*(reduced?1:1-Math.exp(-step*14));
- p.lean+=((reduced?0:-p.heading*.09)-p.lean)*(reduced?1:1-Math.exp(-step*10));
+ p.lean+=((reduced?0:p.heading*.09)-p.lean)*(reduced?1:1-Math.exp(-step*10));
  p.view=spriteView(p.heading,p.view);const selected=ready[p.view]?p.view:'rear',blend=reduced?1:1-Math.exp(-step*22);
  for(const key of ['rear','left','right'])p.weights[key]+=((key===selected?1:0)-p.weights[key])*blend;
  return p;

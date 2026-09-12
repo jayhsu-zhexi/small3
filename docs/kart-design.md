@@ -52,3 +52,6 @@ Reproduction of the original cumulative-yaw controls caused 5–7 impacts in 20 
 
 ## Finish visibility correction
 Removed the gate's 26-metre proximity hide condition, which mistakenly hid it during the final approach as well as at the start. The arch stays visible throughout the race; paired lower chequered flags supplement the overhead banner at close range. Finish-line timing/collision are unchanged.
+
+## Screen-space steering and wall-release fix
+Track normal +n points toward camera-left, not screen-right. Player steering now negates that normal; AI target inputs and image-pose/lean selection follow the same convention. Tests project both input directions using the actual Three.js camera at 48 positions across all circuits. Sustained wall contact now clamps outward motion and applies impact slowdown only once until the car leaves the contact zone; forward motion is retained and inward steering is free. Tests cover sustained contact, escape on both sides of every track and standstill recovery.
