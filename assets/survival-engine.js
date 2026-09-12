@@ -12,20 +12,49 @@
   function updateObjectives(s,dt){for(const b of s.beacons){if(b.done)continue;if(Math.hypot(b.x-s.player.x,b.y-s.player.y)<62&&!s.player.moving&&line(s.map,s.player.x,s.player.y,b.x,b.y)){b.progress=Math.min(4,b.progress+dt);if(b.progress>=4-1e-8){b.progress=4;b.done=true;s.objectiveScore+=400;emit(s,'beacon',b.x,b.y,{id:b.id});}}} }
 
   function random(seed){let n=seed>>>0;return ()=>{n=(n+0x6D2B79F5)>>>0;let t=n;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return ((t^t>>>14)>>>0)/4294967296;};}
-  function map(seed){const rng=random(seed),tiles=new Uint8Array(W*H).fill(1),rooms=[];
+  const MAP_TYPES=Object.freeze([
+    {id:'research',name:'研究艙群',description:'分岔房間與多條捷徑'},
+    {id:'ring',name:'環形反應爐',description:'環狀主路與內部連接艙'},
+    {id:'spine',name:'運輸長廊',description:'中央幹道串接兩側支線'},
+    {id:'cross',name:'交叉指揮站',description:'中央樞紐向四區延伸'},
+    {id:'maze',name:'隔離實驗區',description:'曲折通道與較少捷徑'},
+    {id:'cargo',name:'貨運船塢',description:'寬廣艙室與交錯運輸通道'}
+  ]);
+  function map(seed,requestedType){
+    const rng=random(seed),type=MAP_TYPES.find(t=>t.id===requestedType)||MAP_TYPES[Math.floor(rng()*MAP_TYPES.length)],tiles=new Uint8Array(W*H).fill(1),rooms=[],links=[];
     const carve=(x,y)=>{if(x>0&&x<W-1&&y>0&&y<H-1)tiles[y*W+x]=0;};
-    for(let row=0;row<3;row++)for(let col=0;col<4;col++){const x=5+col*8,y=5+row*8,rx=2+Math.floor(rng()*2),ry=2+Math.floor(rng()*2);rooms.push({x,y});for(let a=x-rx;a<=x+rx;a++)for(let b=y-ry;b<=y+ry;b++)carve(a,b);}
-    function corridor(a,b){let x=a.x,y=a.y;const paint=()=>{carve(x,y);carve(x+1,y);carve(x,y+1);carve(x+1,y+1);};paint();while(x!==b.x){x+=Math.sign(b.x-x);paint();}while(y!==b.y){y+=Math.sign(b.y-y);paint();}}
-    const visited=new Set([5]),stack=[5];while(stack.length){const a=stack.at(-1),c=a%4,r=Math.floor(a/4),neighbors=[c>0?a-1:-1,c<3?a+1:-1,r>0?a-4:-1,r<2?a+4:-1].filter(n=>n>=0&&!visited.has(n));if(!neighbors.length){stack.pop();continue;}const b=neighbors[Math.floor(rng()*neighbors.length)];corridor(rooms[a],rooms[b]);visited.add(b);stack.push(b);}
-    for(let n=0;n<6;n++){const a=Math.floor(rng()*12),b=a%4<3?a+1:a-1;corridor(rooms[a],rooms[b]);}
+    for(let row=0;row<3;row++)for(let col=0;col<4;col++){
+      const x=5+col*8+Math.floor(rng()*3)-1,y=5+row*8+Math.floor(rng()*3)-1;
+      const rx=type.id==='cargo'?3:2+Math.floor(rng()*2),ry=type.id==='cargo'?3:2+Math.floor(rng()*2);
+      rooms.push({x,y,rx,ry});for(let a=x-rx;a<=x+rx;a++)for(let b=y-ry;b<=y+ry;b++)carve(a,b);
+    }
+    function corridor(ai,bi,width=2){const a=rooms[ai],b=rooms[bi];let x=a.x,y=a.y;
+      const paint=()=>{for(let dx=0;dx<width;dx++)for(let dy=0;dy<width;dy++)carve(x+dx,y+dy);};
+      const horizontal=()=>{while(x!==b.x){x+=Math.sign(b.x-x);paint();}},vertical=()=>{while(y!==b.y){y+=Math.sign(b.y-y);paint();}};
+      paint();if(rng()<.5){horizontal();vertical();}else{vertical();horizontal();}links.push([ai,bi]);
+    }
+    function tree(){const visited=new Set([5]),stack=[5];while(stack.length){const a=stack.at(-1),c=a%4,r=Math.floor(a/4),neighbors=[c>0?a-1:-1,c<3?a+1:-1,r>0?a-4:-1,r<2?a+4:-1].filter(n=>n>=0&&!visited.has(n));if(!neighbors.length){stack.pop();continue;}const b=neighbors[Math.floor(rng()*neighbors.length)];corridor(a,b);visited.add(b);stack.push(b);}}
+    if(type.id==='ring'){
+      const ring=[0,1,2,3,7,11,10,9,8,4];ring.forEach((a,i)=>corridor(a,ring[(i+1)%ring.length]));corridor(5,6);corridor(5,rng()<.5?1:9);corridor(6,rng()<.5?2:10);
+    }else if(type.id==='spine'){
+      for(let col=0;col<3;col++)corridor(4+col,5+col,3);
+      for(let col=0;col<4;col++){corridor(col,col+4);corridor(col+4,col+8);}
+    }else if(type.id==='cross'){
+      corridor(5,6,3);corridor(1,5,3);corridor(5,9,3);corridor(2,6,3);corridor(6,10,3);
+      for(const [a,b] of [[0,1],[3,2],[4,5],[7,6],[8,9],[11,10]])corridor(a,b);
+    }else if(type.id==='cargo'){
+      for(let row=0;row<3;row++)for(let col=0;col<3;col++)corridor(row*4+col,row*4+col+1,3);
+      for(let row=0;row<2;row++)for(let col=0;col<4;col++)if(col===1||col===2||rng()<.5)corridor(row*4+col,(row+1)*4+col,3);
+    }else{tree();const extra=type.id==='maze'?0:5;for(let n=0;n<extra;n++){const a=Math.floor(rng()*12),b=a%4<3?a+1:a-1;corridor(a,b);}}
     const floor=[];for(let i=0;i<tiles.length;i++)if(!tiles[i])floor.push(i);
-    return {seed,tiles,floor,rooms,width:W*TILE,height:H*TILE,spawn:{x:(rooms[5].x+.5)*TILE,y:(rooms[5].y+.5)*TILE}};
+    const spawnRoom=[5,6][Math.floor(rng()*2)];
+    return {seed,type:type.id,name:type.name,description:type.description,tiles,floor,rooms,links,width:W*TILE,height:H*TILE,spawn:{x:(rooms[spawnRoom].x+.5)*TILE,y:(rooms[spawnRoom].y+.5)*TILE}};
   }
   function solid(m,x,y){const tx=Math.floor(x/TILE),ty=Math.floor(y/TILE);return tx<0||ty<0||tx>=W||ty>=H||m.tiles[ty*W+tx]!==0;}
   function free(m,x,y,r=13){for(let ty=Math.floor((y-r)/TILE);ty<=Math.floor((y+r)/TILE);ty++)for(let tx=Math.floor((x-r)/TILE);tx<=Math.floor((x+r)/TILE);tx++)if(tx<0||ty<0||tx>=W||ty>=H||m.tiles[ty*W+tx]){const cx=Math.max(tx*TILE,Math.min(x,(tx+1)*TILE)),cy=Math.max(ty*TILE,Math.min(y,(ty+1)*TILE));if(Math.hypot(x-cx,y-cy)<r)return false;}return true;}
   function move(m,body,dx,dy){const beforeX=body.x,beforeY=body.y;const steps=Math.max(1,Math.ceil(Math.hypot(dx,dy)/8));for(let i=0;i<steps;i++){if(free(m,body.x+dx/steps,body.y,body.r))body.x+=dx/steps;if(free(m,body.x,body.y+dy/steps,body.r))body.y+=dy/steps;}const distance=Math.hypot(body.x-beforeX,body.y-beforeY);body.moving=distance>.01;body.stride=(body.stride||0)+distance/(body.kind===2?20:body.kind===0?11:15);if(distance>.01)body.moveAngle=Math.atan2(body.y-beforeY,body.x-beforeX);}
   function line(m,x,y,ex,ey){const distance=Math.hypot(ex-x,ey-y),n=Math.ceil(distance/12);for(let i=0;i<=n;i++)if(solid(m,x+(ex-x)*i/(n||1),y+(ey-y)*i/(n||1)))return false;return true;}
-  function create(seed=Date.now(),mode='practice'){mode=Object.hasOwn(MODES,mode)?mode:'practice';const m=map(seed),rng=random(seed^0xa511e9b3),s={seed,mode,beacons:[],objectiveScore:0,bossSpawned:false,bossDefeated:false,lossReason:'',map:m,rng,phase:'playing',time:0,score:0,killScore:0,kills:0,player:{...m.spawn,r:14,hp:100,shield:25,angle:0,invuln:0,fire:0,dash:0,dashTime:0,boost:0},enemies:[],bullets:[],pickups:[],events:[],spawnTimer:3,supplyTimer:10,flow:null,flowTimer:0,wave:1,nextId:1};for(let i=0;i<MODES[mode].initial;i++)supply(s,i%3,150,1000);s.beacons=objectives(s);return s;}
+  function create(seed=Date.now(),mode='practice',mapType){mode=Object.hasOwn(MODES,mode)?mode:'practice';const m=map(seed,mapType),rng=random(seed^0xa511e9b3),s={seed,mode,beacons:[],objectiveScore:0,bossSpawned:false,bossDefeated:false,lossReason:'',map:m,rng,phase:'playing',time:0,score:0,killScore:0,kills:0,player:{...m.spawn,r:14,hp:100,shield:25,angle:0,invuln:0,fire:0,dash:0,dashTime:0,boost:0},enemies:[],bullets:[],pickups:[],events:[],spawnTimer:3,supplyTimer:10,flow:null,flowTimer:0,wave:1,nextId:1};for(let i=0;i<MODES[mode].initial;i++)supply(s,i%3,150,1000);s.beacons=objectives(s);return s;}
   function pause(s){if(s.phase==='playing'){s.phase='paused';s.events=[];}}
   function resume(s){if(s.phase==='paused')s.phase='playing';}
   function emit(s,kind,x,y,extra={}){if(s.events.length<64)s.events.push({...extra,kind,x,y});}
@@ -65,6 +94,6 @@
     s.bullets=s.bullets.filter(b=>b.life>0);s.enemies=s.enemies.filter(e=>e.hp>0);s.pickups=s.pickups.filter(item=>{item.age+=dt;return !(Math.hypot(item.x-p.x,item.y-p.y)<p.r+18&&pickup(s,item))&&item.age<70;});if(s.phase==='playing')updateObjectives(s,dt);s.score=s.killScore+s.objectiveScore+Math.floor(s.time*3);
     if(s.phase==='playing'&&s.time>=DURATION-1e-8){s.time=DURATION;const ready=s.beacons.every(b=>b.done)&&(!MODES[s.mode].boss||s.bossDefeated);s.phase=ready?'won':'lost';if(ready){s.score+=1500+p.hp*10;emit(s,'won',p.x,p.y);}else{s.lossReason=s.beacons.some(b=>!b.done)?'beacons':'boss';emit(s,'lost',p.x,p.y);}}return s;
   }
-  const api={TILE,W,H,DURATION,MODES,WAVE_NAMES,pressure,updateObjectives,charger,random,map,solid,free,move,line,create,pause,resume,step,spawn,supply,flow,damage,pickup,fire};
+  const api={TILE,W,H,DURATION,MAP_TYPES,MODES,WAVE_NAMES,pressure,updateObjectives,charger,random,map,solid,free,move,line,create,pause,resume,step,spawn,supply,flow,damage,pickup,fire};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.Survival=api;
 })(typeof window==='undefined'?{}:window);
