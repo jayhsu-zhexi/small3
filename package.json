@@ -11,7 +11,7 @@
     "dev": "node scripts/serve.cjs",
     "build": "npm test && node scripts/build.cjs",
     "start": "node scripts/serve.cjs --dir dist",
-    "test": "node scripts/test-focus.cjs && node scripts/test-learning.cjs && node scripts/test-backup.cjs && node scripts/test-board.cjs && node scripts/test-board-ui.cjs && node scripts/test-board-audio.cjs && node scripts/test-detective.cjs && node scripts/test-attention.cjs && node scripts/test-memory.cjs && node scripts/test-static.cjs",
+    "test": "node scripts/test-focus.cjs && node scripts/test-learning.cjs && node scripts/test-backup.cjs && node scripts/test-board.cjs && node scripts/test-board-ui.cjs && node scripts/test-board-audio.cjs && node scripts/test-detective.cjs && node scripts/test-attention.cjs && node scripts/test-memory.cjs && node scripts/test-vault.cjs && node scripts/test-static.cjs",
     "lint": "oxlint",
     "format": "oxfmt"
   },

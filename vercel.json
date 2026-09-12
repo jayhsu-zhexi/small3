@@ -5,6 +5,8 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
+    {"source": "/vault", "destination": "/vault.html"},
+    {"source": "/vault/", "destination": "/vault.html"},
     {
       "source": "/memory",
       "destination": "/memory.html"
@@ -46,7 +48,7 @@
       "destination": "/board.html"
     },
     {
-      "source": "/((?!assets/|(?:board|detective|parcels|crossing|memory)(?:/|$|\\.html$)).*)",
+      "source": "/((?!assets/|(?:board|detective|parcels|crossing|memory|vault)(?:/|$|\\.html$)).*)",
       "destination": "/index.html"
     }
   ]
