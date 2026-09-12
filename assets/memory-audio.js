@@ -58,7 +58,7 @@
           context=new Context();const observed=context;
           observed.onstatechange=()=>{
             if(observed!==context||!awake)return;
-            if(observed.state!=='running'){awake=false;clearMusic();stopVoices();onError('音訊已中斷，請點「啟用聲音／測試音」重試。');}
+            if(observed.state!=='running'){awake=false;clearMusic();stopVoices();onError('音訊已中斷，請在任務中將音樂關閉再開啟重試。');}
           };
         }
         const instance=context;
@@ -73,7 +73,7 @@
         if(ticket!==epoch||request!==attempt||instance!==context)return false;
         if(instance.state!=='running')throw Error('not running');
         awake=true;scheduleMusic();onStatus('音訊已啟動，可點測試音確認是否聽得到。');return true;
-      }catch{if(ticket!==epoch||request!==attempt)return false;awake=false;clearMusic();onError('目前無法播放遊戲聲音，請點「啟用聲音／測試音」重試；仍可繼續遊戲。');return false;}
+      }catch{if(ticket!==epoch||request!==attempt)return false;awake=false;clearMusic();onError('目前無法播放遊戲聲音，請在任務中將音樂關閉再開啟重試；仍可繼續遊戲。');return false;}
       finally{if(timeout!==undefined)root.clearTimeout(timeout);}
     }
     async function test(){const ticket=epoch;if(!enabled||!await activate()||ticket!==epoch||!awake||!enabled)return false;tone(523,0,.22,.035);tone(784,.28,.3,.035);onStatus('已送出兩聲測試音。若沒聽到，請檢查音量、靜音與藍牙輸出。');return true;}

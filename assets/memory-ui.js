@@ -2,8 +2,8 @@
   'use strict';
   const E=window.OrbitMemory,$=id=>document.getElementById(id),canvas=$('particles'),ctx=canvas.getContext('2d'),dialog=$('missionDialog'),launchDialog=$('launchDialog');
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
-  function audioStatus(message){$('audioStatus').textContent=message;}
-  const sound=window.OrbitAudio.create(audioStatus,audioStatus);
+  function audioStatus(message){$('audioStatus').textContent=message;$('audioStatus').hidden=false;}
+  const sound=window.OrbitAudio.create(audioStatus,()=>{$('audioStatus').hidden=true;});
   const records=window.OrbitRecords.create(()=>window.localStorage),preferences=records.loadPreferences(),hudView=new Map();
   const themes=[['A','金屬反應爐'],['B','水晶能源'],['C','太空裝備艙']],themeKey='learning-planet-memory-theme-v1';
   const artworkFiles=['/assets/memory-card-shells.webp','/assets/memory-equipment-1.webp','/assets/memory-equipment-2.webp','/assets/memory-equipment-3.webp'];
@@ -163,9 +163,8 @@
   $('memoryStart').onclick=start;$('memoryPause').onclick=()=>pause();$('memoryRestart').onclick=()=>pause('restart');$('memoryHelp').onclick=()=>pause('help');$('dialogResume').onclick=resume;$('dialogRestart').onclick=start;$('dialogMenu').onclick=menu;
   $('launchSkip').onclick=finishLaunch;launchDialog.addEventListener('cancel',event=>{event.preventDefault();finishLaunch();});
   $('timeMinus').onclick=()=>adjustTime(-1);$('timePlus').onclick=()=>adjustTime(1);
-  $('memoryAudioTest').onclick=()=>{$('memorySound').checked=true;sound.setEnabled(true);sound.setMusic($('memoryMusic').checked);savePreferences();sound.test();};
-  $('memorySound').onchange=()=>{audioStatus($('memorySound').checked?'已允許音效，可點測試音確認。':'音效已關閉。');sound.setEnabled($('memorySound').checked);savePreferences();};
-  $('memoryMusic').onchange=()=>{audioStatus($('memoryMusic').checked?'已允許背景音樂，任務進行時播放。':'背景音樂已關閉。');sound.setMusic($('memoryMusic').checked);savePreferences();};
+  $('memorySound').onchange=()=>{sound.setEnabled($('memorySound').checked);savePreferences();};
+  $('memoryMusic').onchange=()=>{sound.setMusic($('memoryMusic').checked);savePreferences();};
   dialog.addEventListener('cancel',event=>{event.preventDefault();if(dialogMode!=='result')resume();});
   $('memoryGrid').addEventListener('keydown',event=>{const index=Number(event.target.dataset.index);if(!Number.isInteger(index))return;const cols=Number($('memoryGrid').style.getPropertyValue('--cols')),offset=({ArrowRight:1,ArrowLeft:-1,ArrowDown:cols,ArrowUp:-cols})[event.key];if(!offset)return;event.preventDefault();let next=index+offset;while(next>=0&&next<cards.length&&cards[next].disabled)next+=offset;if(cards[next])cards[next].focus();});
   window.addEventListener('keydown',event=>{if(event.key==='Escape'&&launching){event.preventDefault();finishLaunch();return;}if(event.key==='Escape'&&!dialog.open&&state&&['playing','resolving'].includes(state.phase)){event.preventDefault();pause();}});
