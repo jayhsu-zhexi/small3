@@ -29,7 +29,7 @@ function emit(s,kind,data={}){if(s.events.length<48)s.events.push({kind,...data}
 function pause(s){if(s.phase==='racing'||s.phase==='countdown'){s.previousPhase=s.phase;s.phase='paused';s.events=[];}}
 function resume(s){if(s.phase==='paused'){s.phase=s.previousPhase;s.previousPhase=null;}}
 function ai(c){const curve=curvature(c.d+12),lane=Math.sin(c.d/90+c.id)*3;let target=lane;for(const o of OBSTACLES){const ahead=wrap(o.d-c.d,TRACK.length);if(ahead<35&&Math.abs(target-o.n)<2)target=o.n>0?-3:3;}
- const desired=clamp((target-c.n)*.1,-.35,.35),steer=clamp(curvature(c.d)/.045+(desired-c.h)*2.4,-1,1),speed=clamp(31-c.id*.65-Math.abs(curve)*230,20,31);return {steer,throttle:c.v<speed?1:.1,brake:c.v>speed+3,drift:false,boost:false};}
+ const desired=clamp((target-c.n)*.1,-.35,.35),steer=clamp(desired/.30,-1,1),speed=clamp(31-c.id*.65-Math.abs(curve)*230,20,31);return {steer,throttle:c.v<speed?1:.1,brake:c.v>speed+3,drift:false,boost:false};}
 function hit(s,c,loss=0.65){if(c.hit>0)return;c.v*=loss;c.hit=.65;c.drift=0;if(c.id===0){s.score=Math.max(0,s.score-30);emit(s,'hit');}}
 function crossed(old,next,position){const at=position+Math.floor((old-position)/TRACK.length+1)*TRACK.length;return at<=next?at:null;}
 function advance(s,c,input,dt,oldTime){if(c.finished)return;const oldD=c.d,oldN=c.n;c.hit=Math.max(0,c.hit-dt);c.boost=Math.max(0,c.boost-dt);const steer=clamp(Number.isFinite(input.steer)?input.steer:0,-1,1),throttle=clamp(Number(input.throttle)||0,0,1),brake=!!input.brake;
@@ -39,10 +39,11 @@ function advance(s,c,input,dt,oldTime){if(c.finished)return;const oldD=c.d,oldN=
  else if(c.wasDrifting){if(c.drift>=.65){c.boost=Math.max(c.boost,1.15+Math.min(1,c.drift)*.3);if(!c.id)emit(s,'miniBoost');}c.drift=0;}c.wasDrifting=c.drifting;
  const slope=sample(c.d).slope,off=Math.abs(c.n)>TRACK.half;
  c.v=clamp(c.v+(throttle*12+(c.boost>0?13:0)-2.2-c.v*.08-(brake?24:0)-slope*7-(off?4:0))*dt,0,c.boost>0?44:33);
- c.h=clamp(c.h+steer*c.v*.045*(c.drifting?1.2:1)*dt,-1.15,1.15);
- const lateralGoal=Math.sin(c.h)*c.v;c.lateral+=(lateralGoal-c.lateral)*(1-Math.exp(-dt*(c.drifting?3:10)));c.n+=c.lateral*dt;
- if(Math.abs(c.n)>TRACK.rail-.85){c.n=clamp(c.n,-TRACK.rail+.85,TRACK.rail-.85);hit(s,c,.62);c.lateral=-Math.sign(c.n)*Math.max(1,Math.abs(c.lateral)*.2);c.h=-Math.sign(c.n)*.3;}
- const ds=Math.max(0,c.v*Math.cos(c.h)*dt/clamp(1-curvature(c.d)*c.n,.7,1.3));c.d+=ds;c.h=clamp(c.h-curvature(oldD)*ds,-1.15,1.15);c.wheel+=c.v*dt;
+ // Track-relative arcade steering: release recenters instead of accumulating yaw.
+ const targetHeading=steer*(c.drifting?.48:.30);c.h+=(targetHeading-c.h)*(1-Math.exp(-dt*(c.drifting?5:9)));
+ const lateralGoal=clamp(Math.sin(c.h)*c.v,c.drifting?-7:-5,c.drifting?7:5);c.lateral+=(lateralGoal-c.lateral)*(1-Math.exp(-dt*(c.drifting?5:14)));c.n+=c.lateral*dt;
+ if(Math.abs(c.n)>TRACK.rail-.85){c.n=clamp(c.n,-TRACK.rail+.85,TRACK.rail-.85);hit(s,c,.62);c.lateral=-Math.sign(c.n)*Math.max(1,Math.abs(c.lateral)*.2);c.h=-Math.sign(c.n)*.12;}
+ const ds=Math.max(0,c.v*Math.cos(c.h)*dt/clamp(1-curvature(c.d)*c.n,.7,1.3));c.d+=ds;c.wheel+=c.v*dt;
  for(const o of OBSTACLES){const at=crossed(oldD,c.d,o.d);if(at!==null){const t=(at-oldD)/(ds||1),n=oldN+(c.n-oldN)*t,key=Math.floor(at/TRACK.length);if(Math.abs(n-o.n)<1.45&&c.cones[o.id]!==key){c.cones[o.id]=key;hit(s,c,.48);}}}
  if(c.id===0)for(const o of PICKUPS){const at=crossed(oldD,c.d,o.d);if(at!==null){const t=(at-oldD)/(ds||1),n=oldN+(c.n-oldN)*t,key=Math.floor(at/TRACK.length);if(Math.abs(n-o.n)<1.7&&c.items[o.id]!==key){c.items[o.id]=key;c.charges=Math.min(2,c.charges+1);s.score+=100;emit(s,'pickup',{id:o.id});}}}
  while(c.d>=c.checkpoint*TRACK.length/8){const checkpoint=c.checkpoint++;if(checkpoint%8===0){const at=checkpoint*TRACK.length/8,crossTime=oldTime+dt*clamp((at-oldD)/(ds||1),0,1);c.laps.push(crossTime-c.lapStart);c.lapStart=crossTime;c.lap++;if(c.id===0){s.score+=500;emit(s,'lap',{time:c.laps.at(-1)});}if(c.lap>=s.totalLaps){c.finished=true;c.finishTime=crossTime;c.d=at;break;}}}

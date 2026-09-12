@@ -46,3 +46,6 @@ Track-local engine instances provide coast (original), lagoon (fast sweepers), c
 
 ## Circuit-specific environments
 Three additional original ImageGen panoramas distinguish lagoon (sunny turquoise atolls), cliff (overcast northern rock coast), and serpent (blue-hour misty mountains). Each supplies menu background, skybox and water/metal reflections; water tint, sun color/intensity, fog, rock and vegetation palette follow the selected theme. Tropical trees are omitted from cliff/serpent. Only the selected panorama is loaded. Original coast retains its sunset image.
+
+## Steering usability correction
+Reproduction of the original cumulative-yaw controls caused 5–7 impacts in 20 seconds of throttle-only driving. Steering now targets a bounded road-relative angle and recenters on release; road curvature no longer injects unwanted heading drift. Lateral speeds are capped at 5 m/s normally and 7 while drifting, with stronger grip recovery, and AI uses the same new steering target. A clear-lane test verifies zero barrier impacts on all four circuits, with short-press displacement and release/reversal tests. This intentionally changes handling to accessible track-following arcade controls; holding a direction can still reach a barrier and obstacles still need avoidance.

@@ -95,3 +95,19 @@ console.log('PASS: each map saves only its own record and displays the matching 
 assert.equal(new Set(E.MAPS.map(m=>E.forTrack(m.id).map.theme.sky)).size,4);
 for(const m of E.MAPS){const theme=E.forTrack(m.id).map.theme,file='assets/'+theme.sky;assert.ok(require('./build.cjs').files.includes(file));assert.ok(fs.statSync(file).size>10000);assert.ok(theme.intensity>0);}
 console.log('PASS: each circuit has its own packaged panoramic environment and lighting theme.');
+for(const m of E.MAPS){
+ const game=E.forTrack(m.id),s=game.create();let wallHits=0;
+ // Keep a clear lane to isolate barriers from deliberate track obstacles.
+ s.cars[0].n=6;
+ for(let i=0;i<1200;i++){game.step(s,{throttle:1},1/60);wallHits+=s.events.filter(e=>e.kind==='hit').length;}
+ assert.equal(wallHits,0,m.id+' released controls must follow road without rail impacts');
+ assert.ok(Math.abs(s.cars[0].n-6)<.01);
+}
+const steerRace=E.create();steerRace.phase='racing';steerRace.cars[0].v=30;
+for(let i=0;i<24;i++)E.step(steerRace,{throttle:1,steer:1},1/60);
+const moved=steerRace.cars[0].n;assert.ok(moved>.5&&moved<2);assert.ok(steerRace.cars[0].lateral<=5);
+for(let i=0;i<60;i++)E.step(steerRace,{throttle:1},1/60);
+assert.ok(Math.abs(steerRace.cars[0].h)<.001);assert.ok(Math.abs(steerRace.cars[0].lateral)<.02);
+assert.ok(steerRace.cars[0].n-moved<1.2,'Releasing must stop lateral drift promptly');
+for(let i=0;i<30;i++)E.step(steerRace,{throttle:1,steer:-1},1/60);assert.ok(steerRace.cars[0].lateral<0);
+console.log('PASS: four-map road following, bounded lane change, release recentering and reversal.');
