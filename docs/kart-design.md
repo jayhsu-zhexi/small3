@@ -49,3 +49,6 @@ Three additional original ImageGen panoramas distinguish lagoon (sunny turquoise
 
 ## Steering usability correction
 Reproduction of the original cumulative-yaw controls caused 5–7 impacts in 20 seconds of throttle-only driving. Steering now targets a bounded road-relative angle and recenters on release; road curvature no longer injects unwanted heading drift. Lateral speeds are capped at 5 m/s normally and 7 while drifting, with stronger grip recovery, and AI uses the same new steering target. A clear-lane test verifies zero barrier impacts on all four circuits, with short-press displacement and release/reversal tests. This intentionally changes handling to accessible track-following arcade controls; holding a direction can still reach a barrier and obstacles still need avoidance.
+
+## Finish visibility correction
+Removed the gate's 26-metre proximity hide condition, which mistakenly hid it during the final approach as well as at the start. The arch stays visible throughout the race; paired lower chequered flags supplement the overhead banner at close range. Finish-line timing/collision are unchanged.

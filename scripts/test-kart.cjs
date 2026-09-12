@@ -111,3 +111,5 @@ assert.ok(Math.abs(steerRace.cars[0].h)<.001);assert.ok(Math.abs(steerRace.cars[
 assert.ok(steerRace.cars[0].n-moved<1.2,'Releasing must stop lateral drift promptly');
 for(let i=0;i<30;i++)E.step(steerRace,{throttle:1,steer:-1},1/60);assert.ok(steerRace.cars[0].lateral<0);
 console.log('PASS: four-map road following, bounded lane change, release recentering and reversal.');
+const gateSource=fs.readFileSync('assets/kart-render.js','utf8');assert.ok(gateSource.includes('gate.visible=true;'));assert.ok(!gateSource.includes(')>26;'));assert.ok(gateSource.includes('Fixed side chequered flags'));
+console.log('PASS: finish gate is never proximity-hidden; permanent side chequered flags are present.');

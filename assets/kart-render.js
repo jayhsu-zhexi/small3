@@ -41,6 +41,13 @@ instances(box,sand,Array.from({length:60},(_,i)=>o=>{const p=E.sample(i/60*E.TRA
 for(let i=0;i<16;i++){const p=E.sample((i%2)*.7,(Math.floor(i/2)-3.5)*2);const tile=mesh(box,(i+Math.floor(i/2))%2?cream:black,p.x,p.y+.055,p.z,2,.05,.7);tile.rotation.y=p.heading;}
 const gate=new T.Group(),start=E.sample(0);gate.position.set(start.x,start.y,start.z);gate.rotation.y=start.heading;scene.add(gate);for(const n of [-10,10])mesh(box,coral,n,5,0,.65,10,.65,gate);mesh(box,black,0,9.7,0,21,1.5,.6,gate);
 const label=document.createElement('canvas');label.width=1024;label.height=128;const lc=label.getContext('2d');lc.fillStyle='#142b35';lc.fillRect(0,0,1024,128);lc.fillStyle='#ffebc3';lc.font='bold italic 72px sans-serif';lc.textAlign='center';lc.fillText((E.map?.label||'COASTLINE')+' / START',512,90);const bannerTex=new T.CanvasTexture(label),bannerMat=new T.MeshBasicMaterial({map:bannerTex,side:T.DoubleSide});mats.push(bannerMat);mesh(geo(new T.PlaneGeometry(19,1.2)),bannerMat,0,9.7,-.32,1,1,1,gate).rotation.y=Math.PI;
+// Fixed side chequered flags stay readable when the overhead banner leaves the view.
+for(const side of [-1,1]){
+ mesh(box,metal,side*10.6,2.6,0,.09,5.2,.09,gate);
+ for(let row=0;row<4;row++)for(let col=0;col<4;col++){
+ const flag=mesh(box,(row+col)%2?black:cream,side*(10.6+col*.38),4.8-row*.38,0,.38,.38,.06,gate);
+ }
+}
 const trees=Array.from({length:theme.trees},(_,i)=>{const a=i*2.399,r=45+(i%7)*4;return {x:Math.cos(a)*r,z:Math.sin(a)*r*.8,h:6+i%4};});
 instances(cylinder,trunk,trees.map(p=>o=>{o.position.set(p.x,6+p.h/2,p.z);o.scale.set(.32,p.h,.32);o.rotation.z=.07;}));instances(cone,leaf,trees.flatMap(p=>Array.from({length:5},(_,i)=>o=>{const a=i/5*Math.PI*2;o.position.set(p.x+Math.sin(a)*2,6+p.h,p.z+Math.cos(a)*2);o.rotation.set(Math.cos(a)*1.1,a,Math.sin(a)*1.1);o.scale.set(1,5,.4);}))); 
 instances(geo(new T.DodecahedronGeometry(1,1)),sand,Array.from({length:28},(_,i)=>o=>{const a=i*2.399,r=i<14?58:210+(i%4)*22;o.position.set(Math.cos(a)*r,-3+(7+i%5*3)*.35,Math.sin(a)*r);o.rotation.y=a;o.scale.set(8+i%3*4,7+i%5*3,9);}));
@@ -124,7 +131,7 @@ const core=mesh(cone,coreMat,0,0,-.45,.14,1.05,.14,jet);core.rotation.x=-Math.PI
 const jetLight=new T.PointLight('#36aaff',0,7,2);jet.add(jetLight);jet.visible=false;
 const mapExtent=Math.max(...E.TRACK.points.map(p=>Math.max(Math.abs(p.x),Math.abs(p.z)))),mapScale=Math.min(.44,60/mapExtent);const mini=minimap.getContext('2d'),look=new T.Vector3(),desired=new T.Vector3();
 function resize(){const w=canvas.clientWidth||root.innerWidth,h=canvas.clientHeight||root.innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
-function draw(s,dt=0,home=false){waterMat.uniforms.time.value=reduced?0:s.time;const p=s.cars[0];gate.visible=home||Math.abs(E.wrap(p.d+E.TRACK.length/2,E.TRACK.length)-E.TRACK.length/2)>26;if(s.phase==='countdown'&&lastPhase!=='countdown'){particles.length=0;initialized=false;playerPose=createPose();trail=createTrail();skidMarks.count=0;emission=0;}lastPhase=s.phase;
+function draw(s,dt=0,home=false){waterMat.uniforms.time.value=reduced?0:s.time;const p=s.cars[0];gate.visible=true;if(s.phase==='countdown'&&lastPhase!=='countdown'){particles.length=0;initialized=false;playerPose=createPose();trail=createTrail();skidMarks.count=0;emission=0;}lastPhase=s.phase;
  s.cars.forEach((c,i)=>{const pos=E.sample(c.d,c.n),g=karts[i];g.visible=true;g.position.set(pos.x,pos.y+.06,pos.z);g.rotation.set(-Math.atan(pos.slope),pos.heading+c.h,Math.sin(c.h)*Math.min(c.v/33,1)*-.08,'YXZ');wheels[i].forEach(w=>{w.tyre.rotation.x=c.wheel/.43;w.axle.rotation.y=w.front?c.h*.6:0;});});for(let i=s.cars.length;i<4;i++)karts[i].visible=false;
  const center=E.sample(p.d,p.n);advancePose(playerPose,p.h,dt,reduced,playerReady);poseUniforms.poseWeights.value.set(playerPose.weights.rear,playerPose.weights.left,playerPose.weights.right);playerSprite.visible=!!playerReady.rear;karts[0].visible=!playerSprite.visible;
 if(playerSprite.visible){const tex=playerImages.rear;playerSprite.scale.set(3.1,3.1*(tex.image.height/tex.image.width),1);const rear=E.sample(p.d-1,p.n);playerSprite.position.set(rear.x,rear.y+.1+(reduced?0:Math.sin(p.wheel*3)*Math.min(p.v/33,1)*.014),rear.z);playerSpriteMaterial.rotation=playerPose.lean;}
