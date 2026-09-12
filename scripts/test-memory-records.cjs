@@ -4,6 +4,7 @@ function storage(initial=[]){const values=new Map(initial);return {values,getIte
 function mission({size=16,pairs=size/2,attempts=pairs,phase='won'}={}){return {size,matched:Array.from({length:pairs*2},(_,i)=>i),flips:attempts*2,attempts,phase,score:pairs*100,bestCombo:pairs};}
 
 const device=storage(),store=R.create(()=>device);
+const newest=R.create(()=>storage());newest.savePreferences({size:108,duration:540,manualTime:false});assert.equal(newest.loadPreferences().size,108);for(let size=108;size<=120;size+=2)assert.equal(newest.record(mission({size}),600).persisted,true);assert.equal(newest.record(mission({size:40}),270).persisted,true);assert.equal(R.create(()=>storage([[R.PREFS_KEY,JSON.stringify({size:40,duration:270})]])).loadPreferences().size,16);
 const highLevel=R.create(()=>storage());highLevel.savePreferences({size:74,duration:420,manualTime:false});assert.equal(highLevel.loadPreferences().size,74);for(const size of [74,76,78,80,82,84])assert.equal(highLevel.record(mission({size}),450).persisted,true);assert.equal(highLevel.record(mission({size:24}),210).persisted,true,'Removed level history remains valid');
 assert.equal(R.create(()=>storage([[R.PREFS_KEY,JSON.stringify({size:24,duration:210})]])).loadPreferences().size,16,'An old removed selection falls back to an available level');
 assert.deepEqual({...store.loadPreferences()},{size:16,duration:180,manualTime:false,music:true,sound:true});

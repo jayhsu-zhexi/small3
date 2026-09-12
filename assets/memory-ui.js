@@ -99,7 +99,7 @@
         cols=rectangle.cols;tileW=rectangle.tile;$('memoryBoardHint').hidden=true;
       }
       $('memoryGrid').style.setProperty('--cols',cols);$('memoryGrid').style.setProperty('--gap',gap+'px');$('memoryGrid').style.setProperty('--grid-width',(cols*tileW+gap*(cols-1))+'px');$('memoryGrid').style.setProperty('--card-height',(tileW*1.25)+'px');
-      for(const card of cards)card.classList.toggle('compact',tileW<80);
+      for(const card of cards){card.classList.toggle('compact',tileW<80);card.style.setProperty('--glyph-size',Math.max(10,Math.min(48,tileW*.48))+'px');}
     }else{boardFit=null;setup();}
     const ratio=Math.min(2,window.devicePixelRatio||1);canvas.width=Math.round(width*ratio);canvas.height=Math.round(window.innerHeight*ratio);if(ctx)ctx.setTransform(ratio,0,0,ratio,0,0);
   }

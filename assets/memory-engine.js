@@ -1,10 +1,10 @@
 (function(root){
   'use strict';
-  const COUNTS=[16,32,40,52,74],SECONDS={16:180,24:210,32:240,40:270,52:300,74:420};
-  const SHIELDS={16:16,24:32,32:48,40:72,52:104,74:148};
-  const EXTRA={16:2,24:4,32:4,40:6,52:8,74:10};
-  const PHONE_COLUMNS={16:4,24:4,32:6,40:6,52:6,74:6};
-  function tier(size){return [...COUNTS,24].find(base=>Number.isInteger(size)&&size%2===0&&size>=base&&size<=base+EXTRA[base]);}
+  const COUNTS=[16,32,52,74,108],SECONDS={16:180,24:210,32:240,40:270,52:300,74:420,108:540};
+  const SHIELDS={16:16,24:32,32:48,40:72,52:104,74:148,108:216};
+  const EXTRA={16:2,24:4,32:4,40:6,52:8,74:10,108:12};
+  const PHONE_COLUMNS={16:4,24:4,32:6,40:6,52:6,74:6,108:6};
+  function tier(size){return [...COUNTS,24,40].find(base=>Number.isInteger(size)&&size%2===0&&size>=base&&size<=base+EXTRA[base]);}
   function rules(size){const base=tier(size);if(!base)throw Error('不支援的卡牌數量');return {base,size,shields:Math.ceil(SHIELDS[base]*size/base),seconds:Math.ceil(SECONDS[base]*size/base/30)*30};}
   // Only full rectangles are candidates. Equal-size cards prefer fewer added pairs.
   function rectangle(size,width,height,gap=4,preferredCols=0){const fixed=preferredCols>0&&size%preferredCols===0?preferredCols:0;let best={size,cols:fixed||1,rows:size/(fixed||1),tile:0};for(let cols=1;cols<=size;cols++){if(size%cols||(fixed&&cols!==fixed))continue;const rows=size/cols,tile=Math.max(0,Math.min(128,(width-gap*(cols-1))/cols,(height-gap*(rows-1))/rows/1.25));if(tile>best.tile)best={size,cols,rows,tile};}return best;}
@@ -13,7 +13,8 @@
   function shuffle(list,rng){const result=list.slice();for(let i=result.length-1;i>0;i--){const j=Math.max(0,Math.min(i,Math.floor(rng()*(i+1))));[result[i],result[j]]=[result[j],result[i]];}return result;}
   SYMBOLS.push(['helmet','太空頭盔'],['oxygen','氧氣背包'],['robot','探險機器人'],['boot','太空靴']);
   SYMBOLS.push(...[['🛸','飛碟'],['🌍','地球'],['🌈','彩虹'],['⏳','沙漏'],['🧭','指南針'],['🎯','標靶'],['🧩','拼圖'],['🎲','骰子'],['🎵','音符'],['🔔','鈴鐺'],['📡','接收站'],['🌀','漩渦']]);
-  function create(size=16,rng=Math.random,now=0,seconds=rules(size).seconds){const initial=rules(size);if(seconds!==null&&(!Number.isFinite(seconds)||seconds<180||seconds>600||seconds%30!==0))throw Error('不支援的任務時間');const ids=shuffle(SYMBOLS.slice(0,size>60?42:30).map((_,i)=>i),rng).slice(0,size/2);return {size,initialShields:initial.shields,deck:shuffle(ids.flatMap(id=>[id,id]),rng),matched:[],open:[],phase:'playing',paused:false,remainingMs:seconds===null?null:seconds*1000,shields:initial.shields,score:0,bonus:0,combo:0,bestCombo:0,flips:0,attempts:0,revealMs:0,lastAt:now,reason:''};}
+  SYMBOLS.push(...[['🎈','氣球'],['🪁','風箏'],['🎁','禮物'],['🏆','獎盃'],['🎨','調色盤'],['📷','相機'],['📚','書本'],['✉️','信封'],['☂️','雨傘'],['🕯️','蠟燭'],['🍎','蘋果'],['🍇','葡萄'],['🍉','西瓜'],['🌻','向日葵'],['🌵','仙人掌'],['🦋','蝴蝶'],['🐢','烏龜'],['🐳','鯨魚']]);
+  function create(size=16,rng=Math.random,now=0,seconds=rules(size).seconds){const initial=rules(size);if(seconds!==null&&(!Number.isFinite(seconds)||seconds<180||seconds>600||seconds%30!==0))throw Error('不支援的任務時間');const ids=shuffle(SYMBOLS.slice(0,size>84?60:size>60?42:30).map((_,i)=>i),rng).slice(0,size/2);return {size,initialShields:initial.shields,deck:shuffle(ids.flatMap(id=>[id,id]),rng),matched:[],open:[],phase:'playing',paused:false,remainingMs:seconds===null?null:seconds*1000,shields:initial.shields,score:0,bonus:0,combo:0,bestCombo:0,flips:0,attempts:0,revealMs:0,lastAt:now,reason:''};}
   function act(previous,action,now=previous.lastAt){
     const s={...previous,matched:previous.matched.slice(),open:previous.open.slice()},effects=[];
     const active=()=>['playing','resolving'].includes(s.phase),emit=(kind,indices=[])=>effects.push({kind,indices:indices.slice()});
