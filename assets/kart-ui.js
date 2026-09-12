@@ -5,6 +5,7 @@ document.body.classList.toggle('touch',window.matchMedia('(pointer: coarse)').ma
 function format(value){if(!Number.isFinite(value))return '—';const ms=Math.max(0,Math.round(value*1000));return String(Math.floor(ms/60000)).padStart(2,'0')+':'+String(Math.floor(ms/1000)%60).padStart(2,'0')+'.'+String(ms%1000).padStart(3,'0');}
 const mapId=E.map?.id||'coast',recordKey=mapId==='coast'?'coast-kart-best-v1':'coast-kart-best-v1-'+mapId;
 $('kartTrack').value=mapId;
+if(mapId!=='coast'&&E.map?.theme)$('kartHome').style.backgroundImage="linear-gradient(90deg,#10171fee,#10171f77),url('/assets/"+E.map.theme.sky+"')";
 $('kartTrack').onchange=()=>{if(active)return;const id=$('kartTrack').value;if(E.MAPS?.some(m=>m.id===id))window.location.assign('/kart?track='+encodeURIComponent(id));};
 $('kartTrackInfo').textContent=(E.map?.hint||'經典連續彎')+' · '+Math.round(E.TRACK.length)+' 公尺';
 $('kartMapName').textContent=E.map?.label||'SUNSET COAST';

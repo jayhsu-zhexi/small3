@@ -92,3 +92,6 @@ assert.equal(lengths.size,4);assert.equal(E.forTrack('invalid').map.id,'coast');
 console.log('PASS: four distinct closed tracks, safe curvature, full trial/race simulations and isolated track instances.');
 for(const spec of E.MAPS){const app=boot({trackId:spec.id});app.get('kartStart').onclick();app.run(3200);const race=app.states.at(-1);race.cars[0].d=E.forTrack(spec.id).TRACK.length-.1;race.cars[0].checkpoint=8;race.cars[0].v=20;race.time=50;app.run(34);const key=spec.id==='coast'?'coast-kart-best-v1':'coast-kart-best-v1-'+spec.id;assert.ok(app.store.has(key));assert.equal(app.store.size,1);assert.equal(app.get('kartMapName').textContent,spec.label);}
 console.log('PASS: each map saves only its own record and displays the matching map label.');
+assert.equal(new Set(E.MAPS.map(m=>E.forTrack(m.id).map.theme.sky)).size,4);
+for(const m of E.MAPS){const theme=E.forTrack(m.id).map.theme,file='assets/'+theme.sky;assert.ok(require('./build.cjs').files.includes(file));assert.ok(fs.statSync(file).size>10000);assert.ok(theme.intensity>0);}
+console.log('PASS: each circuit has its own packaged panoramic environment and lighting theme.');

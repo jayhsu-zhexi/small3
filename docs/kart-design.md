@@ -43,3 +43,6 @@ Drifting lays paired road-aligned tyre marks in a fixed 512-segment ring buffer;
 
 ## Four selectable circuits
 Track-local engine instances provide coast (original), lagoon (fast sweepers), cliff (larger elevation) and serpent (linked tighter bends). Selection navigates to /kart?track=ID to rebuild GPU resources in a fresh page; invalid IDs fall back to coast. Existing coast best record is preserved while other map records use distinct keys. Minimap auto-fits each circuit. All four tracks pass closed-loop, safe-curvature and complete trial/race tests.
+
+## Circuit-specific environments
+Three additional original ImageGen panoramas distinguish lagoon (sunny turquoise atolls), cliff (overcast northern rock coast), and serpent (blue-hour misty mountains). Each supplies menu background, skybox and water/metal reflections; water tint, sun color/intensity, fog, rock and vegetation palette follow the selected theme. Tropical trees are omitted from cliff/serpent. Only the selected panorama is loaded. Original coast retains its sunset image.

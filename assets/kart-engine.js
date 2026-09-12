@@ -6,7 +6,14 @@ const MAPS=[
 {id:'serpent',name:'雙蛇灣道',label:'SERPENT BAY',hint:'連續 S 彎 · 挑戰',radius:140,sx:1.2,sy:.9,a:19,b:11,f:4,g:6,rise:6}
 ];
 function forTrack(id='coast'){
-const map=MAPS.find(m=>m.id===id)||MAPS[0];
+const baseMap=MAPS.find(m=>m.id===id)||MAPS[0];
+const themes={
+coast:{sky:'kart-sky.png',water:'#0e2630',fog:'#a7b3bc',sun:'#fff0dc',intensity:2.4,rock:'#a4a5a0',grass:'#444e40',trees:44},
+lagoon:{sky:'kart-sky-lagoon.png',water:'#147a83',fog:'#b9dbe1',sun:'#fff9e5',intensity:2.8,rock:'#d3ccb2',grass:'#557350',trees:55},
+cliff:{sky:'kart-sky-cliff.png',water:'#142536',fog:'#85949f',sun:'#d5e3f2',intensity:1.7,rock:'#727d87',grass:'#404b45',trees:0},
+serpent:{sky:'kart-sky-serpent.png',water:'#11232e',fog:'#666e91',sun:'#c2c9f0',intensity:1.6,rock:'#737787',grass:'#354648',trees:0}
+};
+const map={...baseMap,theme:themes[baseMap.id]};
 const TAU=Math.PI*2,clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),wrap=(v,n)=>(v%n+n)%n,angle=v=>Math.atan2(Math.sin(v),Math.cos(v));
 function buildTrack(){const raw=[],points=[],count=1200;let length=0;
  for(let i=0;i<=count;i++){const a=i/count*TAU,r=map.radius+map.a*Math.sin(map.f*a)+map.b*Math.cos(map.g*a);raw.push({x:Math.cos(a)*r*map.sx,z:Math.sin(a)*r*map.sy,y:map.rise+4+map.rise*Math.sin(2*a)+2*Math.cos(3*a)});if(i)length+=Math.hypot(raw[i].x-raw[i-1].x,raw[i].z-raw[i-1].z,raw[i].y-raw[i-1].y);points.push({...raw[i],d:length});}
