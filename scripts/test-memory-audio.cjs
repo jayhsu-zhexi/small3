@@ -1,11 +1,11 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-function bootAudio({delayedResume=false,unsupported=false}={}){
-  const timers=new Map(),notes=[],instances=[];let now=0,id=0,resumePending,message='';
+function bootAudio({delayedResume=false,unsupported=false,initialState='running',resumeFails=false,staysBlocked=false,audioSession}={}){
+  const timers=new Map(),notes=[],instances=[],statuses=[];let now=0,id=0,resumePending,message='';
   function parameter(log){return {setValueAtTime(value,at){log.push({kind:'set',value,at})},exponentialRampToValueAtTime(value,at){log.push({kind:'ramp',value,at})}};}
   class AudioContext{
-    constructor(){this.state=delayedResume?'suspended':'running';this.destination={};instances.push(this);}
+    constructor(){this.state=delayedResume?'suspended':initialState;this.destination={};this.resumeCalls=0;this.sessionType=audioSession?.type;instances.push(this);}
     get currentTime(){return now/1000;}
-    resume(){if(delayedResume)return new Promise(resolve=>{resumePending=()=>{this.state='running';resolve();}});this.state='running';return Promise.resolve();}
+    resume(){this.resumeCalls++;if(resumeFails)return Promise.reject(Error('blocked'));if(delayedResume)return new Promise(resolve=>{resumePending=()=>{this.state='running';resolve();}});if(!staysBlocked)this.state='running';return Promise.resolve();}
     suspend(){this.state='suspended';return Promise.resolve();}
     close(){this.state='closed';return Promise.resolve();}
     createOscillator(){const n={frequencies:[],gains:[],disconnected:false};notes.push(n);return n.osc={frequency:parameter(n.frequencies),connect(gain){n.gains= gain.log;},disconnect(){n.disconnected=true;},start(at){n.at=at;n.type=this.type;},stop(at=now/1000){n.end=at;}};}
@@ -13,11 +13,22 @@ function bootAudio({delayedResume=false,unsupported=false}={}){
   }
   const box={exports:{}},root={setTimeout(fn,delay){const key=++id;timers.set(key,{fn,at:now+delay});return key;},clearTimeout(key){timers.delete(key);}};
   if(!unsupported)root.AudioContext=AudioContext;
+  if(audioSession)root.navigator={audioSession};
   vm.runInNewContext(fs.readFileSync('assets/memory-audio.js','utf8'),{window:root,module:box});
-  const sound=box.exports.create(value=>{message=value;});
-  return {sound,notes,timers,instances,get message(){return message;},resume(){resumePending();},run(ms){const end=now+ms;while(now<end){now=Math.min(end,now+20);for(const [key,t] of [...timers])if(t.at<=now){timers.delete(key);t.fn();}for(const n of notes)if(!n.disconnected&&n.end<=now/1000)n.osc.onended?.();}}};
+  const sound=box.exports.create(value=>{message=value;},value=>statuses.push(value));
+  return {sound,notes,timers,instances,statuses,get message(){return message;},resume(){resumePending();},run(ms){const end=now+ms;while(now<end){now=Math.min(end,now+20);for(const [key,t] of [...timers])if(t.at<=now){timers.delete(key);t.fn();}for(const n of notes)if(!n.disconnected&&n.end<=now/1000)n.osc.onended?.();}}};
 }
 (async()=>{
+  const ipad=bootAudio({initialState:'interrupted',audioSession:{type:'ambient'}});
+  assert.equal(await ipad.sound.test(),true);assert.equal(ipad.instances[0].resumeCalls,1);assert.equal(ipad.instances[0].sessionType,'playback','Playback policy is set before constructing the iPad context');assert.equal(ipad.notes.length,2);assert.equal(ipad.timers.size,0,'Home test does not start background music');assert.match(ipad.statuses.at(-1),/若沒聽到/);
+  ipad.sound.stopEffects();assert.ok(ipad.notes.every(n=>n.disconnected));assert.equal(ipad.instances[0].state,'running','Ending launch effects preserves the unlocked context');await ipad.sound.startMusic();assert.equal(ipad.instances[0].resumeCalls,1);
+  ipad.instances[0].state='interrupted';ipad.instances[0].onstatechange();assert.equal(ipad.timers.size,0);assert.match(ipad.message,/中斷/);await ipad.sound.test();assert.equal(ipad.instances[0].resumeCalls,2);ipad.sound.dispose();
+  const policyFallback=bootAudio({audioSession:{get type(){return 'ambient'},set type(value){throw Error('unsupported')}}});assert.equal(await policyFallback.sound.test(),true);policyFallback.sound.dispose();
+  for(const options of [{resumeFails:true},{staysBlocked:true}]){const blocked=bootAudio({initialState:'suspended',...options});assert.equal(await blocked.sound.test(),false);assert.equal(blocked.notes.length,0);assert.equal(blocked.timers.size,0);assert.match(blocked.message,/重試/);blocked.sound.dispose();}
+  const hanging=bootAudio({delayedResume:true}),testPending=hanging.sound.test();hanging.run(3001);assert.equal(await testPending,false);assert.match(hanging.message,/重試/);assert.equal(hanging.notes.length,0);hanging.resume();await Promise.resolve();assert.equal(hanging.notes.length,0,'Late unlock cannot play an expired test');assert.equal(await hanging.sound.test(),true);hanging.sound.dispose();
+  for(const cancel of ['suspend','dispose']){const canceled=bootAudio({delayedResume:true}),p=canceled.sound.test();canceled.sound[cancel]();canceled.resume();assert.equal(await p,false);assert.equal(canceled.notes.length,0);assert.equal(canceled.timers.size,0);}
+  const mutedTest=bootAudio();mutedTest.sound.setEnabled(false);assert.equal(await mutedTest.sound.test(),false);assert.equal(mutedTest.instances.length,0);
+  const retry=bootAudio({delayedResume:true}),oldAttempt=retry.sound.test();retry.instances[0].state='running';assert.equal(await retry.sound.test(),true);retry.run(3001);assert.equal(await oldAttempt,false);assert.equal(retry.message,'','An older timeout cannot overwrite a successful retry');const retryNotes=retry.notes.length;retry.sound.play('flip');assert.ok(retry.notes.length>retryNotes);retry.sound.dispose();
   const a=bootAudio(),s=a.sound;
   assert.equal(a.instances.length,0,'No audio context before interaction');
   await s.activate();assert.equal(a.timers.size,0,'The home screen does not start music');

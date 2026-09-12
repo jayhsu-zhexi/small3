@@ -3,8 +3,8 @@
   // Original four-bar synth ostinato: pulsing bass, arpeggios and soft electronic percussion.
   const roots=[73.416,65.406,58.270,65.406],thirds=[3,4,4,4],motif=[0,7,12,15,7,12,15,7];
   const MUSIC_GAIN=2.4;
-  function create(onError=()=>{}){
-    let context=null,enabled=true,music=true,active=false,awake=false,timer=null,step=0,nextAt=0,tension=0,epoch=0;
+  function create(onError=()=>{},onStatus=()=>{}){
+    let context=null,enabled=true,music=true,active=false,awake=false,timer=null,step=0,nextAt=0,tension=0,epoch=0,attempt=0;
     const voices=new Set();
     function stopVoices(kind){
       for(const voice of [...voices])if(kind===undefined||voice.music===kind){
@@ -47,16 +47,36 @@
       tick();
     }
     async function activate(){
-      if(!enabled&&!music)return;
-      const ticket=epoch;
+      if(!enabled&&!music)return false;
+      const ticket=epoch,request=++attempt;
+      let timeout;
       try{
+        // iOS otherwise treats Web Audio as ambient audio, which can follow silent mode.
+        try{if(root.navigator?.audioSession)root.navigator.audioSession.type='playback';}catch{}
         const Context=root.AudioContext||root.webkitAudioContext;if(!Context)throw Error();
-        if(!context)context=new Context();const instance=context;awake=true;
-        if(instance.state==='suspended')await instance.resume();
-        if(ticket!==epoch||instance!==context){if(instance===context&&!awake)Promise.resolve(instance.suspend()).catch(()=>{});return;}
-        scheduleMusic();
-      }catch{if(ticket!==epoch)return;awake=false;clearMusic();onError('目前無法播放遊戲聲音，仍可繼續遊戲。');}
+        if(!context||context.state==='closed'){
+          context=new Context();const observed=context;
+          observed.onstatechange=()=>{
+            if(observed!==context||!awake)return;
+            if(observed.state!=='running'){awake=false;clearMusic();stopVoices();onError('音訊已中斷，請點「啟用聲音／測試音」重試。');}
+          };
+        }
+        const instance=context;
+        if(instance.state!=='running'){
+          awake=false;onStatus('正在啟用音訊…');
+          // Call resume in the original tap handler, before any await.
+          const resumed=Promise.resolve(instance.resume()).then(()=>{
+            if(ticket!==epoch&&instance===context&&!awake)Promise.resolve(instance.suspend()).catch(()=>{});
+          });
+          await Promise.race([resumed,new Promise((_,reject)=>{timeout=root.setTimeout(()=>reject(Error('timeout')),3000);})]);
+        }
+        if(ticket!==epoch||request!==attempt||instance!==context)return false;
+        if(instance.state!=='running')throw Error('not running');
+        awake=true;scheduleMusic();onStatus('音訊已啟動，可點測試音確認是否聽得到。');return true;
+      }catch{if(ticket!==epoch||request!==attempt)return false;awake=false;clearMusic();onError('目前無法播放遊戲聲音，請點「啟用聲音／測試音」重試；仍可繼續遊戲。');return false;}
+      finally{if(timeout!==undefined)root.clearTimeout(timeout);}
     }
+    async function test(){const ticket=epoch;if(!enabled||!await activate()||ticket!==epoch||!awake||!enabled)return false;tone(523,0,.22,.035);tone(784,.28,.3,.035);onStatus('已送出兩聲測試音。若沒聽到，請檢查音量、靜音與藍牙輸出。');return true;}
     function startMusic(reset=false){if(reset){clearMusic();step=0;tension=0;}active=true;return activate();}
     function stopMusic(){active=false;clearMusic();}
     function play(kind){
@@ -98,7 +118,7 @@
     function suspend(){epoch++;awake=false;stopMusic();stopVoices();if(context&&context.state==='running')Promise.resolve(context.suspend()).catch(()=>{});}
     function dispose(){epoch++;awake=false;stopMusic();stopVoices();if(context){const instance=context;context=null;Promise.resolve(instance.close()).catch(()=>{});}}
     return {
-      activate,play,startMusic,stopMusic,suspend,dispose,
+      activate,test,play,startMusic,stopMusic,suspend,dispose,stopEffects(){stopVoices(false);},
       setTension(value){tension=Number.isFinite(value)?Math.max(0,Math.min(1,value)):0;},
       setEnabled(value){enabled=!!value;if(!enabled)stopVoices(false);else if(active)activate();},
       setMusic(value){music=!!value;if(!music)clearMusic();else if(active)activate();}

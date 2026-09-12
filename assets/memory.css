@@ -12,6 +12,11 @@
 @media(max-width:479px){.status-deck{grid-template-columns:repeat(6,minmax(0,1fr));gap:5px}.status-deck>div{grid-column:span 2;padding:8px 9px}.status-deck>div:nth-child(-n+2){grid-column:span 3}.status-deck strong{font-size:20px}.status-deck span{font-size:12px;letter-spacing:0;margin-bottom:3px}}
 
 /* The mobile mission uses the remaining viewport as a measured board area. */
+.audio-check{display:flex;align-items:center;gap:12px;padding:8px 0;flex:0 0 auto;position:relative;color:#d4edf7}
+.audio-check button{min-height:44px;flex:0 0 auto;background:#123f50;border-color:#63c8df;color:#fff}
+.audio-check p{margin:0;font-size:14px;line-height:1.5}
+.in-mission.fit-board .audio-check{order:2}
+@media(max-width:600px){.audio-check{gap:8px}.audio-check button{max-width:135px;padding:6px 8px;font-size:14px}.audio-check p{font-size:13px}}
 body.measuring-mission{height:auto!important;min-height:var(--measure-page-height)!important;overflow:visible!important}
 body.measuring-mission .orbit-shell{position:fixed;inset:0;height:var(--mission-viewport)!important;visibility:hidden;pointer-events:none}
 .setup-plan{display:flex;align-items:center;gap:12px;flex-wrap:wrap;color:#a7cfdb;margin:0 0 14px;font-size:14px}
