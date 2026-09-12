@@ -13,7 +13,7 @@
   }
   function solid(m,x,y){const tx=Math.floor(x/TILE),ty=Math.floor(y/TILE);return tx<0||ty<0||tx>=W||ty>=H||m.tiles[ty*W+tx]!==0;}
   function free(m,x,y,r=13){for(let ty=Math.floor((y-r)/TILE);ty<=Math.floor((y+r)/TILE);ty++)for(let tx=Math.floor((x-r)/TILE);tx<=Math.floor((x+r)/TILE);tx++)if(tx<0||ty<0||tx>=W||ty>=H||m.tiles[ty*W+tx]){const cx=Math.max(tx*TILE,Math.min(x,(tx+1)*TILE)),cy=Math.max(ty*TILE,Math.min(y,(ty+1)*TILE));if(Math.hypot(x-cx,y-cy)<r)return false;}return true;}
-  function move(m,body,dx,dy){const steps=Math.max(1,Math.ceil(Math.hypot(dx,dy)/8));for(let i=0;i<steps;i++){if(free(m,body.x+dx/steps,body.y,body.r))body.x+=dx/steps;if(free(m,body.x,body.y+dy/steps,body.r))body.y+=dy/steps;}}
+  function move(m,body,dx,dy){const beforeX=body.x,beforeY=body.y;const steps=Math.max(1,Math.ceil(Math.hypot(dx,dy)/8));for(let i=0;i<steps;i++){if(free(m,body.x+dx/steps,body.y,body.r))body.x+=dx/steps;if(free(m,body.x,body.y+dy/steps,body.r))body.y+=dy/steps;}const distance=Math.hypot(body.x-beforeX,body.y-beforeY);body.moving=distance>.01;body.stride=(body.stride||0)+distance/(body.kind===2?20:body.kind===0?11:15);if(distance>.01)body.moveAngle=Math.atan2(body.y-beforeY,body.x-beforeX);}
   function line(m,x,y,ex,ey){const distance=Math.hypot(ex-x,ey-y),n=Math.ceil(distance/12);for(let i=0;i<=n;i++)if(solid(m,x+(ex-x)*i/(n||1),y+(ey-y)*i/(n||1)))return false;return true;}
   function create(seed=Date.now()){const m=map(seed),rng=random(seed^0xa511e9b3),s={seed,map:m,rng,phase:'playing',time:0,score:0,killScore:0,kills:0,player:{...m.spawn,r:14,hp:100,shield:25,angle:0,invuln:0,fire:0,dash:0,dashTime:0,boost:0},enemies:[],bullets:[],pickups:[],events:[],spawnTimer:3,supplyTimer:10,flow:null,flowTimer:0,wave:1,nextId:1};for(let i=0;i<8;i++)supply(s,i%3,150,1000);return s;}
   function pause(s){if(s.phase==='playing'){s.phase='paused';s.events=[];}}
@@ -27,14 +27,14 @@
   function damage(s,amount){const p=s.player;if(s.phase!=='playing'||p.invuln>0)return false;const blocked=Math.min(p.shield,amount);p.shield-=blocked;p.hp=Math.max(0,p.hp-(amount-blocked));p.invuln=.7;emit(s,'hurt',p.x,p.y);if(!p.hp){s.phase='lost';emit(s,'lost',p.x,p.y);}return true;}
   function pickup(s,item){if(s.phase!=='playing')return false;const p=s.player;if(item.kind===0){if(p.hp>=100)return false;p.hp=Math.min(100,p.hp+38);}else if(item.kind===1){if(p.shield>=75)return false;p.shield=Math.min(75,p.shield+40);}else p.boost=12;emit(s,'pickup',item.x,item.y,{item:item.kind});return true;}
   function fire(s,x,y,a,enemy=false,heavy=false){if(s.bullets.length>=160)return;const speed=enemy?(heavy?165:195):700;s.bullets.push({x:x+Math.cos(a)*21,y:y+Math.sin(a)*21,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,life:enemy?2.5:.85,enemy,damage:enemy?(heavy?16:11):(s.player.boost>0?32:25)});emit(s,enemy?'enemyShot':'shot',x,y,{angle:a});}
-  function step(s,input={},dt=1/60){if(s.phase!=='playing')return s;if(!Number.isFinite(dt)||dt<=0)return s;dt=Math.min(dt,.05);s.events=[];const p=s.player;s.time=Math.min(DURATION,s.time+dt);const wave=1+Math.min(4,Math.floor(s.time/60));if(wave!==s.wave){s.wave=wave;emit(s,'wave',p.x,p.y,{wave});}
+  function step(s,input={},dt=1/60){if(s.phase!=='playing')return s;if(!Number.isFinite(dt)||dt<=0)return s;dt=Math.min(dt,.05);s.events=[];const p=s.player;p.moving=false;for(const enemy of s.enemies)enemy.moving=false;s.time=Math.min(DURATION,s.time+dt);const wave=1+Math.min(4,Math.floor(s.time/60));if(wave!==s.wave){s.wave=wave;emit(s,'wave',p.x,p.y,{wave});}
     for(const k of ['invuln','fire','dash','dashTime','boost'])p[k]=Math.max(0,p[k]-dt);
     let mx=Number.isFinite(input.mx)?input.mx:0,my=Number.isFinite(input.my)?input.my:0,length=Math.hypot(mx,my);if(length>1){mx/=length;my/=length;}
     if(input.dash&&p.dash<=0&&length>.1){p.dash=3;p.dashTime=.18;p.invuln=Math.max(p.invuln,.23);emit(s,'dash',p.x,p.y);}
     move(s.map,p,mx*(p.dashTime>0?540:190)*dt,my*(p.dashTime>0?540:190)*dt);
     let aim=Number.isFinite(input.aim)?input.aim:p.angle,shoot=!!input.fire;
     if(input.assist&&!input.manual){let best=null,range=560;for(const e of s.enemies){const d=Math.hypot(e.x-p.x,e.y-p.y);if(e.spawn<=0&&d<range&&line(s.map,p.x,p.y,e.x,e.y)){best=e;range=d;}}if(best){aim=Math.atan2(best.y-p.y,best.x-p.x);shoot=true;}}
-    p.angle=aim;if(shoot&&p.fire<=0){fire(s,p.x,p.y,aim);p.fire=p.boost>0?.115:.23;}
+    if(input.assist&&!input.manual&&!shoot&&p.moving)aim=p.moveAngle;p.angle=aim;if(shoot&&p.fire<=0){fire(s,p.x,p.y,aim);p.fire=p.boost>0?.115:.23;}
     s.flowTimer-=dt;if(s.flowTimer<=0||!s.flow){s.flow=flow(s.map,p);s.flowTimer=.28;}
     s.spawnTimer-=dt;if(s.spawnTimer<=0){spawn(s);s.spawnTimer=Math.max(.7,2.9-s.time*.0065);}
     s.supplyTimer-=dt;if(s.supplyTimer<=0){supply(s,p.hp<60?0:Math.floor(s.rng()*3));s.supplyTimer=16;emit(s,'supply',p.x,p.y);}
