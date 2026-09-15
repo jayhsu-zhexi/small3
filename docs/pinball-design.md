@@ -56,3 +56,20 @@ Subject: an intricate painted spacecraft illustration centered at x50%, y57%; or
 Style/medium: richly illustrated vintage space arcade cabinet print, sophisticated airbrush painting, luminous neon accents, polished lacquer print texture, crisp detailed spacecraft, restrained high-contrast highlights against navy purple. Rich and professional, not sparse vector art.
 Composition/framing: portrait 480:860 proportions, edge-to-edge straight rectangular art. Thin metallic cabinet bezel only within outermost 3% perimeter. Large dark readable areas in upper 45% and lower 25% for gameplay overlays.
 Constraints: NO physical raised obstacles, NO actual flippers, NO bumpers, NO rails, NO ball, NO UI, NO text, NO logos, NO numbers, NO lettering, NO scoreboard. No device, no surrounding frame, no screenshot, no perspective cabinet render. This image is only the illustrated flat playfield skin beneath separately rendered functional components. The metallic edge is confined to the outermost 3%; everything inside it is FLAT PRINTED ART.
+
+
+## 依核准設計圖製作的固定元件版本
+本版使用核准圖 exec-5bfd7564-b080-4b3c-9707-616d4368cfc6.png 作為固定元件母圖，透過內建 imagegen 精準移除銀球及兩支活動擋板。原圖和輸出均為909×1731。固定層保存 assets/pinball-approved-field.png，網頁使用同名 WebP (quality 92)。不再沿用上一版太空船底圖與自行重畫的環軌外形。
+固定圖保留大迴環、左側短髮夾坡道、右侧發射道、中央三座主撞擊塔、四座輔助塔、反彈三角板及下方內外通道。動態層獨立繪製彈珠與雙擋板；固定坡道遮罩在下層球之上，坡道球則在上層。
+碰撞按圖校準：球半徑8，軌道半厚4，擋板長65/半厚7；雙擋板軸心(148,709)、(335,709)。左短坡道入口(181,376)、出口(62,550)，2.4秒通行加500分。右救援艙(389,407)傳送至右迴環並導回中央。三座輔助小塔與左上大塔碰撞加50分。功能測試含全部主撞擊塔、救援次序、側邊/中央落球、短坡道、上下層隔離與暫停。
+
+### 固定圖精準編輯提示詞（內建 imagegen）
+Use case: precise-object-edit.
+Asset type: fixed-layer background for an existing pinball game.
+Input image 1 is the EDIT TARGET: the USER APPROVED complete purple space pinball board. This is a surgical removal edit, not a redesign.
+Remove ONLY these three moving objects:
+1. The single shiny silver ball sitting over the glowing circular reactor in the lower-middle of the board.
+2. The left white/cream bat with thin gold rim at the very bottom, extending diagonally rightward toward the center drain.
+3. The right white/cream bat with thin gold rim at the very bottom, extending diagonally leftward toward the center drain.
+Remove each moving bat completely, including its gold rim and cast shadow, but KEEP the separate stationary gold mounting bases, the two red circular pivot buttons, silver outer mechanical details, and all other nearby hardware exactly as they are. Inpaint the vacated ball area with matching original glowing reactor artwork. Inpaint the vacated bat regions with continuous matching purple printed playfield artwork.
+Strict invariants: preserve EXACT original image dimensions, framing, camera, border/cabinet, every fixed track, rails, bumpers, lights, targets, the left raised purple hairpin ramp and its geometry, fixed flipper bases and RED CIRCULAR PIVOTS, slingshots, outlanes, right plunger lane and spring, all printed art and colors outside these three small removal regions. Do not move, resize, straighten, simplify, recolor, add, or redesign any object. The result must be the same approved board with only the ball and TWO moving flipper bats absent. No new ball, no new flipper bats, no other changes.
