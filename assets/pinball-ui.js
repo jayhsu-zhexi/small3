@@ -17,6 +17,7 @@
     for(const [a,z] of E.walls){line(a,z,'#030c18',14);line(a,z,'#748899',7);line(a,z,'#acc8d8',2);}
     // A continuous metal rail follows the same sampled centerline as the physics.
     for(const points of [...E.sideLanes,...E.guides]){for(const [color,width] of [['#020912',20],['#9c733c',15],['#c3ced2',11],['#344c61',7],['#81d6f0',2]]){ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle=color;ctx.lineWidth=width;ctx.stroke();}for(const p of [points[0],points.at(-1)])circleSprite(1158,143,241,237,p[0],p[1],6);}
+    label('↓ 落球',60,786,'#ecb38c',12);label('↓ 落球',391,786,'#ecb38c',12);
     label('回球軌道',61,542,'#c9e8ef',12);label('迴旋軌道',376,204,'#c9e8ef',12);
     E.slings.forEach(points=>{const [p,a,b]=points;ctx.save();ctx.transform(b[0]-a[0],b[1]-a[1],(a[0]+b[0])/2-p[0],(a[1]+b[1])/2-p[1],p[0]-(b[0]-a[0])/2,p[1]-(b[1]-a[1])/2);ctx.beginPath();ctx.moveTo(.5,0);ctx.lineTo(0,1);ctx.lineTo(1,1);ctx.closePath();ctx.clip();ctx.drawImage(parts,68,570,377,335,0,0,1,1);ctx.restore();});
     E.bumpers.forEach((c,i)=>{circleSprite(88,94,338,336,c.x,c.y,c.r+5);if(game.lit[i]){ctx.beginPath();ctx.arc(c.x,c.y,c.r+9,0,Math.PI*2);ctx.strokeStyle='#ffd578';ctx.lineWidth=3;ctx.stroke();}label(String(i+1),c.x,c.y+5,'#fff9d2',17);});
@@ -25,7 +26,8 @@
     if(game.stage===2){ctx.beginPath();ctx.arc(366,452,35,0,Math.PI*2);ctx.strokeStyle='#ffc773';ctx.lineWidth=3;ctx.stroke();}
     const transporting=game.balls.some(b=>b.captureUntil);
     for(let ring=0;ring<3;ring++){ctx.beginPath();const spin=reduced.matches?0:game.time*(ring%2?-2:2);ctx.arc(E.wormhole.x,E.wormhole.y,E.wormhole.r-ring*4,spin,spin+Math.PI*1.65);ctx.strokeStyle=transporting?'#d6adff':'#706897';ctx.lineWidth=transporting?4:2;ctx.stroke();}
-    label(transporting?'傳送中…':'傳送出口',365,395,transporting?'#ead3ff':'#aaa2c5',12);
+    line([390,386],[362,400],'#bca1f0',3);line([362,400],[366,389],'#bca1f0',3);line([362,400],[374,401],'#bca1f0',3);
+    label(transporting?'傳送中…':'傳送出口',358,373,transporting?'#ead3ff':'#aaa2c5',12);
     game.flippers.forEach((f,i)=>{ctx.save();ctx.translate(f.x,f.y);ctx.rotate(f.a);if(i)ctx.scale(1,-1);ctx.scale(E.FLIPPER_LENGTH/343,E.FLIPPER_LENGTH/343);ctx.translate(-75,-79);ctx.beginPath();ctx.moveTo(75,2);ctx.bezierCurveTo(-5,0,-12,154,76,164);ctx.lineTo(414,137);ctx.quadraticCurveTo(477,93,414,54);ctx.lineTo(130,20);ctx.closePath();ctx.clip();ctx.drawImage(parts,539,179,457,166,0,0,457,166);ctx.restore();});
     ctx.save();ctx.beginPath();ctx.roundRect(426,743,22,93,9);ctx.clip();ctx.drawImage(parts,713,523,110,421,426,743,22,93);ctx.restore();
     if(game.phase==='playing'&&game.time<game.saveUntil)label('救球保護 '+Math.ceil(game.saveUntil-game.time)+' 秒',240,817,'#98f1e1',14);

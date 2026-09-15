@@ -45,3 +45,16 @@ console.log('PASS: scoop holds the ball for two active seconds, pauses safely an
 let rightRailHit=false,rightRailExit=false;
 for(let i=0;i<360;i++){E.tick(warp,1/120);rightRailHit||=warp.events.some(e=>e.kind==='rail');rightRailExit||=warp.balls.some(b=>!b.lane&&!b.captureUntil&&b.y>390&&b.vy>0);warp.events=[];}
 assert.ok(rightRailHit);assert.ok(rightRailExit,'A captured ball launches up the right rail and returns to play');
+
+for(const x of [55,60,65,387,392,397]){
+ const sideDrop=E.create();put(sideDrop,x,535,0,150);sideDrop.saveUntil=0;advance(sideDrop,3);
+ assert.equal(sideDrop.phase,'ready','Both outer lanes must drain from above their entrances');
+ assert.equal(sideDrop.lives,2);
+}
+const noLoop=E.create();put(noLoop,E.scoop.x,E.scoop.y);let captures=0,enteredPlay=false;
+for(let i=0;i<1440&&noLoop.phase==='playing';i++){E.tick(noLoop,1/120);captures+=noLoop.events.filter(e=>e.kind==='scoop').length;enteredPlay||=noLoop.balls.some(b=>!b.lane&&!b.captureUntil&&b.x<320&&b.y>400);noLoop.events=[];}
+assert.ok(enteredPlay,'Rail exit must send the ball into the central playfield');
+assert.equal(captures,1,'A passive rescue return must not recapture in a loop');
+assert.equal(noLoop.phase,'ready','An unattended returned ball eventually drains');
+assert.equal(noLoop.lives,2);
+console.log('PASS: both side outlanes drain, and rescue rail return exits into play without passive recapture loops.');

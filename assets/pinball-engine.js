@@ -4,13 +4,13 @@
   const bumpers=[{x:240,y:205,r:33},{x:158,y:340,r:33},{x:310,y:340,r:33}];
   const targets=[{x:142,y:115,r:15},{x:240,y:100,r:15},{x:338,y:115,r:15}];
   const scoop={x:366,y:452,r:24},wormhole={x:378,y:350,r:16};
-  const slings=[[[65,595],[102,690],[160,670]],[[415,595],[378,690],[320,670]]];
-  const walls=[[[28,770],[28,155]],[[28,155],[44,92]],[[44,92],[100,48]],[[100,48],[375,48]],[[375,48],[421,84]],[[421,84],[451,150]],[[451,150],[451,820]],[[419,210],[419,815]],[[28,495],[50,565]],[[50,565],[66,585]],[[419,495],[403,565]],[[403,565],[394,585]]];
+  const slings=[[[90,595],[102,690],[160,670]],[[357,595],[350,690],[300,670]]];
+  const walls=[[[28,770],[28,155]],[[28,155],[44,92]],[[44,92],[100,48]],[[100,48],[375,48]],[[375,48],[421,84]],[[421,84],[451,150]],[[451,150],[451,820]],[[419,210],[419,815]]];
   // Open U-shaped return channels, sampled once for identical rendering and collisions.
   function smooth(points){const out=[];for(let i=0;i<points.length-1;i++){const a=points[Math.max(0,i-1)],b=points[i],c=points[i+1],d=points[Math.min(points.length-1,i+2)];for(let j=0;j<6;j++){const t=j/6;out.push([0,1].map(k=>.5*(2*b[k]+(-a[k]+c[k])*t+(2*a[k]-5*b[k]+4*c[k]-d[k])*t*t+(-a[k]+3*b[k]-3*c[k]+d[k])*t*t*t)));}}out.push(points.at(-1));return out;}
   const leftReturn=[[42,510],[42,290],[48,244],[66,222],[88,220],[107,234],[114,255],[110,275],[97,292],[86,305],[82,330],[82,500]];
   const sideLanes=[smooth([...leftReturn.slice(0,-1),[100,450],[120,530]]),smooth(leftReturn.map(([x,y],i)=>[440-x,i===0?375:i===leftReturn.length-1?375:y]))];
-  const guides=[[[82,150],[136,181]],[[344,181],[395,150]],[[54,545],[72,650]],[[72,650],[115,718]],[[402,545],[390,650]],[[390,650],[365,718]]];
+  const guides=[[[82,150],[136,181]],[[344,181],[395,150]],[[90,545],[90,690]],[[90,690],[115,718]],[[365,545],[365,690]],[[365,690],[350,718]]];
   const sideWalls=sideLanes.flatMap(points=>points.slice(1).map((point,i)=>[points[i],point])).concat(guides);
   function create(mode='mission'){if(!['mission','practice'].includes(mode))throw Error('Unknown mode');return {mode,phase:'ready',paused:false,time:0,lives:mode==='practice'?null:3,score:0,stage:0,lit:[false,false,false],sequence:0,completed:0,balls:[ball()],flippers:[{x:130,y:732,a:.36,omega:0},{x:350,y:732,a:Math.PI-.36,omega:0}],saveUntil:0,cooldowns:{},events:[]};}
   function ball(){return {x:437,y:790,vx:0,vy:0,r:R,lane:true,stuck:0};}
@@ -41,7 +41,10 @@
       s.flippers.forEach((f,i)=>{const held=i?input.right:input.left,target=i?Math.PI+(held?.5:-.36):(held?-.5:.36),previous=f.a,speed=held?17:10;f.a+=Math.sign(target-f.a)*Math.min(Math.abs(target-f.a),speed*h);f.omega=(f.a-previous)/h;});
       if(s.phase==='ready')continue;
       for(const b of [...s.balls]){
-        if(b.captureUntil){if(s.time<b.captureUntil)continue;b.captureUntil=0;b.x=wormhole.x;b.y=wormhole.y;b.vx=0;b.vy=-650;b.stuck=0;hit(s,'scoop',0);emit(s,'warp',b.x,b.y);if(s.phase==='won')break;continue;}
+        if(b.captureUntil){if(s.time<b.captureUntil)continue;b.captureUntil=0;b.x=wormhole.x;b.y=wormhole.y;b.vx=0;b.vy=-650;b.stuck=0;b.returning=true;b.scoopBlocked=true;hit(s,'scoop',0);emit(s,'warp',b.x,b.y);if(s.phase==='won')break;continue;}
+        // The return rail ejects toward open play instead of dropping into its own scoop.
+        if(b.returning&&b.y>390&&b.vy>0){b.returning=false;b.vx=-300;b.vy=200;emit(s,'rail',b.x,b.y);}
+        if(b.scoopBlocked&&b.x<320&&b.y>400)b.scoopBlocked=false;
         b.vy+=720*h;b.vx*=Math.exp(-.055*h);b.vy*=Math.exp(-.055*h);b.x+=b.vx*h;b.y+=b.vy*h;
         if(b.lane){b.x=437;if(b.y<=128){b.lane=false;b.x=397;b.y=125;b.vx=-340;b.vy=-170;}continue;}
         for(const [a,z] of walls)segment(b,{x:a[0],y:a[1]},{x:z[0],y:z[1]});
@@ -50,7 +53,7 @@
         s.flippers.forEach((f,i)=>{if(segment(b,f,flipperTip(f,i),.82,f.omega,f)&&contact(s,'flipper'+i,.08))emit(s,'flipper',b.x,b.y);});
         bumpers.forEach((c,i)=>{if(circle(b,c,130)&&contact(s,'b'+i)){hit(s,'bumper',i);emit(s,'bumper',c.x,c.y);}});
         targets.forEach((c,i)=>{if(circle(b,c,70)&&contact(s,'t'+i,.3)){hit(s,'target',i);emit(s,'target',c.x,c.y);}});
-        if(Math.hypot(b.x-scoop.x,b.y-scoop.y)<scoop.r&&contact(s,'scoop',1.5)){b.x=scoop.x;b.y=scoop.y;b.vx=0;b.vy=0;b.captureUntil=s.time+2;emit(s,'scoop',scoop.x,scoop.y);continue;}
+        if(!b.scoopBlocked&&Math.hypot(b.x-scoop.x,b.y-scoop.y)<scoop.r&&contact(s,'scoop',1.5)){b.x=scoop.x;b.y=scoop.y;b.vx=0;b.vy=0;b.captureUntil=s.time+2;emit(s,'scoop',scoop.x,scoop.y);continue;}
         const speed=Math.hypot(b.vx,b.vy);if(speed>1100){b.vx*=1100/speed;b.vy*=1100/speed;}b.stuck=speed<35?b.stuck+h:0;if(b.stuck>3){b.vx=b.x<240?150:-150;b.vy=-220;b.stuck=0;emit(s,'pulse',b.x,b.y);}
         // Numerical guards keep a ball on the table without hiding a normal bottom drain.
         if(b.x<15){b.x=15;b.vx=Math.abs(b.vx);}if(b.x>462){b.x=462;b.vx=-Math.abs(b.vx);}if(b.y<25){b.y=25;b.vy=Math.abs(b.vy);}
