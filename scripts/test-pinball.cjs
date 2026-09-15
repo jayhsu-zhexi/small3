@@ -1,5 +1,5 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const box={exports:{}};vm.runInNewContext(fs.readFileSync('assets/pinball-engine.js','utf8'),{module:box});const E=box.exports;
+const box={exports:{}};vm.runInNewContext(fs.readFileSync('assets/pinball-table.js','utf8')+'\n'+fs.readFileSync('assets/pinball-engine.js','utf8'),{module:box});const E=box.exports;
 function advance(s,seconds,input={}){for(let i=0;i<Math.round(seconds*120);i++){E.tick(s,1/120,input);s.events=[];}}
 function put(s,x,y,vx=0,vy=0){s.phase='playing';s.balls=[{x,y,vx,vy,r:E.R,lane:false,stuck:0}];s.time+=2;}
 assert.throws(()=>E.create('bad'));let s=E.create();assert.equal(s.lives,3);assert.equal(s.phase,'ready');assert.equal(E.launch(s,.6),true);assert.equal(E.launch(s,1),false);
@@ -90,3 +90,14 @@ const purpleGate=E.create();put(purpleGate,50,550,0,-240);advance(purpleGate,.12
 const purpleOut=E.create();put(purpleOut,50,520,0,200);advance(purpleOut,.2);assert.ok(purpleOut.balls[0].y>550,'The same lower opening lets the ball return');
 const markup=fs.readFileSync('pinball.html','utf8');assert.match(markup,/<\/canvas><\/div><div id="notice"/,'Messages must be outside the board container');
 console.log('PASS: right margin stays closed, purple chamber uses the lower gate, and status is outside the playfield.');
+
+const ids=new Set(E.table.components.map(c=>c.id));assert.equal(ids.size,E.table.components.length,'Every table component has an independent identity');
+for(const collider of E.table.railColliders){assert.ok(E.table.components.includes(collider.component));assert.ok(collider.component.points.includes(collider.a));assert.ok(collider.component.points.includes(collider.b));assert.equal(collider.radius,collider.component.radius);}
+for(const c of E.table.components.filter(c=>c.type==='bumper'))assert.ok([...E.bumpers,...E.bonusBumpers].includes(c.shape),'Rendered circles and physics share the same shape object');
+assert.equal(E.table.components.find(c=>c.id==='left-ramp').points,E.ramp);
+assert.equal(E.table.components.find(c=>c.id==='shooter').points,E.launchPath);
+assert.equal(E.table.components.filter(c=>c.type==='drain').length,3);
+const uiSource=fs.readFileSync('assets/pinball-ui.js','utf8');assert.doesNotMatch(uiSource,/pinball-approved-field|const mask=/,'No whole-board component image or copied bridge mask remains');
+assert.match(uiSource,/E\.table\.components/,'Renderer reads the component registry');
+assert.ok(fs.readFileSync('pinball.html','utf8').indexOf('pinball-table.js')<fs.readFileSync('pinball.html','utf8').indexOf('pinball-engine.js'));
+console.log('PASS: rendered components, collider edges, circles, paths, drains and flippers share the table definitions.');

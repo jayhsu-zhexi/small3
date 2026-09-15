@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 async function boot(){
- const box={exports:{}};vm.runInNewContext(fs.readFileSync('assets/pinball-engine.js','utf8'),{module:box});let state,now=0,serial=0;const nodes=new Map(),frames=new Map(),timers=new Map(),windowEvents={},docEvents={},audioCalls=[];
+ const box={exports:{}};vm.runInNewContext(fs.readFileSync('assets/pinball-table.js','utf8')+'\n'+fs.readFileSync('assets/pinball-engine.js','utf8'),{module:box});let state,now=0,serial=0;const nodes=new Map(),frames=new Map(),timers=new Map(),windowEvents={},docEvents={},audioCalls=[];
  const ctx=new Proxy({},{get:(object,key)=>object[key]||(()=>{}),set:(object,key,value)=>(object[key]=value,true)});
  function node(id){if(!nodes.has(id))nodes.set(id,{textContent:'',hidden:false,disabled:false,open:false,dataset:{},attrs:{},events:{},style:{setProperty(k,v){this[k]=v}},offsetHeight:40,clientHeight:700,clientWidth:370,width:480,height:860,getContext:()=>ctx,getBoundingClientRect:()=>({width:330,height:591}),setAttribute(k,v){this.attrs[k]=v},getAttribute(k){return this.attrs[k]},addEventListener(k,f){this.events[k]=f},setPointerCapture(){},focus(){},showModal(){this.open=true},close(){this.open=false},click(){if(!this.disabled)this.onclick?.();}});return nodes.get(id);}
  class Image{set src(value){this.onload?.();}}

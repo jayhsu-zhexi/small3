@@ -8,26 +8,44 @@
   soundLabel();
   function notify(text,seconds=2.5){$('notice').textContent=text;noticeUntil=game.time+seconds;}
   function imageLoad(image,src){return new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;image.src=src;});}
-  function load(){if(loading)return;loading=true;ready=false;const version=++loadVersion;$('start').disabled=true;$('start').textContent='正在準備球台…';$('loadStatus').textContent='正在載入元件圖片';let timeout;Promise.race([Promise.all([imageLoad(field,'/assets/pinball-approved-field.webp'),imageLoad(parts,'/assets/pinball-parts.webp')]),new Promise((_,reject)=>{timeout=setTimeout(reject,20000);})]).then(()=>{if(version!==loadVersion)return;ready=true;$('start').textContent='開始救援';$('loadStatus').textContent='球台已準備好';resize();}).catch(()=>{if(version!==loadVersion)return;$('start').textContent='重新載入球台';$('loadStatus').textContent='圖片載入失敗，請點上方按鈕重試。';}).finally(()=>{clearTimeout(timeout);if(version===loadVersion){loading=false;$('start').disabled=false;}});}
+  function load(){if(loading)return;loading=true;ready=false;const version=++loadVersion;$('start').disabled=true;$('start').textContent='正在準備球台…';$('loadStatus').textContent='正在載入元件圖片';let timeout;Promise.race([Promise.all([imageLoad(field,'/assets/pinball-cabinet-v2.webp'),imageLoad(parts,'/assets/pinball-parts.webp')]),new Promise((_,reject)=>{timeout=setTimeout(reject,20000);})]).then(()=>{if(version!==loadVersion)return;ready=true;$('start').textContent='開始救援';$('loadStatus').textContent='球台已準備好';resize();}).catch(()=>{if(version!==loadVersion)return;$('start').textContent='重新載入球台';$('loadStatus').textContent='圖片載入失敗，請點上方按鈕重試。';}).finally(()=>{clearTimeout(timeout);if(version===loadVersion){loading=false;$('start').disabled=false;}});}
   function circleSprite(sx,sy,sw,sh,x,y,r){ctx.save();ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.clip();ctx.drawImage(parts,sx,sy,sw,sh,x-r,y-r,r*2,r*2);ctx.restore();}
   function line(a,z,color,width){ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(z[0],z[1]);ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineCap='round';ctx.stroke();}
   function label(text,x,y,color='#d7efff',size=14){ctx.font='600 '+size+'px "Microsoft JhengHei",sans-serif';ctx.textAlign='center';ctx.fillStyle=color;ctx.fillText(text,x,y);}
   function drawBall(b){if(b.captureUntil){trails.delete(b);return;}if(!reduced.matches){const trail=trails.get(b)||[];for(let i=1;i<trail.length;i++){ctx.globalAlpha=i/trail.length*.35;line(trail[i-1],trail[i],'#a2dfff',5);}ctx.globalAlpha=1;}circleSprite(1158,143,241,237,b.x,b.y,b.r);}
-  function drawRamp(){
-    // Restore the photographed raised bridge above ground-level balls.
-    const mask=[[42,300],[49,279],[75,260],[107,265],[143,293],[163,326],[191,378],[167,386],[146,342],[114,309],[89,297],[72,306],[70,326],[87,348],[74,368],[49,337]];
-    ctx.save();ctx.beginPath();mask.forEach((p,i)=>i?ctx.lineTo(...p):ctx.moveTo(...p));ctx.closePath();ctx.clip();ctx.drawImage(field,0,0,E.W,E.H);ctx.restore();
+  function path(points,closed=false){ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(...p):ctx.moveTo(...p));if(closed)ctx.closePath();}
+  function rail(points,radius,color='#9daccc'){
+    ctx.lineCap='round';ctx.lineJoin='round';path(points);ctx.strokeStyle=color;ctx.lineWidth=radius*2;ctx.stroke();
+    path(points);ctx.strokeStyle='#ecf4ff';ctx.lineWidth=Math.max(1,radius*.5);ctx.stroke();
+  }
+  function drawComponent(c){
+    if(c.type==='drain'){const d=c.shape;line([Math.max(d.minX,22),d.minY],[Math.min(d.maxX,E.W-22),d.minY],'#eab899',2);return;}
+    if(c.type==='rail'||c.type==='boundary'){rail(c.points,c.radius,c.id.startsWith('chamber')?'#b994ed':'#92a0b7');return;}
+    if(c.type==='polygon'||c.type==='sling'){path(c.points,true);ctx.fillStyle=c.type==='sling'?'#281a50':'#142332';ctx.fill();rail([...c.points,c.points[0]],c.radius);const center=c.points.reduce((v,p)=>[v[0]+p[0]/c.points.length,v[1]+p[1]/c.points.length],[0,0]);ctx.beginPath();ctx.arc(...center,5,0,Math.PI*2);ctx.fillStyle='#77dfea';ctx.fill();return;}
+    if(c.type==='bumper'){const p=c.shape;circleSprite(88,94,338,336,p.x,p.y,p.r);if(c.kick){const i=Number(c.id.split('-')[1]);ctx.beginPath();ctx.arc(p.x,p.y,p.r-4,0,Math.PI*2);ctx.strokeStyle=game.lit[i]?'#ffdc8c':'#ca78b9';ctx.lineWidth=3;ctx.stroke();}return;}
+    if(c.type==='sensor'){const p=c.shape,i=Number(c.id.split('-')[1]);ctx.beginPath();ctx.roundRect(p.x-p.r,p.y-p.r,p.r*2,p.r*2,4);ctx.fillStyle=game.stage===1&&i<game.sequence?'#ffda86':'#393051';ctx.fill();label(String(i+1),p.x,p.y-12,'#ffe9b9',14);return;}
+    if(c.type==='scoop'){const p=c.shape;circleSprite(1080,565,399,359,p.x,p.y,p.r);ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.strokeStyle=game.stage===2?'#a8ffe2':'#ab8edf';ctx.lineWidth=2;ctx.stroke();return;}
+    if(c.type==='track'){
+      // This same centerline constrains moving balls in the engine's track layer.
+      path(c.points);ctx.lineWidth=c.halfWidth*2;ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle=c.id==='shooter'?'#96733a':'#ab85cc';ctx.stroke();
+      path(c.points);ctx.lineWidth=c.halfWidth*2-5;ctx.strokeStyle=c.id==='shooter'?'#413221':'#513873';ctx.stroke();
+      for(let i=2;i<c.points.length-2;i+=5){const p=c.points[i],z=c.points[i+1],angle=Math.atan2(z[1]-p[1],z[0]-p[0]);ctx.save();ctx.translate(...p);ctx.rotate(angle);line([-4,-4],[1,0],c.id==='shooter'?'#ffe090':'#e0c6ff',2);line([1,0],[-4,4],c.id==='shooter'?'#ffe090':'#e0c6ff',2);ctx.restore();}return;
+    }
+    if(c.type==='flipper'){const i=c.id==='left-flipper'?0:1,f=game.flippers[i];ctx.save();ctx.translate(f.x,f.y);ctx.rotate(f.a);const r=c.radius;ctx.beginPath();ctx.roundRect(-r,-r,c.length+2*r,2*r,r);ctx.fillStyle='#e2a35e';ctx.fill();ctx.beginPath();ctx.roundRect(-r+2,-r+2,c.length+2*r-4,2*r-4,r-2);ctx.fillStyle='#fff4dd';ctx.fill();ctx.restore();}
   }
   function draw(){
-    if(!ctx||!ready)return;ctx.setTransform(canvas.width/E.W,0,0,canvas.height/E.H,0,0);ctx.clearRect(0,0,E.W,E.H);ctx.drawImage(field,0,0,E.W,E.H);
-    E.bumpers.forEach((c,i)=>{if(game.lit[i]){ctx.beginPath();ctx.arc(c.x,c.y,c.r+3,0,Math.PI*2);ctx.strokeStyle='#ffe7a2';ctx.lineWidth=2;ctx.stroke();}});
-    E.targets.forEach((c,i)=>{if(game.stage===1){ctx.beginPath();ctx.arc(c.x,c.y-18,5,0,Math.PI*2);ctx.fillStyle=i<=game.sequence?'#fff3bc':'#764944';ctx.fill();}});
-    if(game.stage===2||game.balls.some(b=>b.captureUntil)){ctx.beginPath();ctx.arc(E.scoop.x,E.scoop.y,19,0,Math.PI*2);ctx.strokeStyle='#9dffe0';ctx.lineWidth=2;ctx.stroke();}
-    game.flippers.forEach((f,i)=>{ctx.save();ctx.translate(f.x,f.y);ctx.rotate(f.a);if(i)ctx.scale(1,-1);const r=E.FLIPPER_RADIUS;ctx.beginPath();ctx.roundRect(-r,-r,E.FLIPPER_LENGTH+2*r,2*r,r);ctx.fillStyle='#e2a35e';ctx.fill();ctx.lineWidth=2;ctx.strokeStyle='#ffe6bb';ctx.stroke();ctx.beginPath();ctx.roundRect(-r+3,-r+3,E.FLIPPER_LENGTH+2*r-6,2*r-6,r-3);ctx.fillStyle='#fff4dd';ctx.fill();ctx.restore();});
-    for(const b of game.balls)if(!b.rampUntil)drawBall(b);
-    drawRamp();
+    if(!ctx||!ready)return;ctx.setTransform(canvas.width/E.W,0,0,canvas.height/E.H,0,0);ctx.clearRect(0,0,E.W,E.H);
+    ctx.fillStyle='#090b19';ctx.fillRect(0,0,E.W,E.H);ctx.globalAlpha=.5;ctx.drawImage(field,0,0,E.W,E.H);ctx.globalAlpha=1;
+    // Decoration has no mechanical shapes. Every visible solid comes from the table registry.
+    path([[16,350],[104,350],[110,440],[96,485],[76,514],[68,535],[28,535],[16,490]],true);ctx.fillStyle='#4e287766';ctx.fill();
+    for(const c of E.table.components)if(c.layer===0)drawComponent(c);
+    for(const b of game.balls)if(!b.rampUntil&&!b.lane)drawBall(b);
+    for(const c of E.table.components)if(c.layer===1)drawComponent(c);
+    for(const b of game.balls)if(b.lane)drawBall(b);
+    for(const c of E.table.components)if(c.layer===2)drawComponent(c);
     for(const b of game.balls)if(b.rampUntil)drawBall(b);
     if(!reduced.matches)for(const e of effects){const age=game.time-e.at;if(age<0||age>.5)continue;ctx.globalAlpha=1-age*2;ctx.strokeStyle=e.kind==='mission'?'#ffda82':'#76e7ff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(e.x,e.y,8+age*60,0,Math.PI*2);ctx.stroke();}ctx.globalAlpha=1;
+    label('左側落球',49,749,'#af98b2',12);label('右側落球',414,749,'#af98b2',12);
     if(game.phase==='playing'&&game.time<game.saveUntil)label('救球保護 '+Math.ceil(game.saveUntil-game.time)+' 秒',240,813,'#a5f9e7',14);
   }
   function resize(){const h=window.visualViewport?.height||window.innerHeight;$('app').style.setProperty('--vh',h+'px');if(running){const area=document.querySelector('.play-area'),land=window.innerWidth>window.innerHeight&&window.innerHeight<=550;const occupied=land?0:document.querySelector('.hud').offsetHeight+document.querySelector('.task').offsetHeight+document.querySelector('.controls').offsetHeight+document.querySelector('.keyboard-hint').offsetHeight+$('notice').offsetHeight+36;const height=Math.max(120,area.clientHeight-occupied),width=Math.min(area.clientWidth,land?Math.max(100,area.clientWidth-300):area.clientWidth,height*E.W/E.H);$('app').style.setProperty('--table-width',width+'px');$('app').style.setProperty('--table-height',width*E.H/E.W+'px');}const bounds=canvas.getBoundingClientRect(),ratio=Math.min(2,window.devicePixelRatio||1);canvas.width=Math.max(1,Math.round(bounds.width*ratio));canvas.height=Math.max(1,Math.round(bounds.height*ratio));draw();}

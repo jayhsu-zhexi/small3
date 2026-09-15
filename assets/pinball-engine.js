@@ -1,33 +1,12 @@
 (function(root){
   'use strict';
-  const W=480,H=860,R=8,RAIL_RADIUS=4,FLIPPER_RADIUS=7,FLIPPER_LENGTH=65;
-  const bumpers=[{x:214,y:182,r:21},{x:281,y:165,r:21},{x:245,y:241,r:21}];
-  const targets=[{x:214,y:118,r:8},{x:245,y:118,r:8},{x:275,y:118,r:8}];
-  const scoop={x:389,y:407,r:17},wormhole={x:389,y:270,r:12};
-  const bonusBumpers=[{x:106,y:66,r:23},{x:34,y:414,r:12},{x:82,y:431,r:12},{x:48,y:459,r:12}];
-  const slings=[[[132,543],[121,620],[160,642]],[[353,543],[349,615],[316,642]]];
-  const walls=[[[28,705],[28,565]],[[28,565],[16,490]],[[16,490],[16,340]],[[16,340],[49,230]],[[435,365],[435,800]],[[464,800],[464,140]],[[423,705],[423,535]]];
-  // Open U-shaped return channels, sampled once for identical rendering and collisions.
-  function smooth(points){const out=[];for(let i=0;i<points.length-1;i++){const a=points[Math.max(0,i-1)],b=points[i],c=points[i+1],d=points[Math.min(points.length-1,i+2)];for(let j=0;j<6;j++){const t=j/6;out.push([0,1].map(k=>.5*(2*b[k]+(-a[k]+c[k])*t+(2*a[k]-5*b[k]+4*c[k]-d[k])*t*t+(-a[k]+3*b[k]-3*c[k]+d[k])*t*t*t)));}}out.push(points.at(-1));return out;}
-  // Shooter follows the yellow outer rail all the way to the crown before entering play.
-  const launchPath=smooth([[448,686],[445,610],[441,520],[437,440],[435,360],[433,280],[426,210],[408,145],[380,100],[337,67],[284,48],[230,49],[207,72]]);
-  const launchDistances=[0];for(let i=1;i<launchPath.length;i++)launchDistances.push(launchDistances[i-1]+Math.hypot(launchPath[i][0]-launchPath[i-1][0],launchPath[i][1]-launchPath[i-1][1]));
-  function launchPoint(distance){let i=1;const d=Math.max(0,Math.min(launchDistances.at(-1),distance));while(i<launchPath.length-1&&launchDistances[i]<d)i++;const t=(d-launchDistances[i-1])/(launchDistances[i]-launchDistances[i-1]);return {x:launchPath[i-1][0]+(launchPath[i][0]-launchPath[i-1][0])*t,y:launchPath[i-1][1]+(launchPath[i][1]-launchPath[i-1][1])*t};}
-  // Trace the approved fixed artwork: outer horseshoe and separate inner right return rail.
-  const sideLanes=[smooth([[77,133],[58,108],[58,64],[82,29],[118,29],[155,53],[222,40],[290,36],[345,57],[389,106],[419,181],[423,280]]),smooth([[317,99],[344,115],[365,160],[365,218],[347,273]])];
-  // Only the short left hairpin is raised; it does not wrap around the whole table.
-  const ramp=smooth([[181,376],[163,334],[130,294],[96,269],[65,274],[43,302],[47,335],[69,362],[86,410],[72,465],[62,540],[80,566],[96,590]]);
-  const rampDistances=[0];for(let i=1;i<ramp.length;i++)rampDistances.push(rampDistances[i-1]+Math.hypot(ramp[i][0]-ramp[i-1][0],ramp[i][1]-ramp[i-1][1]));
-  function rampPoint(progress){const d=Math.max(0,Math.min(1,progress))*rampDistances.at(-1);let i=1;while(i<ramp.length-1&&rampDistances[i]<d)i++;const t=(d-rampDistances[i-1])/(rampDistances[i]-rampDistances[i-1]);return {x:ramp[i-1][0]+(ramp[i][0]-ramp[i-1][0])*t,y:ramp[i-1][1]+(ramp[i][1]-ramp[i-1][1])*t};}
-  const guides=[[[64,557],[61,604]],[[61,604],[143,687]],[[395,557],[397,604]],[[397,604],[326,687]],[[74,611],[73,704]]];
-  const deflectors=[[[152,85],[194,109],[166,145],[147,132]],[[299,82],[321,94],[294,129],[283,118]],[[151,220],[178,215],[166,254]]];
-  const purpleWalls=[[[16,350],[104,350]],[[104,350],[110,440]],[[110,440],[96,485]],[[96,485],[76,514]],[[76,514],[68,535]]];
-  const sideWalls=sideLanes.flatMap(points=>points.slice(1).map((point,i)=>[points[i],point])).concat(guides,purpleWalls,deflectors.flatMap(p=>p.map((a,i)=>[a,p[(i+1)%p.length]])));
-  function create(mode='mission'){if(!['mission','practice'].includes(mode))throw Error('Unknown mode');return {mode,phase:'ready',paused:false,time:0,lives:mode==='practice'?null:3,score:0,stage:0,lit:[false,false,false],sequence:0,completed:0,balls:[ball()],flippers:[{x:148,y:709,a:.36,omega:0},{x:335,y:709,a:Math.PI-.36,omega:0}],saveUntil:0,cooldowns:{},events:[]};}
+  const table=root.OrbitPinballTable;
+  const {W,H,R,RAIL_RADIUS,FLIPPER_RADIUS,FLIPPER_LENGTH,bumpers,targets,scoop,wormhole,bonusBumpers,slings,walls,launchPath,launchDistances,launchPoint,sideLanes,ramp,rampDistances,rampPoint,guides,deflectors,purpleWalls,sideWalls,leftBoundary,rightBoundary,railColliders}=table;
+  function create(mode='mission'){if(!['mission','practice'].includes(mode))throw Error('Unknown mode');return {mode,phase:'ready',paused:false,time:0,lives:mode==='practice'?null:3,score:0,stage:0,lit:[false,false,false],sequence:0,completed:0,balls:[ball()],flippers:table.components.filter(c=>c.type==='flipper').map((c,i)=>({...c.pivot,length:c.length,radius:c.radius,a:i?Math.PI-.36:.36,omega:0})),saveUntil:0,cooldowns:{},events:[]};}
   function ball(){return {x:launchPath[0][0],y:launchPath[0][1],vx:0,vy:0,r:R,lane:true,stuck:0};}
   function emit(s,kind,x=240,y=400){s.events.push({kind,x,y});}
   function launch(s,power=.7){if(s.paused||s.phase!=='ready')return false;const p=Math.max(0,Math.min(1,Number.isFinite(power)?power:.7)),b=s.balls[0];b.launchDistance=0;b.launchSpeed=620+p*260;b.vy=-b.launchSpeed;s.phase='playing';s.saveUntil=s.time+8;emit(s,'launch',b.x,b.y);return true;}
-  function flipperTip(f,index){return {x:f.x+Math.cos(f.a)*FLIPPER_LENGTH,y:f.y+Math.sin(f.a)*FLIPPER_LENGTH};}
+  function flipperTip(f,index){return {x:f.x+Math.cos(f.a)*(f.length||FLIPPER_LENGTH),y:f.y+Math.sin(f.a)*(f.length||FLIPPER_LENGTH)};}
   function passiveRestitution(speed){return .18+.32*Math.min(1,Math.abs(speed)/700);}
   function segment(b,a,z,r=null,omega=0,pivot=a,radius=RAIL_RADIUS){
     const dx=z.x-a.x,dy=z.y-a.y,t=Math.max(0,Math.min(1,((b.x-a.x)*dx+(b.y-a.y)*dy)/(dx*dx+dy*dy||1))),px=a.x+t*dx,py=a.y+t*dy;
@@ -44,12 +23,10 @@
     b.x=best.x+best.nx*(b.r+RAIL_RADIUS+.1);b.y=best.y+best.ny*(b.r+RAIL_RADIUS+.1);
     const inward=b.vx*best.nx+b.vy*best.ny;if(inward<0){b.vx-=inward*best.nx;b.vy-=inward*best.ny;}return true;
   }
-  const leftBoundary=[[95,25],[58,45],[48,90],[68,150],[49,230],[16,340],[16,490],[28,565],[28,715]];
   function leftLimit(y,r=R){
     for(let i=1;i<leftBoundary.length;i++){const a=leftBoundary[i-1],z=leftBoundary[i];if(y>=a[1]&&y<=z[1]){const dx=z[0]-a[0],dy=z[1]-a[1];return a[0]+(y-a[1])*dx/dy+(r+RAIL_RADIUS+.1)*Math.hypot(dx,dy)/dy;}}
     return r+20;
   }
-  const rightBoundary=[[430,25],[436,180],[423,280],[388,320],[370,365],[378,388],[407,407],[385,440],[399,485],[423,535],[423,715]];
   function rightLimit(y,r=R){for(let i=1;i<rightBoundary.length;i++){const a=rightBoundary[i-1],z=rightBoundary[i];if(y>=a[1]&&y<=z[1])return a[0]+(z[0]-a[0])*(y-a[1])/(z[1]-a[1])-r-RAIL_RADIUS;}return 423-r-RAIL_RADIUS;}
   function contain(b){
     if(b.y<25+b.r){b.y=25+b.r;if(b.vy<0)b.vy=-b.vy*passiveRestitution(b.vy);}
@@ -87,13 +64,11 @@
           continue;
         }
         b.vy+=720*h;b.vx*=Math.exp(-.055*h);b.vy*=Math.exp(-.055*h);b.x+=b.vx*h;b.y+=b.vy*h;
-        if(!b.rampBlocked&&b.vy<-120&&Math.hypot(b.x-ramp[0][0],b.y-ramp[0][1])<23){b.rampUntil=s.time+2.4;b.rampBlocked=true;b.vx=0;b.vy=0;emit(s,'ramp',b.x,b.y);continue;}
-        for(const [a,z] of walls)segment(b,{x:a[0],y:a[1]},{x:z[0],y:z[1]});
-        for(const [a,z] of sideWalls)if(segment(b,{x:a[0],y:a[1]},{x:z[0],y:z[1]})&&contact(s,'rail',.12))emit(s,'rail',b.x,b.y);
+        if(!b.rampBlocked&&b.vy<-120&&Math.hypot(b.x-ramp[0][0],b.y-ramp[0][1])<table.components.find(c=>c.id==='left-ramp').entryRadius){b.rampUntil=s.time+2.4;b.rampBlocked=true;b.vx=0;b.vy=0;emit(s,'ramp',b.x,b.y);continue;}
+        for(const c of railColliders)if(segment(b,{x:c.a[0],y:c.a[1]},{x:c.b[0],y:c.b[1]},null,0,undefined,c.radius)&&contact(s,'rail',.12))emit(s,'rail',b.x,b.y);
         slings.forEach((points,i)=>{const corrected=ejectInterior(b,points);for(let edge=0;edge<3;edge++){const a=points[edge],z=points[(edge+1)%3],dx=z[0]-a[0],dy=z[1]-a[1],length=Math.hypot(dx,dy),impact=Math.abs((b.vx*-dy+b.vy*dx)/length);if(segment(b,{x:a[0],y:a[1]},{x:z[0],y:z[1]})&&edge===2&&!corrected&&impact>100&&contact(s,'sling'+i,.25)){s.score+=25;emit(s,'sling',b.x,b.y);}}});
-        s.flippers.forEach((f,i)=>{if(segment(b,f,flipperTip(f,i),f.omega?.82:null,f.omega,f,FLIPPER_RADIUS)&&contact(s,'flipper'+i,.08))emit(s,'flipper',b.x,b.y);});
-        bumpers.forEach((c,i)=>{if(circle(b,c,130)&&contact(s,'b'+i)){hit(s,'bumper',i);emit(s,'bumper',c.x,c.y);}});
-        bonusBumpers.forEach((c,i)=>{if(circle(b,c,0)&&contact(s,'bonus'+i)){s.score+=50;emit(s,'bumper',c.x,c.y);}});
+        s.flippers.forEach((f,i)=>{if(segment(b,f,flipperTip(f,i),f.omega?.82:null,f.omega,f,f.radius||FLIPPER_RADIUS)&&contact(s,'flipper'+i,.08))emit(s,'flipper',b.x,b.y);});
+        table.components.filter(c=>c.type==='bumper').forEach(c=>{const main=c.id.startsWith('bumper-'),i=Number(c.id.split('-')[1]);if(circle(b,c.shape,c.kick)&&contact(s,c.id)){if(main)hit(s,'bumper',i);else s.score+=50;emit(s,'bumper',c.shape.x,c.shape.y);}});
         // Rollover switches detect entry without changing the ball's position or velocity.
         b.rollovers ||= [];
         targets.forEach((c,i)=>{const inside=Math.hypot(b.x-c.x,b.y-c.y)<c.r+b.r;if(inside&&!b.rollovers[i]){hit(s,'target',i);emit(s,'target',c.x,c.y);}b.rollovers[i]=inside;});
@@ -101,11 +76,11 @@
         const speed=Math.hypot(b.vx,b.vy);if(speed>1100){b.vx*=1100/speed;b.vy*=1100/speed;}
         // Resolve the exterior LAST: bumpers and nearby rails can push a ball outward.
         contain(b);
-        if(b.y>782||(b.y>715&&(b.x<80||b.x>400))){s.balls=s.balls.filter(other=>other!==b);if(!s.balls.length){const saved=s.time<s.saveUntil;if(!saved&&s.lives!==null)s.lives--;if(s.lives===0){s.phase='lost';emit(s,'lost');}else{s.balls=[ball()];s.phase='ready';emit(s,saved?'saved':'drain');}}}
+        if(table.drains.some(d=>b.y>d.minY&&b.x>d.minX&&b.x<d.maxX)){s.balls=s.balls.filter(other=>other!==b);if(!s.balls.length){const saved=s.time<s.saveUntil;if(!saved&&s.lives!==null)s.lives--;if(s.lives===0){s.phase='lost';emit(s,'lost');}else{s.balls=[ball()];s.phase='ready';emit(s,saved?'saved':'drain');}}}
         if(s.phase==='won'||s.phase==='lost')break;
       }
       if(s.phase==='won'||s.phase==='lost')break;
     }
   }
-  const api={W,H,R,RAIL_RADIUS,FLIPPER_RADIUS,FLIPPER_LENGTH,passiveRestitution,purpleWalls,rightLimit,leftLimit,launchPath,launchPoint,launchDistances,ramp,rampPoint,bonusBumpers,bumpers,targets,scoop,wormhole,slings,deflectors,walls,sideLanes,guides,sideWalls,create,launch,tick,flipperTip};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.OrbitPinball=api;
-})(typeof window==='undefined'?{}:window);
+  const api={table,W,H,R,RAIL_RADIUS,FLIPPER_RADIUS,FLIPPER_LENGTH,passiveRestitution,purpleWalls,rightLimit,leftLimit,launchPath,launchPoint,launchDistances,ramp,rampPoint,bonusBumpers,bumpers,targets,scoop,wormhole,slings,deflectors,walls,sideLanes,guides,sideWalls,create,launch,tick,flipperTip};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.OrbitPinball=api;
+})(typeof window==='undefined'?globalThis:window);
