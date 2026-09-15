@@ -1,11 +1,17 @@
 (function(root){
   'use strict';
   const W=480,H=860,R=10;
-  const bumpers=[{x:240,y:205,r:33},{x:145,y:310,r:33},{x:328,y:310,r:33}];
+  const bumpers=[{x:240,y:205,r:33},{x:158,y:340,r:33},{x:310,y:340,r:33}];
   const targets=[{x:142,y:115,r:15},{x:240,y:100,r:15},{x:338,y:115,r:15}];
   const scoop={x:366,y:452,r:24};
   const slings=[[[65,595],[102,690],[160,670]],[[415,595],[378,690],[320,670]]];
   const walls=[[[28,770],[28,155]],[[28,155],[44,92]],[[44,92],[100,48]],[[100,48],[375,48]],[[375,48],[421,84]],[[421,84],[451,150]],[[451,150],[451,820]],[[419,210],[419,815]],[[28,495],[50,565]],[[50,565],[66,585]],[[419,495],[403,565]],[[403,565],[394,585]]];
+  // Open U-shaped return channels, sampled once for identical rendering and collisions.
+  function smooth(points){const out=[];for(let i=0;i<points.length-1;i++){const a=points[Math.max(0,i-1)],b=points[i],c=points[i+1],d=points[Math.min(points.length-1,i+2)];for(let j=0;j<6;j++){const t=j/6;out.push([0,1].map(k=>.5*(2*b[k]+(-a[k]+c[k])*t+(2*a[k]-5*b[k]+4*c[k]-d[k])*t*t+(-a[k]+3*b[k]-3*c[k]+d[k])*t*t*t)));}}out.push(points.at(-1));return out;}
+  const leftReturn=[[42,510],[42,290],[48,244],[66,222],[88,220],[107,234],[114,255],[110,275],[97,292],[86,305],[82,330],[82,500]];
+  const sideLanes=[smooth(leftReturn),smooth(leftReturn.map(([x,y],i)=>[440-x,i===0?375:i===leftReturn.length-1?375:y]))];
+  const guides=[[[82,150],[136,181]],[[344,181],[395,150]],[[54,545],[72,650]],[[72,650],[115,718]],[[402,545],[390,650]],[[390,650],[365,718]]];
+  const sideWalls=sideLanes.flatMap(points=>points.slice(1).map((point,i)=>[points[i],point])).concat(guides);
   function create(mode='mission'){if(!['mission','practice'].includes(mode))throw Error('Unknown mode');return {mode,phase:'ready',paused:false,time:0,lives:mode==='practice'?null:3,score:0,stage:0,lit:[false,false,false],sequence:0,completed:0,balls:[ball()],flippers:[{x:130,y:732,a:.36,omega:0},{x:350,y:732,a:Math.PI-.36,omega:0}],saveUntil:0,cooldowns:{},events:[]};}
   function ball(){return {x:437,y:790,vx:0,vy:0,r:R,lane:true,stuck:0};}
   function emit(s,kind,x=240,y=400){s.events.push({kind,x,y});}
@@ -38,6 +44,7 @@
         b.vy+=720*h;b.vx*=Math.exp(-.055*h);b.vy*=Math.exp(-.055*h);b.x+=b.vx*h;b.y+=b.vy*h;
         if(b.lane){b.x=437;if(b.y<=128){b.lane=false;b.x=397;b.y=125;b.vx=-340;b.vy=-170;}continue;}
         for(const [a,z] of walls)segment(b,{x:a[0],y:a[1]},{x:z[0],y:z[1]});
+        for(const [a,z] of sideWalls)if(segment(b,{x:a[0],y:a[1]},{x:z[0],y:z[1]},.88)&&contact(s,'rail',.12))emit(s,'rail',b.x,b.y);
         slings.forEach((points,i)=>{for(let edge=0;edge<3;edge++){const a=points[edge],z=points[(edge+1)%3];if(segment(b,{x:a[0],y:a[1]},{x:z[0],y:z[1]},1.08)&&contact(s,'sling'+i)){b.vy-=130;b.vx+=i?-70:70;s.score+=25;emit(s,'sling',b.x,b.y);}}});
         s.flippers.forEach((f,i)=>{if(segment(b,f,flipperTip(f,i),.82,f.omega,f)&&contact(s,'flipper'+i,.08))emit(s,'flipper',b.x,b.y);});
         bumpers.forEach((c,i)=>{if(circle(b,c,130)&&contact(s,'b'+i)){hit(s,'bumper',i);emit(s,'bumper',c.x,c.y);}});
@@ -52,5 +59,5 @@
       if(s.phase==='won'||s.phase==='lost')break;
     }
   }
-  const api={W,H,R,bumpers,targets,scoop,slings,walls,create,launch,tick,flipperTip};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.OrbitPinball=api;
+  const api={W,H,R,bumpers,targets,scoop,slings,walls,sideLanes,guides,sideWalls,create,launch,tick,flipperTip};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.OrbitPinball=api;
 })(typeof window==='undefined'?{}:window);
