@@ -1,15 +1,17 @@
 (function(root){
   'use strict';
-  const W=480,H=860,R=10,FLIPPER_LENGTH=90;
-  const bumpers=[{x:240,y:205,r:33},{x:158,y:340,r:33},{x:310,y:340,r:33}];
+  const W=480,H=860,R=10,RAIL_RADIUS=7,FLIPPER_RADIUS=10,FLIPPER_LENGTH=90;
+  const bumpers=[{x:224,y:205,r:30},{x:180,y:345,r:28},{x:272,y:345,r:28}];
   const targets=[{x:142,y:115,r:15},{x:240,y:100,r:15},{x:338,y:115,r:15}];
   const scoop={x:366,y:452,r:24},wormhole={x:378,y:350,r:16};
   const slings=[[[90,595],[102,690],[160,670]],[[357,595],[350,690],[300,670]]];
   const walls=[[[28,770],[28,155]],[[28,155],[44,92]],[[44,92],[100,48]],[[100,48],[375,48]],[[375,48],[421,84]],[[421,84],[451,150]],[[451,150],[451,820]],[[419,210],[419,815]]];
   // Open U-shaped return channels, sampled once for identical rendering and collisions.
   function smooth(points){const out=[];for(let i=0;i<points.length-1;i++){const a=points[Math.max(0,i-1)],b=points[i],c=points[i+1],d=points[Math.min(points.length-1,i+2)];for(let j=0;j<6;j++){const t=j/6;out.push([0,1].map(k=>.5*(2*b[k]+(-a[k]+c[k])*t+(2*a[k]-5*b[k]+4*c[k]-d[k])*t*t+(-a[k]+3*b[k]-3*c[k]+d[k])*t*t*t)));}}out.push(points.at(-1));return out;}
-  const leftReturn=[[42,510],[42,290],[48,244],[66,222],[88,220],[107,234],[114,255],[110,275],[97,292],[86,305],[82,330],[82,500]];
-  const sideLanes=[smooth([...leftReturn.slice(0,-1),[100,450],[120,530]]),smooth(leftReturn.map(([x,y],i)=>[440-x,i===0?375:i===leftReturn.length-1?375:y]))];
+  // Wide rounded return pockets: 64-unit rail spacing leaves 50 units for a 20-unit ball.
+  const leftReturn=[[42,500],[42,280],[48,235],[74,215],[100,235],[106,280],[106,420],[128,490]];
+  const rightReturn=[[405,370],[405,280],[399,235],[373,215],[347,235],[341,280],[341,370]];
+  const sideLanes=[smooth(leftReturn),smooth(rightReturn)];
   const guides=[[[82,150],[136,181]],[[344,181],[395,150]],[[90,545],[90,690]],[[90,690],[115,718]],[[365,545],[365,690]],[[365,690],[350,718]]];
   const sideWalls=sideLanes.flatMap(points=>points.slice(1).map((point,i)=>[points[i],point])).concat(guides);
   function create(mode='mission'){if(!['mission','practice'].includes(mode))throw Error('Unknown mode');return {mode,phase:'ready',paused:false,time:0,lives:mode==='practice'?null:3,score:0,stage:0,lit:[false,false,false],sequence:0,completed:0,balls:[ball()],flippers:[{x:130,y:732,a:.36,omega:0},{x:350,y:732,a:Math.PI-.36,omega:0}],saveUntil:0,cooldowns:{},events:[]};}
@@ -17,9 +19,9 @@
   function emit(s,kind,x=240,y=400){s.events.push({kind,x,y});}
   function launch(s,power=.7){if(s.paused||s.phase!=='ready')return false;const p=Math.max(0,Math.min(1,Number.isFinite(power)?power:.7)),b=s.balls[0];b.vy=-1090-p*220;s.phase='playing';s.saveUntil=s.time+8;emit(s,'launch',b.x,b.y);return true;}
   function flipperTip(f,index){return {x:f.x+Math.cos(f.a)*FLIPPER_LENGTH,y:f.y+Math.sin(f.a)*FLIPPER_LENGTH};}
-  function segment(b,a,z,r=.8,omega=0,pivot=a){
+  function segment(b,a,z,r=.8,omega=0,pivot=a,radius=RAIL_RADIUS){
     const dx=z.x-a.x,dy=z.y-a.y,t=Math.max(0,Math.min(1,((b.x-a.x)*dx+(b.y-a.y)*dy)/(dx*dx+dy*dy||1))),px=a.x+t*dx,py=a.y+t*dy;
-    let nx=b.x-px,ny=b.y-py,d=Math.hypot(nx,ny);const reach=b.r+7;if(d>=reach)return false;
+    let nx=b.x-px,ny=b.y-py,d=Math.hypot(nx,ny);const reach=b.r+radius;if(d>=reach)return false;
     if(d<.00001){nx=-dy;ny=dx;d=Math.hypot(nx,ny)||1;}nx/=d;ny/=d;b.x=px+nx*(reach+.05);b.y=py+ny*(reach+.05);
     const ux=-omega*(py-pivot.y),uy=omega*(px-pivot.x),v=(b.vx-ux)*nx+(b.vy-uy)*ny;
     if(v<0){b.vx-=(1+r)*v*nx;b.vy-=(1+r)*v*ny;return true;}return false;
@@ -43,14 +45,14 @@
       for(const b of [...s.balls]){
         if(b.captureUntil){if(s.time<b.captureUntil)continue;b.captureUntil=0;b.x=wormhole.x;b.y=wormhole.y;b.vx=0;b.vy=-650;b.stuck=0;b.returning=true;b.scoopBlocked=true;hit(s,'scoop',0);emit(s,'warp',b.x,b.y);if(s.phase==='won')break;continue;}
         // The return rail ejects toward open play instead of dropping into its own scoop.
-        if(b.returning&&b.y>390&&b.vy>0){b.returning=false;b.vx=-300;b.vy=200;emit(s,'rail',b.x,b.y);}
+        if(b.returning&&b.y>390&&b.vy>0){b.returning=false;b.vx=-300;b.vy=280;emit(s,'rail',b.x,b.y);}
         if(b.scoopBlocked&&b.x<320&&b.y>400)b.scoopBlocked=false;
         b.vy+=720*h;b.vx*=Math.exp(-.055*h);b.vy*=Math.exp(-.055*h);b.x+=b.vx*h;b.y+=b.vy*h;
         if(b.lane){b.x=437;if(b.y<=128){b.lane=false;b.x=397;b.y=125;b.vx=-340;b.vy=-170;}continue;}
         for(const [a,z] of walls)segment(b,{x:a[0],y:a[1]},{x:z[0],y:z[1]});
         for(const [a,z] of sideWalls)if(segment(b,{x:a[0],y:a[1]},{x:z[0],y:z[1]},.88)&&contact(s,'rail',.12))emit(s,'rail',b.x,b.y);
         slings.forEach((points,i)=>{for(let edge=0;edge<3;edge++){const a=points[edge],z=points[(edge+1)%3];if(segment(b,{x:a[0],y:a[1]},{x:z[0],y:z[1]},1.08)&&contact(s,'sling'+i)){b.vy-=130;b.vx+=i?-70:70;s.score+=25;emit(s,'sling',b.x,b.y);}}});
-        s.flippers.forEach((f,i)=>{if(segment(b,f,flipperTip(f,i),.82,f.omega,f)&&contact(s,'flipper'+i,.08))emit(s,'flipper',b.x,b.y);});
+        s.flippers.forEach((f,i)=>{if(segment(b,f,flipperTip(f,i),.82,f.omega,f,FLIPPER_RADIUS)&&contact(s,'flipper'+i,.08))emit(s,'flipper',b.x,b.y);});
         bumpers.forEach((c,i)=>{if(circle(b,c,130)&&contact(s,'b'+i)){hit(s,'bumper',i);emit(s,'bumper',c.x,c.y);}});
         targets.forEach((c,i)=>{if(circle(b,c,70)&&contact(s,'t'+i,.3)){hit(s,'target',i);emit(s,'target',c.x,c.y);}});
         if(!b.scoopBlocked&&Math.hypot(b.x-scoop.x,b.y-scoop.y)<scoop.r&&contact(s,'scoop',1.5)){b.x=scoop.x;b.y=scoop.y;b.vx=0;b.vy=0;b.captureUntil=s.time+2;emit(s,'scoop',scoop.x,scoop.y);continue;}
@@ -63,5 +65,5 @@
       if(s.phase==='won'||s.phase==='lost')break;
     }
   }
-  const api={W,H,R,FLIPPER_LENGTH,bumpers,targets,scoop,wormhole,slings,walls,sideLanes,guides,sideWalls,create,launch,tick,flipperTip};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.OrbitPinball=api;
+  const api={W,H,R,RAIL_RADIUS,FLIPPER_RADIUS,FLIPPER_LENGTH,bumpers,targets,scoop,wormhole,slings,walls,sideLanes,guides,sideWalls,create,launch,tick,flipperTip};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.OrbitPinball=api;
 })(typeof window==='undefined'?{}:window);

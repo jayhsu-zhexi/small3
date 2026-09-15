@@ -31,7 +31,7 @@ for(const x of [235,240,245]){
 const protectedDrop=E.create();put(protectedDrop,240,700,0,180);protectedDrop.saveUntil=protectedDrop.time+8;advance(protectedDrop,1);assert.equal(protectedDrop.phase,'ready');assert.equal(protectedDrop.lives,3);
 console.log('PASS: physical center drains above the flippers consume a life after protection and are saved during protection.');
 
-for(const vx of [-250,-200]){
+for(const vx of [-350,-200]){
  const entry=E.create('practice');put(entry,200,690,vx,-850);let entered=false,returned=false;
  for(let i=0;i<480;i++){E.tick(entry,1/120);for(const b of entry.balls){if(!b.lane&&b.x>45&&b.x<110&&b.y<400)entered=true;if(entered&&!b.lane&&b.y>540&&b.vy>0)returned=true;}entry.events=[];}
  assert.ok(entered,'Shots from the lower playfield must enter the left return channel');
@@ -58,3 +58,16 @@ assert.equal(captures,1,'A passive rescue return must not recapture in a loop');
 assert.equal(noLoop.phase,'ready','An unattended returned ball eventually drains');
 assert.equal(noLoop.lives,2);
 console.log('PASS: both side outlanes drain, and rescue rail return exits into play without passive recapture loops.');
+
+// Clearance is measured between solid surfaces, not decorative sprite boxes.
+function distanceToRail(x,y,a,b){const dx=b[0]-a[0],dy=b[1]-a[1],t=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/(dx*dx+dy*dy||1)));return Math.hypot(x-a[0]-t*dx,y-a[1]-t*dy);}
+for(const c of E.bumpers){
+ for(const [a,b] of E.sideWalls)assert.ok(distanceToRail(c.x,c.y,a,b)-c.r-E.RAIL_RADIUS>=2*E.R+8,'Bumper-to-rail passage needs a full ball plus eight units of margin');
+ for(const d of E.bumpers)if(c!==d)assert.ok(Math.hypot(c.x-d.x,c.y-d.y)-c.r-d.r>=2*E.R+8);
+}
+const solids=[...E.walls,...E.sideWalls,...E.slings.flatMap(p=>p.map((a,i)=>[a,p[(i+1)%3]]))];
+function clear(x,y){return solids.every(([a,b])=>distanceToRail(x,y,a,b)>E.R+E.RAIL_RADIUS+2)&&[...E.bumpers,...E.targets].every(c=>Math.hypot(x-c.x,y-c.y)>E.R+c.r+2);}
+const step=4,cols=120,rows=215,seen=new Set(),queue=[[224,552]];seen.add(138*cols+56);
+for(let head=0;head<queue.length;head++){const [x,y]=queue[head];for(const [dx,dy] of [[step,0],[-step,0],[0,step],[0,-step]]){const nx=x+dx,ny=y+dy,key=ny/step*cols+nx/step;if(nx<32||nx>412||ny<52||ny>780||seen.has(key)||!clear(nx,ny))continue;seen.add(key);queue.push([nx,ny]);}}
+for(const [x,y] of [[76,300],[372,300],[224,280],[364,452],...E.targets.map(c=>[c.x,c.y+c.r+E.R+8])])assert.ok(queue.some(([px,py])=>Math.hypot(px-x,py-y)<8),'Every return pocket, upper target and scoop approach must connect to the main field with ball-sized clearance');
+console.log('PASS: bumper gaps include ball clearance and all objectives/return pockets connect to the lower playfield.');
