@@ -21,7 +21,8 @@
   function rampPoint(progress){const d=Math.max(0,Math.min(1,progress))*rampDistances.at(-1);let i=1;while(i<ramp.length-1&&rampDistances[i]<d)i++;const t=(d-rampDistances[i-1])/(rampDistances[i]-rampDistances[i-1]);return {x:ramp[i-1][0]+(ramp[i][0]-ramp[i-1][0])*t,y:ramp[i-1][1]+(ramp[i][1]-ramp[i-1][1])*t};}
   const guides=[[[64,557],[61,604]],[[61,604],[143,687]],[[395,557],[397,604]],[[397,604],[326,687]],[[74,611],[73,704]]];
   const deflectors=[[[152,85],[194,109],[166,145],[147,132]],[[299,82],[321,94],[294,129],[283,118]],[[151,220],[178,215],[166,254]]];
-  const sideWalls=sideLanes.flatMap(points=>points.slice(1).map((point,i)=>[points[i],point])).concat(guides,deflectors.flatMap(p=>p.map((a,i)=>[a,p[(i+1)%p.length]])));
+  const purpleWalls=[[[16,350],[104,350]],[[104,350],[110,440]],[[110,440],[96,485]],[[96,485],[76,514]],[[76,514],[68,535]]];
+  const sideWalls=sideLanes.flatMap(points=>points.slice(1).map((point,i)=>[points[i],point])).concat(guides,purpleWalls,deflectors.flatMap(p=>p.map((a,i)=>[a,p[(i+1)%p.length]])));
   function create(mode='mission'){if(!['mission','practice'].includes(mode))throw Error('Unknown mode');return {mode,phase:'ready',paused:false,time:0,lives:mode==='practice'?null:3,score:0,stage:0,lit:[false,false,false],sequence:0,completed:0,balls:[ball()],flippers:[{x:148,y:709,a:.36,omega:0},{x:335,y:709,a:Math.PI-.36,omega:0}],saveUntil:0,cooldowns:{},events:[]};}
   function ball(){return {x:launchPath[0][0],y:launchPath[0][1],vx:0,vy:0,r:R,lane:true,stuck:0};}
   function emit(s,kind,x=240,y=400){s.events.push({kind,x,y});}
@@ -48,9 +49,11 @@
     for(let i=1;i<leftBoundary.length;i++){const a=leftBoundary[i-1],z=leftBoundary[i];if(y>=a[1]&&y<=z[1]){const dx=z[0]-a[0],dy=z[1]-a[1];return a[0]+(y-a[1])*dx/dy+(r+RAIL_RADIUS+.1)*Math.hypot(dx,dy)/dy;}}
     return r+20;
   }
+  const rightBoundary=[[430,25],[436,180],[423,280],[388,320],[370,365],[378,388],[407,407],[385,440],[399,485],[423,535],[423,715]];
+  function rightLimit(y,r=R){for(let i=1;i<rightBoundary.length;i++){const a=rightBoundary[i-1],z=rightBoundary[i];if(y>=a[1]&&y<=z[1])return a[0]+(z[0]-a[0])*(y-a[1])/(z[1]-a[1])-r-RAIL_RADIUS;}return 423-r-RAIL_RADIUS;}
   function contain(b){
     if(b.y<25+b.r){b.y=25+b.r;if(b.vy<0)b.vy=-b.vy*passiveRestitution(b.vy);}
-    const left=leftLimit(b.y,b.r),right=464-b.r;
+    const left=leftLimit(b.y,b.r),right=rightLimit(b.y,b.r);
     if(b.x<left){b.x=left;if(b.vx<0)b.vx=-b.vx*passiveRestitution(b.vx);}
     if(b.x>right){b.x=right;if(b.vx>0)b.vx=-b.vx*passiveRestitution(b.vx);}
   }
@@ -104,5 +107,5 @@
       if(s.phase==='won'||s.phase==='lost')break;
     }
   }
-  const api={W,H,R,RAIL_RADIUS,FLIPPER_RADIUS,FLIPPER_LENGTH,passiveRestitution,leftLimit,launchPath,launchPoint,launchDistances,ramp,rampPoint,bonusBumpers,bumpers,targets,scoop,wormhole,slings,deflectors,walls,sideLanes,guides,sideWalls,create,launch,tick,flipperTip};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.OrbitPinball=api;
+  const api={W,H,R,RAIL_RADIUS,FLIPPER_RADIUS,FLIPPER_LENGTH,passiveRestitution,purpleWalls,rightLimit,leftLimit,launchPath,launchPoint,launchDistances,ramp,rampPoint,bonusBumpers,bumpers,targets,scoop,wormhole,slings,deflectors,walls,sideLanes,guides,sideWalls,create,launch,tick,flipperTip};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.OrbitPinball=api;
 })(typeof window==='undefined'?{}:window);

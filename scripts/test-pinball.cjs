@@ -80,3 +80,13 @@ for(const y of [80,180,300,340,414,465,560]){
  }
 }
 console.log('PASS: left-edge impacts remain inside the cabinet after every physics step, including adjacent bumpers.');
+
+for(const y of [300,340,365,450,500,600]){
+ const right=E.create('practice');put(right,410,y,900,0);
+ for(let i=0;i<360;i++){E.tick(right,1/120);for(const b of right.balls){if(b.lane||b.rampUntil||b.captureUntil)continue;assert.ok(b.x<=E.rightLimit(b.y,b.r)+.001,'Active play cannot enter the black margin or shooter lane');}}
+}
+const purpleSide=E.create();put(purpleSide,140,410,-400,0);advance(purpleSide,.12);assert.ok(purpleSide.balls[0].x>115,'Purple side wall blocks lateral entry');
+const purpleGate=E.create();put(purpleGate,50,550,0,-240);advance(purpleGate,.12);assert.ok(purpleGate.balls[0].y<535,'Purple lower opening admits the ball');
+const purpleOut=E.create();put(purpleOut,50,520,0,200);advance(purpleOut,.2);assert.ok(purpleOut.balls[0].y>550,'The same lower opening lets the ball return');
+const markup=fs.readFileSync('pinball.html','utf8');assert.match(markup,/<\/canvas><\/div><div id="notice"/,'Messages must be outside the board container');
+console.log('PASS: right margin stays closed, purple chamber uses the lower gate, and status is outside the playfield.');
