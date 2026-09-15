@@ -5,7 +5,7 @@
   const targets=[{x:214,y:118,r:8},{x:245,y:118,r:8},{x:275,y:118,r:8}];
   const scoop={x:389,y:407,r:17},wormhole={x:389,y:270,r:12};
   const bonusBumpers=[{x:106,y:66,r:23},{x:34,y:414,r:12},{x:82,y:431,r:12},{x:48,y:459,r:12}];
-  const slings=[[[132,543],[121,620],[160,642]],[[353,543],[365,620],[316,642]]];
+  const slings=[[[132,543],[121,620],[160,642]],[[353,543],[349,615],[316,642]]];
   const walls=[[[28,705],[28,565]],[[28,565],[16,490]],[[16,490],[16,340]],[[16,340],[49,230]],[[435,365],[435,800]],[[464,800],[464,140]],[[423,705],[423,535]]];
   // Open U-shaped return channels, sampled once for identical rendering and collisions.
   function smooth(points){const out=[];for(let i=0;i<points.length-1;i++){const a=points[Math.max(0,i-1)],b=points[i],c=points[i+1],d=points[Math.min(points.length-1,i+2)];for(let j=0;j<6;j++){const t=j/6;out.push([0,1].map(k=>.5*(2*b[k]+(-a[k]+c[k])*t+(2*a[k]-5*b[k]+4*c[k]-d[k])*t*t+(-a[k]+3*b[k]-3*c[k]+d[k])*t*t*t)));}}out.push(points.at(-1));return out;}
@@ -33,6 +33,14 @@
     if(d<.00001){nx=-dy;ny=dx;d=Math.hypot(nx,ny)||1;}nx/=d;ny/=d;b.x=px+nx*(reach+.05);b.y=py+ny*(reach+.05);
     const ux=-omega*(py-pivot.y),uy=omega*(px-pivot.x),v=(b.vx-ux)*nx+(b.vy-uy)*ny;
     if(v<0){b.vx-=(1+r)*v*nx;b.vy-=(1+r)*v*ny;return true;}return false;
+  }
+  function ejectInterior(b,points){
+    const cross=points.map((a,i)=>{const z=points[(i+1)%points.length];return (z[0]-a[0])*(b.y-a[1])-(z[1]-a[1])*(b.x-a[0]);});
+    if(!(cross.every(v=>v>=0)||cross.every(v=>v<=0)))return false;
+    const center=points.reduce((c,p)=>({x:c.x+p[0]/points.length,y:c.y+p[1]/points.length}),{x:0,y:0});let best;
+    points.forEach((a,i)=>{const z=points[(i+1)%points.length],dx=z[0]-a[0],dy=z[1]-a[1],t=Math.max(0,Math.min(1,((b.x-a[0])*dx+(b.y-a[1])*dy)/(dx*dx+dy*dy))),x=a[0]+t*dx,y=a[1]+t*dy,d=Math.hypot(b.x-x,b.y-y);if(!best||d<best.d){let nx=-dy,ny=dx,len=Math.hypot(nx,ny);nx/=len;ny/=len;if(nx*(center.x-x)+ny*(center.y-y)>0){nx=-nx;ny=-ny;}best={x,y,nx,ny,d};}});
+    b.x=best.x+best.nx*(b.r+RAIL_RADIUS+.1);b.y=best.y+best.ny*(b.r+RAIL_RADIUS+.1);
+    const inward=b.vx*best.nx+b.vy*best.ny;if(inward<0){b.vx-=inward*best.nx;b.vy-=inward*best.ny;}return true;
   }
   function circle(b,c,kick){let dx=b.x-c.x,dy=b.y-c.y,d=Math.hypot(dx,dy);if(d>=b.r+c.r)return false;if(d<.001){dx=0;dy=1;d=1;}const nx=dx/d,ny=dy/d;b.x=c.x+nx*(b.r+c.r+.1);b.y=c.y+ny*(b.r+c.r+.1);const v=b.vx*nx+b.vy*ny;if(v<0){b.vx-=1.85*v*nx;b.vy-=1.85*v*ny;}b.vx+=nx*kick;b.vy+=ny*kick;return true;}
   function contact(s,key,delay=.16){if((s.cooldowns[key]||0)>s.time)return false;s.cooldowns[key]=s.time+delay;return true;}
@@ -67,7 +75,7 @@
         if(!b.rampBlocked&&b.vy<-120&&Math.hypot(b.x-ramp[0][0],b.y-ramp[0][1])<23){b.rampUntil=s.time+2.4;b.rampBlocked=true;b.vx=0;b.vy=0;emit(s,'ramp',b.x,b.y);continue;}
         for(const [a,z] of walls)segment(b,{x:a[0],y:a[1]},{x:z[0],y:z[1]});
         for(const [a,z] of sideWalls)if(segment(b,{x:a[0],y:a[1]},{x:z[0],y:z[1]},.88)&&contact(s,'rail',.12))emit(s,'rail',b.x,b.y);
-        slings.forEach((points,i)=>{for(let edge=0;edge<3;edge++){const a=points[edge],z=points[(edge+1)%3];if(segment(b,{x:a[0],y:a[1]},{x:z[0],y:z[1]},1.08)&&contact(s,'sling'+i)){b.vy-=130;b.vx+=i?-70:70;s.score+=25;emit(s,'sling',b.x,b.y);}}});
+        slings.forEach((points,i)=>{const corrected=ejectInterior(b,points);for(let edge=0;edge<3;edge++){const a=points[edge],z=points[(edge+1)%3],dx=z[0]-a[0],dy=z[1]-a[1],length=Math.hypot(dx,dy),impact=Math.abs((b.vx*-dy+b.vy*dx)/length);if(segment(b,{x:a[0],y:a[1]},{x:z[0],y:z[1]},.65)&&edge===2&&!corrected&&impact>100&&contact(s,'sling'+i,.25)){b.vy-=90;b.vx+=i?-110:110;s.score+=25;emit(s,'sling',b.x,b.y);}}});
         s.flippers.forEach((f,i)=>{if(segment(b,f,flipperTip(f,i),.82,f.omega,f,FLIPPER_RADIUS)&&contact(s,'flipper'+i,.08))emit(s,'flipper',b.x,b.y);});
         bumpers.forEach((c,i)=>{if(circle(b,c,130)&&contact(s,'b'+i)){hit(s,'bumper',i);emit(s,'bumper',c.x,c.y);}});
         bonusBumpers.forEach((c,i)=>{if(circle(b,c,90)&&contact(s,'bonus'+i)){s.score+=50;emit(s,'bumper',c.x,c.y);}});

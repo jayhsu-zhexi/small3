@@ -42,3 +42,14 @@ for(const power of [0,.5,1]){
  assert.ok(exited);assert.ok(reachedTop,'Every power reaches the very top of the yellow outer rail');
 }
 console.log('PASS: all launch strengths follow the illustrated spring-to-gate centerline and enter play continuously.');
+
+// Photo regression: ball trapped at the right sling's back and return guide.
+for(const x of [342,350,360,370]){
+ const trapped=E.create();put(trapped,x,608,0,100);let reachedFlippers=false;
+ for(let i=0;i<1200;i++){E.tick(trapped,1/120);reachedFlippers||=trapped.balls.some(b=>!b.lane&&b.y>680);}
+ assert.ok(reachedFlippers,'Right rear channel must carry the ball down to the flippers');
+ assert.equal(trapped.score,0,'Passive rear contacts cannot farm sling points');
+ assert.equal(trapped.phase,'ready','Unattended rear-channel ball must eventually drain');
+}
+const activeSling=E.create();put(activeSling,321,590,200,0);advance(activeSling,.08);assert.ok(activeSling.score>=25,'The inward-facing sling still kicks and scores on a real impact');
+console.log('PASS: right sling photo positions escape without score farming; the active front still responds.');
