@@ -72,3 +72,11 @@ for(const speed of [60,250,700]){
 }
 const quiet=E.create();put(quiet,240,450,0,0);quiet.balls[0].stuck=10;E.tick(quiet,1/240);assert.ok(quiet.balls[0].vy>0);assert.ok(!quiet.events.some(e=>e.kind==='pulse'),'No artificial upward unsticking kick');
 console.log('PASS: passive surfaces dissipate impact energy; rebound scales with incoming speed and no idle kick is injected.');
+
+for(const y of [80,180,300,340,414,465,560]){
+ for(const vx of [-900,0,400]){
+ const edge=E.create('practice');put(edge,10,y,vx,180);
+ for(let i=0;i<600;i++){E.tick(edge,1/120);for(const b of edge.balls){if(b.lane||b.rampUntil||b.captureUntil)continue;assert.ok(b.x>=E.leftLimit(b.y,b.r)-.001,'Post-collision position must stay inside the illustrated left boundary');assert.ok(b.x<=464-b.r+.001);}}
+ }
+}
+console.log('PASS: left-edge impacts remain inside the cabinet after every physics step, including adjacent bumpers.');
