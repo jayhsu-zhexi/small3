@@ -3,7 +3,7 @@ const box={exports:{}};vm.runInNewContext(fs.readFileSync('assets/pinball-engine
 function advance(s,seconds,input={}){for(let i=0;i<Math.round(seconds*120);i++){E.tick(s,1/120,input);s.events=[];}}
 function put(s,x,y,vx=0,vy=0){s.phase='playing';s.balls=[{x,y,vx,vy,r:E.R,lane:false,stuck:0}];s.time+=2;}
 assert.throws(()=>E.create('bad'));let s=E.create();assert.equal(s.lives,3);assert.equal(s.phase,'ready');assert.equal(E.launch(s,.6),true);assert.equal(E.launch(s,1),false);
-advance(s,.9);assert.ok(s.balls.every(b=>!b.lane),'A launched ball reaches the playable field');
+advance(s,1.6);assert.ok(s.balls.every(b=>!b.lane),'A launched ball reaches the playable field');
 const snapshot=JSON.stringify(s);s.paused=true;const paused=JSON.stringify(s);E.tick(s,1/30,{left:true});assert.equal(JSON.stringify(s),paused);assert.notEqual(snapshot,paused);assert.equal(E.launch(s),false);s.paused=false;
 put(s,240,850);s.saveUntil=s.time+3;E.tick(s,1/120);assert.equal(s.phase,'ready');assert.equal(s.lives,3);assert.equal(s.events.at(-1).kind,'saved');
 for(let lives=2;lives>=0;lives--){put(s,240,850);s.saveUntil=0;E.tick(s,1/120);assert.equal(s.lives,lives);assert.equal(s.phase,lives?'ready':'lost');}
@@ -37,8 +37,8 @@ console.log('PASS: approved layout center/side drains, rescue return, short left
 
 for(const power of [0,.5,1]){
  const shot=E.create();assert.equal(shot.balls[0].x,E.launchPath[0][0]);assert.equal(shot.balls[0].y,E.launchPath[0][1]);E.launch(shot,power);
- let previous={...shot.balls[0]},exited=false;
- for(let i=0;i<200;i++){E.tick(shot,1/240);const b=shot.balls[0];assert.ok(Math.hypot(b.x-previous.x,b.y-previous.y)<5,'Launch cannot teleport between lane and field');if(b.lane){const expected=E.launchPoint(b.launchDistance);assert.ok(Math.hypot(b.x-expected.x,b.y-expected.y)<.001);}else{assert.ok(b.vx<0,'Shooter exit points into the table');exited=true;break;}previous={...b};}
- assert.ok(exited);
+ let previous={...shot.balls[0]},exited=false,reachedTop=false;
+ for(let i=0;i<500;i++){E.tick(shot,1/240);const b=shot.balls[0];reachedTop||=b.y<60;if(b.lane&&b.y>200)assert.ok(b.x>410,'Shooter stays on the yellow right outer lane before the crown');assert.ok(Math.hypot(b.x-previous.x,b.y-previous.y)<5,'Launch cannot teleport between lane and field');if(b.lane){const expected=E.launchPoint(b.launchDistance);assert.ok(Math.hypot(b.x-expected.x,b.y-expected.y)<.001);}else{assert.ok(b.vx<0&&b.vy>0,'Top exit points inward and downward');assert.ok(b.y<90,'Launch must not exit halfway up the right side');exited=true;break;}previous={...b};}
+ assert.ok(exited);assert.ok(reachedTop,'Every power reaches the very top of the yellow outer rail');
 }
 console.log('PASS: all launch strengths follow the illustrated spring-to-gate centerline and enter play continuously.');

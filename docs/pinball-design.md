@@ -75,3 +75,5 @@ Remove each moving bat completely, including its gold rim and cast shadow, but K
 Strict invariants: preserve EXACT original image dimensions, framing, camera, border/cabinet, every fixed track, rails, bumpers, lights, targets, the left raised purple hairpin ramp and its geometry, fixed flipper bases and RED CIRCULAR PIVOTS, slingshots, outlanes, right plunger lane and spring, all printed art and colors outside these three small removal regions. Do not move, resize, straighten, simplify, recolor, add, or redesign any object. The result must be the same approved board with only the ball and TWO moving flipper bats absent. No new ball, no new flipper bats, no other changes.
 
 發射通道校正：起球位置改為彈簧上方(448,686)，沿固定圖右側通道中心線向上至彎頭，再由朝內出口(366,436)連續進場。蓄力控制沿軌速度，出口沿曲線切線保留速度，沒有座標跳接。測試覆蓋三種蓄力、逐步移動連續性及出口方向。
+
+發射路線依使用者更正：沿右側黃色外軌一路上行至頂冠(y48)，再向左轉、由頂部進入球場(y72)。取消先前中段出口。所有蓄力強度均測試必須到達頂端，不能在右側中途出軌。
