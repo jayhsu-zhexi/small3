@@ -25,7 +25,7 @@ for(const x of [235,241,247]){
 for(const x of [43,47,416,420]){
  const drop=E.create();put(drop,x,640,0,150);advance(drop,2);assert.equal(drop.phase,'ready','Both artwork outlanes must drain');assert.equal(drop.lives,2);
 }
-const warp=E.create();put(warp,E.scoop.x,E.scoop.y);E.tick(warp,1/240);assert.ok(warp.balls[0].captureUntil);advance(warp,1);assert.equal(warp.balls[0].x,E.scoop.x);warp.paused=true;const frozen=JSON.stringify(warp);advance(warp,3);assert.equal(JSON.stringify(warp),frozen);warp.paused=false;advance(warp,1.01);assert.equal(warp.balls[0].captureUntil,0);assert.equal(warp.score,300);assert.equal(warp.lives,3);
+const warp=E.create();put(warp,E.scoop.x,E.scoop.y);E.tick(warp,1/240);assert.ok(warp.balls[0].captureUntil);advance(warp,.5);assert.equal(warp.balls[0].x,E.scoop.x);warp.paused=true;const frozen=JSON.stringify(warp);advance(warp,3);assert.equal(JSON.stringify(warp),frozen);warp.paused=false;advance(warp,.51);assert.equal(warp.balls[0].captureUntil,0);assert.equal(warp.score,300);assert.equal(warp.lives,3);
 let exits=false,captures=0;for(let i=0;i<2400&&warp.phase==='playing';i++){E.tick(warp,1/120);exits||=warp.balls.some(b=>!b.lane&&!b.captureUntil&&b.x<330&&b.y>330);captures+=warp.events.filter(e=>e.kind==='scoop').length;warp.events=[];}assert.ok(exits,'Right return must exit into main play');assert.equal(captures,0,'Returned ball must not be captured again in a passive loop');assert.equal(warp.phase,'ready');
 const orbit=E.create();put(orbit,E.ramp[0][0],E.ramp[0][1]+10,0,-400);E.tick(orbit,1/120);assert.ok(orbit.balls[0].rampUntil);
 advance(orbit,1);assert.equal(orbit.score,0);orbit.paused=true;const frozenRamp=JSON.stringify(orbit);advance(orbit,3);assert.equal(JSON.stringify(orbit),frozenRamp);orbit.paused=false;advance(orbit,1.42);assert.equal(orbit.score,500);assert.equal(orbit.balls[0].rampUntil,0);assert.ok(Math.abs(orbit.balls[0].x-E.ramp.at(-1)[0])<12);
@@ -38,7 +38,7 @@ console.log('PASS: approved layout center/side drains, rescue return, short left
 for(const power of [0,.5,1]){
  const shot=E.create();assert.equal(shot.balls[0].x,E.launchPath[0][0]);assert.equal(shot.balls[0].y,E.launchPath[0][1]);E.launch(shot,power);
  let previous={...shot.balls[0]},exited=false,reachedTop=false;
- for(let i=0;i<500;i++){E.tick(shot,1/240);const b=shot.balls[0];reachedTop||=b.y<60;if(b.lane&&b.y>200)assert.ok(b.x>410,'Shooter stays on the yellow right outer lane before the crown');assert.ok(Math.hypot(b.x-previous.x,b.y-previous.y)<5,'Launch cannot teleport between lane and field');if(b.lane){const expected=E.launchPoint(b.launchDistance);assert.ok(Math.hypot(b.x-expected.x,b.y-expected.y)<.001);}else{assert.ok(b.vx<0&&b.vy>0,'Top exit points inward and downward');assert.ok(b.y<90,'Launch must not exit halfway up the right side');exited=true;break;}previous={...b};}
+ for(let i=0;i<500;i++){E.tick(shot,1/240);const b=shot.balls[0];reachedTop||=b.y<75;if(b.lane&&b.y>200)assert.ok(b.x>410,'Shooter stays on the yellow right outer lane before the crown');assert.ok(Math.hypot(b.x-previous.x,b.y-previous.y)<5,'Launch cannot teleport between lane and field');if(b.lane){const expected=E.launchPoint(b.launchDistance);assert.ok(Math.hypot(b.x-expected.x,b.y-expected.y)<.001);}else{assert.ok(b.vx<0&&b.vy>0,'Top exit points inward and downward');assert.ok(b.y<90,'Launch must not exit halfway up the right side');exited=true;break;}previous={...b};}
  assert.ok(exited);assert.ok(reachedTop,'Every power reaches the very top of the yellow outer rail');
 }
 console.log('PASS: all launch strengths follow the illustrated spring-to-gate centerline and enter play continuously.');
@@ -86,8 +86,8 @@ for(const y of [300,340,365,450,500,600]){
  for(let i=0;i<360;i++){E.tick(right,1/120);for(const b of right.balls){if(b.lane||b.rampUntil||b.captureUntil)continue;assert.ok(b.x<=E.rightLimit(b.y,b.r)+.001,'Active play cannot enter the black margin or shooter lane');}}
 }
 const purpleSide=E.create();put(purpleSide,140,410,-400,0);advance(purpleSide,.12);assert.ok(purpleSide.balls[0].x>115,'Purple side wall blocks lateral entry');
-const purpleGate=E.create();put(purpleGate,50,550,0,-240);advance(purpleGate,.12);assert.ok(purpleGate.balls[0].y<535,'Purple lower opening admits the ball');
-const purpleOut=E.create();put(purpleOut,50,520,0,200);advance(purpleOut,.2);assert.ok(purpleOut.balls[0].y>550,'The same lower opening lets the ball return');
+const purpleGate=E.create();put(purpleGate,94,615,0,-240);advance(purpleGate,.12);assert.ok(purpleGate.balls[0].y<600,'Purple lower opening admits the ball');
+const purpleOut=E.create();put(purpleOut,94,580,0,200);advance(purpleOut,.2);assert.ok(purpleOut.balls[0].y>610,'The same lower opening lets the ball return');
 const markup=fs.readFileSync('pinball.html','utf8');assert.match(markup,/<\/canvas><\/div><div id="notice"/,'Messages must be outside the board container');
 console.log('PASS: right margin stays closed, purple chamber uses the lower gate, and status is outside the playfield.');
 
@@ -101,3 +101,7 @@ const uiSource=fs.readFileSync('assets/pinball-ui.js','utf8');assert.doesNotMatc
 assert.match(uiSource,/E\.table\.components/,'Renderer reads the component registry');
 assert.ok(fs.readFileSync('pinball.html','utf8').indexOf('pinball-table.js')<fs.readFileSync('pinball.html','utf8').indexOf('pinball-engine.js'));
 console.log('PASS: rendered components, collider edges, circles, paths, drains and flippers share the table definitions.');
+const portal=E.create();put(portal,E.scoop.x,E.scoop.y);E.tick(portal,1/240);const releaseAt=portal.balls[0].captureUntil;assert.ok(Math.abs(releaseAt-portal.time-1)<1/240+.00001);while(portal.time+1/240<releaseAt)E.tick(portal,1/240);assert.ok(portal.balls[0].captureUntil);while(portal.balls[0].captureUntil)E.tick(portal,1/240);assert.equal(portal.balls[0].x,E.wormhole.x);assert.equal(portal.balls[0].y,E.wormhole.y);assert.ok(portal.balls[0].vy>0);assert.ok(E.wormhole.x<150&&E.wormhole.y<120);
+for(const bumper of E.bonusBumpers.slice(1)){const chamberScore=E.create();put(chamberScore,bumper.x,bumper.y-bumper.r-E.R+1,0,120);E.tick(chamberScore,1/240);assert.equal(chamberScore.score,50,'Each of the three chamber bumpers scores');}
+const chamberRun=E.create();put(chamberRun,E.ramp[0][0],E.ramp[0][1]+10,0,-400);let chamberEntered=false,chamberExited=false;for(let i=0;i<1800&&chamberRun.phase==='playing';i++){E.tick(chamberRun,1/120);const b=chamberRun.balls[0];if(!b.lane&&!b.rampUntil&&b.y>370&&b.y<500&&b.x<110)chamberEntered=true;if(chamberEntered&&b.y>600&&b.x>80)chamberExited=true;}assert.ok(chamberEntered);assert.ok(chamberExited,'Chamber feed eventually leaves the lower gate into normal play');assert.ok(E.launchPath.at(-1)[0]>=300,'Yellow track stops at the marked top-right gate');
+console.log('PASS: one-second upper-left wormhole, three scoring chamber bumpers and lower chamber exit.');

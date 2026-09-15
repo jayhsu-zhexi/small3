@@ -51,11 +51,9 @@
       s.flippers.forEach((f,i)=>{const held=i?input.right:input.left,target=i?Math.PI+(held?.5:-.36):(held?-.5:.36),previous=f.a,speed=held?17:10;f.a+=Math.sign(target-f.a)*Math.min(Math.abs(target-f.a),speed*h);f.omega=(f.a-previous)/h;});
       if(s.phase==='ready')continue;
       for(const b of [...s.balls]){
-        if(b.rampUntil){const p=rampPoint(1-(b.rampUntil-s.time)/2.4);b.x=p.x;b.y=p.y;if(s.time>=b.rampUntil){b.rampUntil=0;b.x=ramp.at(-1)[0];b.y=ramp.at(-1)[1];b.vx=130;b.vy=200;s.score+=500;emit(s,'orbit',b.x,b.y);}continue;}
+        if(b.rampUntil){const p=rampPoint(1-(b.rampUntil-s.time)/2.4);b.x=p.x;b.y=p.y;if(s.time>=b.rampUntil){b.rampUntil=0;b.x=ramp.at(-1)[0];b.y=ramp.at(-1)[1];b.vx=20;b.vy=180;s.score+=500;emit(s,'orbit',b.x,b.y);}continue;}
         if(b.rampBlocked&&b.y>600)b.rampBlocked=false;
-        if(b.captureUntil){if(s.time<b.captureUntil)continue;b.captureUntil=0;b.x=wormhole.x;b.y=wormhole.y;b.vx=0;b.vy=-650;b.stuck=0;b.returning=true;b.scoopBlocked=true;hit(s,'scoop',0);emit(s,'warp',b.x,b.y);if(s.phase==='won')break;continue;}
-        // The return rail ejects toward open play instead of dropping into its own scoop.
-        if(b.returning&&b.y>315&&b.vy>0){b.returning=false;b.vx=-220;b.vy=230;emit(s,'rail',b.x,b.y);}
+        if(b.captureUntil){if(s.time<b.captureUntil)continue;b.captureUntil=0;b.x=wormhole.x;b.y=wormhole.y;b.vx=-35;b.vy=170;b.stuck=0;b.scoopBlocked=true;hit(s,'scoop',0);emit(s,'warp',b.x,b.y);if(s.phase==='won')break;continue;}
         if(b.scoopBlocked&&b.x<330&&b.y>330)b.scoopBlocked=false;
         if(b.lane){
           b.launchDistance=(b.launchDistance||0)+b.launchSpeed*h;
@@ -72,7 +70,7 @@
         // Rollover switches detect entry without changing the ball's position or velocity.
         b.rollovers ||= [];
         targets.forEach((c,i)=>{const inside=Math.hypot(b.x-c.x,b.y-c.y)<c.r+b.r;if(inside&&!b.rollovers[i]){hit(s,'target',i);emit(s,'target',c.x,c.y);}b.rollovers[i]=inside;});
-        if(!b.scoopBlocked&&Math.hypot(b.x-scoop.x,b.y-scoop.y)<scoop.r&&contact(s,'scoop',1.5)){b.x=scoop.x;b.y=scoop.y;b.vx=0;b.vy=0;b.captureUntil=s.time+2;emit(s,'scoop',scoop.x,scoop.y);continue;}
+        if(!b.scoopBlocked&&Math.hypot(b.x-scoop.x,b.y-scoop.y)<scoop.r&&contact(s,'scoop',1.5)){b.x=scoop.x;b.y=scoop.y;b.vx=0;b.vy=0;b.captureUntil=s.time+1;emit(s,'scoop',scoop.x,scoop.y);continue;}
         const speed=Math.hypot(b.vx,b.vy);if(speed>1100){b.vx*=1100/speed;b.vy*=1100/speed;}
         // Resolve the exterior LAST: bumpers and nearby rails can push a ball outward.
         contain(b);
