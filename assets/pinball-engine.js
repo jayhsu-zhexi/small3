@@ -24,7 +24,7 @@
     const inward=b.vx*best.nx+b.vy*best.ny;if(inward<0){b.vx-=inward*best.nx;b.vy-=inward*best.ny;}return true;
   }
   function leftLimit(y,r=R){
-    for(let i=1;i<leftBoundary.length;i++){const a=leftBoundary[i-1],z=leftBoundary[i];if(y>=a[1]&&y<=z[1]){const dx=z[0]-a[0],dy=z[1]-a[1];return a[0]+(y-a[1])*dx/dy+(r+RAIL_RADIUS+.1)*Math.hypot(dx,dy)/dy;}}
+    for(let i=1;i<leftBoundary.length;i++){const a=leftBoundary[i-1],z=leftBoundary[i];if(z[1]>a[1]&&y>=a[1]&&y<=z[1]){const dx=z[0]-a[0],dy=z[1]-a[1];return a[0]+(y-a[1])*dx/dy+(r+RAIL_RADIUS+.1)*Math.hypot(dx,dy)/dy;}}
     return r+20;
   }
   function rightLimit(y,r=R){for(let i=1;i<rightBoundary.length;i++){const a=rightBoundary[i-1],z=rightBoundary[i];if(y>=a[1]&&y<=z[1])return a[0]+(z[0]-a[0])*(y-a[1])/(z[1]-a[1])-r-RAIL_RADIUS;}return 423-r-RAIL_RADIUS;}

@@ -105,3 +105,10 @@ const portal=E.create();put(portal,E.scoop.x,E.scoop.y);E.tick(portal,1/240);con
 for(const bumper of E.bonusBumpers.slice(1)){const chamberScore=E.create();put(chamberScore,bumper.x,bumper.y-bumper.r-E.R+1,0,120);E.tick(chamberScore,1/240);assert.equal(chamberScore.score,50,'Each of the three chamber bumpers scores');}
 const chamberRun=E.create();put(chamberRun,E.ramp[0][0],E.ramp[0][1]+10,0,-400);let chamberEntered=false,chamberExited=false;for(let i=0;i<1800&&chamberRun.phase==='playing';i++){E.tick(chamberRun,1/120);const b=chamberRun.balls[0];if(!b.lane&&!b.rampUntil&&b.y>370&&b.y<500&&b.x<110)chamberEntered=true;if(chamberEntered&&b.y>600&&b.x>80)chamberExited=true;}assert.ok(chamberEntered);assert.ok(chamberExited,'Chamber feed eventually leaves the lower gate into normal play');assert.ok(E.launchPath.at(-1)[0]>=300,'Yellow track stops at the marked top-right gate');
 console.log('PASS: one-second upper-left wormhole, three scoring chamber bumpers and lower chamber exit.');
+// Red-line regression: ground balls slide along the new upper-left guide, never into the old pocket.
+for(const y of [155,200,260,310,345])for(const vx of [-700,0,250]){
+ const slide=E.create('practice');put(slide,E.leftLimit(y)+1,y,vx,80);let cleared=false;
+ for(let i=0;i<960;i++){E.tick(slide,1/120);for(const b of slide.balls){if(b.lane||b.rampUntil||b.captureUntil)continue;if(b.y>=150&&b.y<=350)assert.ok(b.x>=E.leftLimit(b.y,b.r)-.001);if(b.y>370)cleared=true;}}
+ assert.ok(cleared,'Red-line guide must carry the ball out of the upper-left pocket');
+}
+console.log('PASS: red-line left guide clears all sampled heights and impact speeds.');

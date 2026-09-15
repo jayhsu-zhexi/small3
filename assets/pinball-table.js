@@ -6,7 +6,7 @@
   const scoop={x:389,y:407,r:17},wormhole={x:130,y:100,r:12};
   const bonusBumpers=[{x:106,y:66,r:23},{x:52,y:397,r:10},{x:65,y:433,r:10},{x:60,y:470,r:10}];
   const slings=[[[132,543],[121,620],[160,642]],[[353,543],[349,615],[316,642]]];
-  const walls=[[[28,705],[28,565]],[[28,565],[16,490]],[[16,490],[16,340]],[[16,340],[49,230]],[[435,365],[435,800]],[[464,800],[464,140]],[[423,705],[423,535]]];
+  const walls=[[[28,705],[28,565]],[[28,565],[16,490]],[[16,490],[16,350]],[[435,365],[435,800]],[[464,800],[464,140]],[[423,705],[423,535]]];
   // Open U-shaped return channels, sampled once for identical rendering and collisions.
   function smooth(points){const out=[];for(let i=0;i<points.length-1;i++){const a=points[Math.max(0,i-1)],b=points[i],c=points[i+1],d=points[Math.min(points.length-1,i+2)];for(let j=0;j<6;j++){const t=j/6;out.push([0,1].map(k=>.5*(2*b[k]+(-a[k]+c[k])*t+(2*a[k]-5*b[k]+4*c[k]-d[k])*t*t+(-a[k]+3*b[k]-3*c[k]+d[k])*t*t*t)));}}out.push(points.at(-1));return out;}
   // Shooter follows the yellow outer rail to the marked upper-right opening.
@@ -19,7 +19,8 @@
   const ramp=smooth([[181,376],[163,334],[130,294],[96,269],[65,274],[43,302],[47,335],[58,362],[60,374]]);
   const rampDistances=[0];for(let i=1;i<ramp.length;i++)rampDistances.push(rampDistances[i-1]+Math.hypot(ramp[i][0]-ramp[i-1][0],ramp[i][1]-ramp[i-1][1]));
   function rampPoint(progress){const d=Math.max(0,Math.min(1,progress))*rampDistances.at(-1);let i=1;while(i<ramp.length-1&&rampDistances[i]<d)i++;const t=(d-rampDistances[i-1])/(rampDistances[i]-rampDistances[i-1]);return {x:ramp[i-1][0]+(ramp[i][0]-ramp[i-1][0])*t,y:ramp[i-1][1]+(ramp[i][1]-ramp[i-1][1])*t};}
-  const guides=[[[64,557],[61,604]],[[61,604],[143,687]],[[395,557],[397,604]],[[397,604],[326,687]],[[74,611],[73,704]]];
+  const leftDeflector=[[68,150],[74,230],[84,300],[100,350]];
+  const guides=[leftDeflector,[[64,557],[61,604]],[[61,604],[143,687]],[[395,557],[397,604]],[[397,604],[326,687]],[[74,611],[73,704]]];
   const deflectors=[[[152,85],[194,109],[166,145],[147,132]],[[299,82],[321,94],[294,129],[283,118]],[[151,220],[178,215],[166,254]]];
   // Shared scoring chamber outline, with one lower gate and an elevated feed.
   const chamberLeft=[[16,350],[16,470],[42,495],[52,520],[48,550],[80,590]];
@@ -27,7 +28,7 @@
   const chamberFloor=[...chamberLeft,...chamberRight.slice(1).reverse()];
   const purpleWalls=[chamberLeft,chamberRight].flatMap(p=>p.slice(1).map((b,i)=>[p[i],b]));
   const sideWalls=sideLanes.flatMap(points=>points.slice(1).map((point,i)=>[points[i],point])).concat(guides,purpleWalls,deflectors.flatMap(p=>p.map((a,i)=>[a,p[(i+1)%p.length]])));
-  const leftBoundary=[[95,25],[58,45],[48,90],[68,150],[49,230],[16,340],[16,490],[28,565],[28,715]];
+  const leftBoundary=[[95,25],[58,45],[48,90],...leftDeflector,[16,350],[16,490],[28,565],[28,715]];
   const rightBoundary=[[430,25],[436,180],[423,280],[388,320],[370,365],[378,388],[407,407],[385,440],[399,485],[423,535],[423,715]];
 
   const drains=[{id:'center-drain',minY:782,minX:0,maxX:W},{id:'left-drain',minY:715,minX:0,maxX:80},{id:'right-drain',minY:715,minX:400,maxX:W}];
