@@ -51,6 +51,8 @@
       s.flippers.forEach((f,i)=>{const held=i?input.right:input.left,target=i?Math.PI+(held?.5:-.36):(held?-.5:.36),previous=f.a,speed=held?17:10;f.a+=Math.sign(target-f.a)*Math.min(Math.abs(target-f.a),speed*h);f.omega=(f.a-previous)/h;});
       if(s.phase==='ready')continue;
       for(const b of [...s.balls]){
+        if(b.tunnelUntil){const p=table.tunnelPoint(1-(b.tunnelUntil-s.time)/1.15);b.x=p.x;b.y=p.y;if(s.time>=b.tunnelUntil){b.tunnelUntil=0;b.vx=160;b.vy=180;b.tunnelBlocked=true;emit(s,'tunnel-exit',b.x,b.y);}continue;}
+        if(b.tunnelBlocked&&b.x>175)b.tunnelBlocked=false;
         if(b.rampUntil){const p=rampPoint(1-(b.rampUntil-s.time)/2.4);b.x=p.x;b.y=p.y;if(s.time>=b.rampUntil){b.rampUntil=0;b.deck=true;b.x=ramp.at(-1)[0];b.y=ramp.at(-1)[1];b.vx=20;b.vy=180;s.score+=500;emit(s,'orbit',b.x,b.y);}continue;}
         if(b.dropUntil){if(s.time<b.dropUntil)continue;b.dropUntil=0;b.deck=false;b.vx=130;b.vy=200;emit(s,'platform-drop',b.x,b.y);continue;}
         if(b.deck){
@@ -71,6 +73,8 @@
           continue;
         }
         b.vy+=720*h;b.vx*=Math.exp(-.055*h);b.vy*=Math.exp(-.055*h);b.x+=b.vx*h;b.y+=b.vy*h;
+        const tunnel=table.components.find(c=>c.id==='lower-tunnel');
+        if(!b.tunnelBlocked&&b.vy<-120&&Math.hypot(b.x-tunnel.points[0][0],b.y-tunnel.points[0][1])<tunnel.entryRadius){b.tunnelUntil=s.time+1.15;b.vx=0;b.vy=0;emit(s,'tunnel',b.x,b.y);continue;}
         if(!b.rampBlocked&&b.vy<-120&&Math.hypot(b.x-ramp[0][0],b.y-ramp[0][1])<table.components.find(c=>c.id==='left-ramp').entryRadius){b.rampUntil=s.time+2.4;b.rampBlocked=true;b.vx=0;b.vy=0;emit(s,'ramp',b.x,b.y);continue;}
         for(const c of railColliders.filter(c=>c.component.layer===0))if(segment(b,{x:c.a[0],y:c.a[1]},{x:c.b[0],y:c.b[1]},null,0,undefined,c.radius)&&contact(s,'rail',.12))emit(s,'rail',b.x,b.y);
         slings.forEach((points,i)=>{const corrected=ejectInterior(b,points);for(let edge=0;edge<3;edge++){const a=points[edge],z=points[(edge+1)%3],dx=z[0]-a[0],dy=z[1]-a[1],length=Math.hypot(dx,dy),impact=Math.abs((b.vx*-dy+b.vy*dx)/length);if(segment(b,{x:a[0],y:a[1]},{x:z[0],y:z[1]})&&edge===2&&!corrected&&impact>100&&contact(s,'sling'+i,.25)){s.score+=25;emit(s,'sling',b.x,b.y);}}});

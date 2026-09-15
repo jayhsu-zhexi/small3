@@ -17,6 +17,8 @@
   const sideLanes=[smooth([[77,133],[58,108],[58,64],[82,29],[118,29],[155,53],[222,40],[290,36],[345,57],[389,106],[419,181],[423,280]]),smooth([[317,99],[344,115],[365,160],[365,218],[347,273]])];
   // Only the short left hairpin is raised; it does not wrap around the whole table.
   const ramp=smooth([[181,376],[163,334],[130,294],[96,269],[65,274],[43,302],[47,335],[58,362],[60,374]]);
+  const tunnel=[[98,625],[80,580],[62,525],[53,465],[51,400],[51,335],[56,265],[65,195],[84,150],[116,138]];
+  function tunnelPoint(progress){const lengths=[0];for(let i=1;i<tunnel.length;i++)lengths.push(lengths[i-1]+Math.hypot(tunnel[i][0]-tunnel[i-1][0],tunnel[i][1]-tunnel[i-1][1]));const d=Math.max(0,Math.min(1,progress))*lengths.at(-1);let i=1;while(i<tunnel.length-1&&lengths[i]<d)i++;const f=(d-lengths[i-1])/(lengths[i]-lengths[i-1]);return {x:tunnel[i-1][0]+(tunnel[i][0]-tunnel[i-1][0])*f,y:tunnel[i-1][1]+(tunnel[i][1]-tunnel[i-1][1])*f};}
   const rampDistances=[0];for(let i=1;i<ramp.length;i++)rampDistances.push(rampDistances[i-1]+Math.hypot(ramp[i][0]-ramp[i-1][0],ramp[i][1]-ramp[i-1][1]));
   function rampPoint(progress){const d=Math.max(0,Math.min(1,progress))*rampDistances.at(-1);let i=1;while(i<ramp.length-1&&rampDistances[i]<d)i++;const t=(d-rampDistances[i-1])/(rampDistances[i]-rampDistances[i-1]);return {x:ramp[i-1][0]+(ramp[i][0]-ramp[i-1][0])*t,y:ramp[i-1][1]+(ramp[i][1]-ramp[i-1][1])*t};}
   const leftDeflector=[[68,150],[74,230],[84,300],[100,350]];
@@ -51,13 +53,14 @@
     {id:'shooter',type:'track',points:launchPath,halfWidth:14,layer:1},
     {id:'left-ramp',type:'track',points:ramp,halfWidth:18,entryRadius:23,layer:2},
     {id:'left-flipper',type:'flipper',pivot:{x:148,y:709},length:FLIPPER_LENGTH,radius:FLIPPER_RADIUS,layer:0},
-    {id:'right-flipper',type:'flipper',pivot:{x:335,y:709},length:FLIPPER_LENGTH,radius:FLIPPER_RADIUS,layer:0}
+    {id:'right-flipper',type:'flipper',pivot:{x:335,y:709},length:FLIPPER_LENGTH,radius:FLIPPER_RADIUS,layer:0},
+    {id:'lower-tunnel',type:'track',points:tunnel,halfWidth:13,entryRadius:22,layer:0}
   ];
   const railColliders=components.filter(c=>c.type==='rail'||c.type==='polygon').flatMap(c=>{
     const points=c.type==='polygon'?[...c.points,c.points[0]]:c.points;
     return points.slice(1).map((b,i)=>({component:c,a:points[i],b,radius:c.radius}));
   });
 
-const api={W,H,R,RAIL_RADIUS,FLIPPER_RADIUS,FLIPPER_LENGTH,bumpers,targets,scoop,wormhole,bonusBumpers,slings,walls,launchPath,launchDistances,launchPoint,sideLanes,ramp,rampDistances,rampPoint,guides,deflectors,chamberLeft,chamberRight,chamberFloor,purpleWalls,sideWalls,leftBoundary,rightBoundary,components,railColliders,drains};
+const api={W,H,R,RAIL_RADIUS,FLIPPER_RADIUS,FLIPPER_LENGTH,bumpers,targets,scoop,wormhole,bonusBumpers,slings,walls,launchPath,launchDistances,launchPoint,sideLanes,ramp,rampDistances,rampPoint,tunnel,tunnelPoint,guides,deflectors,chamberLeft,chamberRight,chamberFloor,purpleWalls,sideWalls,leftBoundary,rightBoundary,components,railColliders,drains};
 root.OrbitPinballTable=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window==='undefined'?globalThis:window);

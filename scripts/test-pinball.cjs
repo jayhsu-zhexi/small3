@@ -76,14 +76,14 @@ console.log('PASS: passive surfaces dissipate impact energy; rebound scales with
 for(const y of [80,180,300,340,414,465,560]){
  for(const vx of [-900,0,400]){
  const edge=E.create('practice');put(edge,10,y,vx,180);
- for(let i=0;i<600;i++){E.tick(edge,1/120);for(const b of edge.balls){if(b.lane||b.rampUntil||b.captureUntil)continue;assert.ok(b.x>=E.leftLimit(b.y,b.r)-.001,'Post-collision position must stay inside the illustrated left boundary');assert.ok(b.x<=464-b.r+.001);}}
+ for(let i=0;i<600;i++){E.tick(edge,1/120);for(const b of edge.balls){if(b.lane||b.rampUntil||b.tunnelUntil||b.captureUntil)continue;assert.ok(b.x>=E.leftLimit(b.y,b.r)-.001,'Post-collision position must stay inside the illustrated left boundary');assert.ok(b.x<=464-b.r+.001);}}
  }
 }
 console.log('PASS: left-edge impacts remain inside the cabinet after every physics step, including adjacent bumpers.');
 
 for(const y of [300,340,365,450,500,600]){
  const right=E.create('practice');put(right,410,y,900,0);
- for(let i=0;i<360;i++){E.tick(right,1/120);for(const b of right.balls){if(b.lane||b.rampUntil||b.captureUntil)continue;assert.ok(b.x<=E.rightLimit(b.y,b.r)+.001,'Active play cannot enter the black margin or shooter lane');}}
+ for(let i=0;i<360;i++){E.tick(right,1/120);for(const b of right.balls){if(b.lane||b.rampUntil||b.tunnelUntil||b.captureUntil)continue;assert.ok(b.x<=E.rightLimit(b.y,b.r)+.001,'Active play cannot enter the black margin or shooter lane');}}
 }
 const purpleSide=E.create();put(purpleSide,140,410,-400,0);purpleSide.balls[0].deck=true;advance(purpleSide,.12);assert.ok(purpleSide.balls[0].x>115,'Purple side wall blocks lateral entry');
 const purpleGate=E.create();put(purpleGate,94,615,0,-240);advance(purpleGate,.12);assert.ok(purpleGate.balls[0].y<600,'Purple lower opening admits the ball');
@@ -108,7 +108,7 @@ console.log('PASS: one-second upper-left wormhole, three scoring chamber bumpers
 // Red-line regression: ground balls slide along the new upper-left guide, never into the old pocket.
 for(const y of [155,200,260,310,345])for(const vx of [-700,0,250]){
  const slide=E.create('practice');put(slide,E.leftLimit(y)+1,y,vx,80);let cleared=false;
- for(let i=0;i<960;i++){E.tick(slide,1/120);for(const b of slide.balls){if(b.lane||b.rampUntil||b.captureUntil)continue;if(b.y>=150&&b.y<=350)assert.ok(b.x>=E.leftLimit(b.y,b.r)-.001);if(b.y>370)cleared=true;}}
+ for(let i=0;i<960;i++){E.tick(slide,1/120);for(const b of slide.balls){if(b.lane||b.rampUntil||b.tunnelUntil||b.captureUntil)continue;if(b.y>=150&&b.y<=350)assert.ok(b.x>=E.leftLimit(b.y,b.r)-.001);if(b.y>370)cleared=true;}}
  assert.ok(cleared,'Red-line guide must carry the ball out of the upper-left pocket');
 }
 console.log('PASS: red-line left guide clears all sampled heights and impact speeds.');
@@ -116,3 +116,6 @@ const elevated=E.create('practice');put(elevated,E.ramp[0][0],E.ramp[0][1]+10,0,
 const lower=E.create('practice'),upperBumper=E.bonusBumpers[1];put(lower,upperBumper.x,upperBumper.y,0,100);E.tick(lower,1/240);assert.equal(lower.score,0,'Ground ball cannot hit an upper-deck bumper');assert.ok(!lower.balls[0].deck);
 const dropPause=E.create('practice');put(dropPause,95,593,0,100);dropPause.balls[0].deck=true;E.tick(dropPause,1/240);assert.ok(dropPause.balls[0].dropUntil);dropPause.paused=true;const pausedDrop=JSON.stringify(dropPause);advance(dropPause,1);assert.equal(JSON.stringify(dropPause),pausedDrop);dropPause.paused=false;advance(dropPause,.3);assert.ok(!dropPause.balls[0].deck);
 console.log('PASS: elevated deck collision separation, scoring, hole transition and pause-safe falling.');
+const tunnelGame=E.create('practice');put(tunnelGame,98,633,0,-450);E.tick(tunnelGame,1/120);assert.ok(tunnelGame.balls[0].tunnelUntil);advance(tunnelGame,.4);assert.equal(tunnelGame.score,0);assert.ok(!tunnelGame.balls[0].deck);tunnelGame.paused=true;const frozenTunnel=JSON.stringify(tunnelGame);advance(tunnelGame,2);assert.equal(JSON.stringify(tunnelGame),frozenTunnel);tunnelGame.paused=false;let exitedTunnel=false;for(let i=0;i<120;i++){E.tick(tunnelGame,1/120);if(!tunnelGame.balls[0].tunnelUntil){assert.ok(tunnelGame.balls[0].x<150&&tunnelGame.balls[0].y<160);exitedTunnel=true;break;}}assert.ok(exitedTunnel);advance(tunnelGame,3);assert.ok(!tunnelGame.balls[0].tunnelUntil);assert.ok(tunnelGame.balls[0].y>250||tunnelGame.phase==='ready');
+const downTunnel=E.create();put(downTunnel,98,625,0,180);E.tick(downTunnel,1/120);assert.ok(!downTunnel.balls[0].tunnelUntil);
+console.log('PASS: lower tunnel accepts upward shots, stays below scoring platform, pauses and exits upper-left without a loop.');
