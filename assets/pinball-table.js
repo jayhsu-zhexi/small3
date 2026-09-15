@@ -1,7 +1,7 @@
 (function(root){
 'use strict';
   const W=480,H=860,R=8,RAIL_RADIUS=4,FLIPPER_RADIUS=7,FLIPPER_LENGTH=65;
-  const bumpers=[{x:214,y:182,r:21},{x:281,y:165,r:21},{x:245,y:241,r:21}];
+  const bumpers=[{x:208,y:202,r:21},{x:292,y:193,r:21},{x:255,y:276,r:21}];
   const targets=[{x:214,y:118,r:8},{x:245,y:118,r:8},{x:275,y:118,r:8}];
   const scoop={x:389,y:407,r:17},wormhole={x:130,y:100,r:12};
   const bonusBumpers=[{x:106,y:66,r:23},{x:52,y:397,r:10},{x:65,y:433,r:10},{x:60,y:470,r:10}];
@@ -14,16 +14,16 @@
   const launchDistances=[0];for(let i=1;i<launchPath.length;i++)launchDistances.push(launchDistances[i-1]+Math.hypot(launchPath[i][0]-launchPath[i-1][0],launchPath[i][1]-launchPath[i-1][1]));
   function launchPoint(distance){let i=1;const d=Math.max(0,Math.min(launchDistances.at(-1),distance));while(i<launchPath.length-1&&launchDistances[i]<d)i++;const t=(d-launchDistances[i-1])/(launchDistances[i]-launchDistances[i-1]);return {x:launchPath[i-1][0]+(launchPath[i][0]-launchPath[i-1][0])*t,y:launchPath[i-1][1]+(launchPath[i][1]-launchPath[i-1][1])*t};}
   // Shared outer horseshoe and inner right return rail.
-  const sideLanes=[smooth([[77,133],[58,108],[58,64],[82,29],[118,29],[155,53],[222,40],[290,36],[345,57],[389,106],[419,181],[423,280]]),smooth([[317,99],[344,115],[365,160],[365,218],[347,273]])];
+  const sideLanes=[smooth([[77,133],[62,105],[64,66],[89,38],[126,31],[170,32],[222,32],[284,39],[339,61],[383,106],[410,177],[423,280]]),smooth([[326,106],[352,134],[369,183],[366,236],[349,293]])];
   // Only the short left hairpin is raised; it does not wrap around the whole table.
-  const ramp=smooth([[181,376],[163,334],[130,294],[96,269],[65,274],[43,302],[47,335],[58,362],[60,374]]);
+  const ramp=smooth([[190,402],[174,360],[146,321],[111,298],[78,300],[54,319],[49,340],[54,362],[60,374]]);
   const tunnel=[[98,625],[80,580],[62,525],[53,465],[51,400],[51,335],[56,265],[65,195],[84,150],[116,138]];
   function tunnelPoint(progress){const lengths=[0];for(let i=1;i<tunnel.length;i++)lengths.push(lengths[i-1]+Math.hypot(tunnel[i][0]-tunnel[i-1][0],tunnel[i][1]-tunnel[i-1][1]));const d=Math.max(0,Math.min(1,progress))*lengths.at(-1);let i=1;while(i<tunnel.length-1&&lengths[i]<d)i++;const f=(d-lengths[i-1])/(lengths[i]-lengths[i-1]);return {x:tunnel[i-1][0]+(tunnel[i][0]-tunnel[i-1][0])*f,y:tunnel[i-1][1]+(tunnel[i][1]-tunnel[i-1][1])*f};}
   const rampDistances=[0];for(let i=1;i<ramp.length;i++)rampDistances.push(rampDistances[i-1]+Math.hypot(ramp[i][0]-ramp[i-1][0],ramp[i][1]-ramp[i-1][1]));
   function rampPoint(progress){const d=Math.max(0,Math.min(1,progress))*rampDistances.at(-1);let i=1;while(i<ramp.length-1&&rampDistances[i]<d)i++;const t=(d-rampDistances[i-1])/(rampDistances[i]-rampDistances[i-1]);return {x:ramp[i-1][0]+(ramp[i][0]-ramp[i-1][0])*t,y:ramp[i-1][1]+(ramp[i][1]-ramp[i-1][1])*t};}
   const leftDeflector=[[68,150],[74,230],[84,300],[100,350]];
   const guides=[leftDeflector,[[64,557],[61,604]],[[61,604],[143,687]],[[395,557],[397,604]],[[397,604],[326,687]],[[74,611],[73,704]]];
-  const deflectors=[[[152,85],[194,109],[166,145],[147,132]],[[299,82],[321,94],[294,129],[283,118]],[[151,220],[178,215],[166,254]]];
+  const deflectors=[[[164,86],[187,96],[176,132],[157,121]],[[306,83],[324,97],[307,130],[292,117]],[[134,231],[143,263],[130,281]]];
   // Shared scoring chamber outline, with one lower gate and an elevated feed.
   const chamberLeft=[[20,350],[18,425],[27,485],[46,535],[65,565],[80,590]];
   const chamberRight=[[20,350],[100,350],[112,400],[112,455],[101,495],[99,530],[104,565],[110,595]];
@@ -31,7 +31,7 @@
   const purpleWalls=[chamberLeft,chamberRight].flatMap(p=>p.slice(1).map((b,i)=>[p[i],b]));
   const sideWalls=sideLanes.flatMap(points=>points.slice(1).map((point,i)=>[points[i],point])).concat(guides,purpleWalls,deflectors.flatMap(p=>p.map((a,i)=>[a,p[(i+1)%p.length]])));
   const leftBoundary=[[95,25],[58,45],[48,90],...leftDeflector,[16,350],[16,490],[28,565],[28,715]];
-  const rightBoundary=[[430,25],[436,180],[423,280],[388,320],[370,365],[378,388],[407,407],[385,440],[399,485],[423,535],[423,715]];
+  const rightBoundary=[[430,25],[436,180],[423,280],[403,320],[396,365],[401,388],[414,407],[410,440],[411,485],[423,535],[423,715]];
 
   const drains=[{id:'center-drain',minY:782,minX:0,maxX:W},{id:'left-drain',minY:715,minX:0,maxX:80},{id:'right-drain',minY:715,minX:400,maxX:W}];
   const components=[
@@ -51,7 +51,7 @@
     {id:'left-perimeter',type:'boundary',points:leftBoundary,radius:RAIL_RADIUS,layer:0},
     {id:'right-perimeter',type:'boundary',points:rightBoundary,radius:RAIL_RADIUS,layer:0},
     {id:'shooter',type:'track',points:launchPath,halfWidth:14,layer:1},
-    {id:'left-ramp',type:'track',points:ramp,halfWidth:18,entryRadius:23,layer:2},
+    {id:'left-ramp',type:'track',points:ramp,halfWidth:15,entryRadius:23,layer:2},
     {id:'left-flipper',type:'flipper',pivot:{x:148,y:709},length:FLIPPER_LENGTH,radius:FLIPPER_RADIUS,layer:0},
     {id:'right-flipper',type:'flipper',pivot:{x:335,y:709},length:FLIPPER_LENGTH,radius:FLIPPER_RADIUS,layer:0},
     {id:'lower-tunnel',type:'track',points:tunnel,halfWidth:13,entryRadius:22,layer:0}

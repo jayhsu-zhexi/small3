@@ -20,9 +20,9 @@
   }
   function drawComponent(c){
     if(c.type==='drain'){const d=c.shape;line([Math.max(d.minX,22),d.minY],[Math.min(d.maxX,E.W-22),d.minY],'#eab899',2);return;}
-    if(c.type==='rail'||c.type==='boundary'){rail(c.points,c.radius,c.id.startsWith('chamber')?'#b994ed':'#92a0b7');return;}
+    if(c.type==='rail'||c.type==='boundary'){rail(c.points,c.radius,c.id.startsWith('chamber')?'#a99bbf':'#688e9c');return;}
     if(c.type==='polygon'||c.type==='sling'){path(c.points,true);ctx.fillStyle=c.type==='sling'?'#281a50':'#142332';ctx.fill();rail([...c.points,c.points[0]],c.radius);const center=c.points.reduce((v,p)=>[v[0]+p[0]/c.points.length,v[1]+p[1]/c.points.length],[0,0]);ctx.beginPath();ctx.arc(...center,5,0,Math.PI*2);ctx.fillStyle='#77dfea';ctx.fill();return;}
-    if(c.type==='bumper'){const p=c.shape;circleSprite(88,94,338,336,p.x,p.y,p.r);if(c.kick){const i=Number(c.id.split('-')[1]);ctx.beginPath();ctx.arc(p.x,p.y,p.r-4,0,Math.PI*2);ctx.strokeStyle=game.lit[i]?'#ffdc8c':'#ca78b9';ctx.lineWidth=3;ctx.stroke();}return;}
+    if(c.type==='bumper'){const p=c.shape;ctx.save();ctx.shadowColor='#38cfe7';ctx.shadowBlur=7;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle='#153c52';ctx.fill();ctx.restore();circleSprite(88,94,338,336,p.x,p.y,p.r*.83);if(c.kick){const i=Number(c.id.split('-')[1]);ctx.beginPath();ctx.arc(p.x,p.y,p.r-4,0,Math.PI*2);ctx.strokeStyle=game.lit[i]?'#ffdc8c':'#ca78b9';ctx.lineWidth=3;ctx.stroke();}return;}
     if(c.type==='sensor'){const p=c.shape,i=Number(c.id.split('-')[1]);ctx.beginPath();ctx.roundRect(p.x-p.r,p.y-p.r,p.r*2,p.r*2,4);ctx.fillStyle=game.stage===1&&i<game.sequence?'#ffda86':'#393051';ctx.fill();label(String(i+1),p.x,p.y-12,'#ffe9b9',14);return;}
     if(c.type==='scoop'||c.type==='portal'){const p=c.shape;circleSprite(1080,565,399,359,p.x,p.y,p.r);ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.strokeStyle=game.stage===2?'#a8ffe2':'#ab8edf';ctx.lineWidth=2;ctx.stroke();return;}
     if(c.type==='track'){
@@ -36,7 +36,13 @@
   }
   function draw(){
     if(!ctx||!ready)return;ctx.setTransform(canvas.width/E.W,0,0,canvas.height/E.H,0,0);ctx.clearRect(0,0,E.W,E.H);
-    ctx.fillStyle='#090b19';ctx.fillRect(0,0,E.W,E.H);ctx.globalAlpha=.5;ctx.drawImage(field,0,0,E.W,E.H);ctx.globalAlpha=1;
+    ctx.fillStyle='#090b19';ctx.fillRect(0,0,E.W,E.H);ctx.globalAlpha=.15;ctx.drawImage(field,0,0,E.W,E.H);ctx.globalAlpha=1;
+    const surface=ctx.createLinearGradient(0,0,E.W,E.H);surface.addColorStop(0,'#102a3899');surface.addColorStop(.55,'#10203a88');surface.addColorStop(1,'#060c1688');ctx.fillStyle=surface;ctx.fillRect(0,0,E.W,E.H);
+    // Quiet playfield markings emphasize the open shooting lane.
+    ctx.save();ctx.strokeStyle='#77cddd18';ctx.lineWidth=1;
+    for(let r=65;r<=155;r+=30){ctx.beginPath();ctx.arc(247,458,r,0,Math.PI*2);ctx.stroke();}
+    line([183,640],[211,556],'#70cbdb44',2);line([303,640],[278,556],'#70cbdb44',2);
+    ctx.restore();
     // Decoration has no mechanical shapes. Every visible solid comes from the table registry.
 
     for(const c of E.table.components)if(c.layer===0)drawComponent(c);
