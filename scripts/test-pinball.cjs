@@ -51,8 +51,8 @@ for(const x of [342,350,360,370]){
  assert.equal(trapped.score,0,'Passive rear contacts cannot farm sling points');
  assert.equal(trapped.phase,'ready','Unattended rear-channel ball must eventually drain');
 }
-const activeSling=E.create();put(activeSling,321,590,200,0);advance(activeSling,.08);assert.ok(activeSling.score>=25,'The inward-facing sling still kicks and scores on a real impact');
-console.log('PASS: right sling photo positions escape without score farming; the active front still responds.');
+const activeSling=E.create();put(activeSling,321,590,200,0);advance(activeSling,.08);assert.ok(activeSling.score>=25,'The front plate still detects and scores a real impact');
+console.log('PASS: right sling photo positions escape without score farming; the passive front still detects hits.');
 
 for(const c of E.targets){
  const rollover=E.create();put(rollover,c.x,c.y-18,0,180);
@@ -63,3 +63,12 @@ const returnLane=E.create();put(returnLane,E.ramp[0][0],E.ramp[0][1]+10,0,-400);
 for(let i=0;i<1200&&returnLane.phase==='playing';i++){E.tick(returnLane,1/120);caught||=returnLane.events.some(e=>e.kind==='flipper');if(!caught&&returnLane.events.some(e=>e.kind==='drain'))prematureDrain=true;returnLane.events=[];}
 assert.ok(caught,'Left ramp return must reach a flipper in the normal playfield');assert.equal(prematureDrain,false,'Ramp exit cannot feed directly into the left outlane');
 console.log('PASS: top rollover lanes do not rebound, and the left ramp feeds a flipper before any drain.');
+
+let previousBounce=0;
+for(const speed of [60,250,700]){
+ const impact=E.create();put(impact,29,580,-speed,0);E.tick(impact,1/240);const bounce=impact.balls[0].vx;
+ assert.ok(bounce>0&&bounce<speed*.51,'A stationary wall cannot add energy');
+ assert.ok(bounce>previousBounce,'Faster impacts produce larger natural rebounds');previousBounce=bounce;
+}
+const quiet=E.create();put(quiet,240,450,0,0);quiet.balls[0].stuck=10;E.tick(quiet,1/240);assert.ok(quiet.balls[0].vy>0);assert.ok(!quiet.events.some(e=>e.kind==='pulse'),'No artificial upward unsticking kick');
+console.log('PASS: passive surfaces dissipate impact energy; rebound scales with incoming speed and no idle kick is injected.');

@@ -27,12 +27,13 @@
   function emit(s,kind,x=240,y=400){s.events.push({kind,x,y});}
   function launch(s,power=.7){if(s.paused||s.phase!=='ready')return false;const p=Math.max(0,Math.min(1,Number.isFinite(power)?power:.7)),b=s.balls[0];b.launchDistance=0;b.launchSpeed=620+p*260;b.vy=-b.launchSpeed;s.phase='playing';s.saveUntil=s.time+8;emit(s,'launch',b.x,b.y);return true;}
   function flipperTip(f,index){return {x:f.x+Math.cos(f.a)*FLIPPER_LENGTH,y:f.y+Math.sin(f.a)*FLIPPER_LENGTH};}
-  function segment(b,a,z,r=.8,omega=0,pivot=a,radius=RAIL_RADIUS){
+  function passiveRestitution(speed){return .18+.32*Math.min(1,Math.abs(speed)/700);}
+  function segment(b,a,z,r=null,omega=0,pivot=a,radius=RAIL_RADIUS){
     const dx=z.x-a.x,dy=z.y-a.y,t=Math.max(0,Math.min(1,((b.x-a.x)*dx+(b.y-a.y)*dy)/(dx*dx+dy*dy||1))),px=a.x+t*dx,py=a.y+t*dy;
     let nx=b.x-px,ny=b.y-py,d=Math.hypot(nx,ny);const reach=b.r+radius;if(d>=reach)return false;
     if(d<.00001){nx=-dy;ny=dx;d=Math.hypot(nx,ny)||1;}nx/=d;ny/=d;b.x=px+nx*(reach+.05);b.y=py+ny*(reach+.05);
     const ux=-omega*(py-pivot.y),uy=omega*(px-pivot.x),v=(b.vx-ux)*nx+(b.vy-uy)*ny;
-    if(v<0){b.vx-=(1+r)*v*nx;b.vy-=(1+r)*v*ny;return true;}return false;
+    if(v<0){const bounce=r===null?passiveRestitution(v):r;b.vx-=(1+bounce)*v*nx;b.vy-=(1+bounce)*v*ny;return true;}return false;
   }
   function ejectInterior(b,points){
     const cross=points.map((a,i)=>{const z=points[(i+1)%points.length];return (z[0]-a[0])*(b.y-a[1])-(z[1]-a[1])*(b.x-a[0]);});
@@ -42,7 +43,7 @@
     b.x=best.x+best.nx*(b.r+RAIL_RADIUS+.1);b.y=best.y+best.ny*(b.r+RAIL_RADIUS+.1);
     const inward=b.vx*best.nx+b.vy*best.ny;if(inward<0){b.vx-=inward*best.nx;b.vy-=inward*best.ny;}return true;
   }
-  function circle(b,c,kick){let dx=b.x-c.x,dy=b.y-c.y,d=Math.hypot(dx,dy);if(d>=b.r+c.r)return false;if(d<.001){dx=0;dy=1;d=1;}const nx=dx/d,ny=dy/d;b.x=c.x+nx*(b.r+c.r+.1);b.y=c.y+ny*(b.r+c.r+.1);const v=b.vx*nx+b.vy*ny;if(v<0){b.vx-=1.85*v*nx;b.vy-=1.85*v*ny;}b.vx+=nx*kick;b.vy+=ny*kick;return true;}
+  function circle(b,c,kick){let dx=b.x-c.x,dy=b.y-c.y,d=Math.hypot(dx,dy);if(d>=b.r+c.r)return false;if(d<.001){dx=0;dy=1;d=1;}const nx=dx/d,ny=dy/d;b.x=c.x+nx*(b.r+c.r+.1);b.y=c.y+ny*(b.r+c.r+.1);const v=b.vx*nx+b.vy*ny;if(v<0){const bounce=kick? .85:passiveRestitution(v);b.vx-=(1+bounce)*v*nx;b.vy-=(1+bounce)*v*ny;}b.vx+=nx*kick;b.vy+=ny*kick;return true;}
   function contact(s,key,delay=.16){if((s.cooldowns[key]||0)>s.time)return false;s.cooldowns[key]=s.time+delay;return true;}
   function complete(s){s.score+=1000+s.stage*500;s.completed++;emit(s,'mission');if(s.stage===2){if(s.mode==='mission'){s.phase='won';return;}s.stage=0;s.lit=[false,false,false];s.sequence=0;}else{s.stage++;if(s.stage===2&&s.balls.length<2){s.balls.push({x:240,y:390,vx:-160,vy:-360,r:R,lane:false,stuck:0});emit(s,'multiball');}}}
   function hit(s,kind,index){
@@ -73,24 +74,26 @@
         }
         b.vy+=720*h;b.vx*=Math.exp(-.055*h);b.vy*=Math.exp(-.055*h);b.x+=b.vx*h;b.y+=b.vy*h;
         if(!b.rampBlocked&&b.vy<-120&&Math.hypot(b.x-ramp[0][0],b.y-ramp[0][1])<23){b.rampUntil=s.time+2.4;b.rampBlocked=true;b.vx=0;b.vy=0;emit(s,'ramp',b.x,b.y);continue;}
+        // Keep the ball on the playable side of the left perimeter without injecting a kick.
+        for(const [a,z] of walls.slice(0,4)){if(b.y>=Math.min(a[1],z[1])&&b.y<=Math.max(a[1],z[1])){const dx=z[0]-a[0],dy=z[1]-a[1],limit=a[0]+(b.y-a[1])*dx/dy+(b.r+RAIL_RADIUS+.1)*Math.hypot(dx,dy)/Math.abs(dy);if(b.x<limit){b.x=limit;if(b.vx<0)b.vx=-b.vx*passiveRestitution(b.vx);}}}
         for(const [a,z] of walls)segment(b,{x:a[0],y:a[1]},{x:z[0],y:z[1]});
-        for(const [a,z] of sideWalls)if(segment(b,{x:a[0],y:a[1]},{x:z[0],y:z[1]},.88)&&contact(s,'rail',.12))emit(s,'rail',b.x,b.y);
-        slings.forEach((points,i)=>{const corrected=ejectInterior(b,points);for(let edge=0;edge<3;edge++){const a=points[edge],z=points[(edge+1)%3],dx=z[0]-a[0],dy=z[1]-a[1],length=Math.hypot(dx,dy),impact=Math.abs((b.vx*-dy+b.vy*dx)/length);if(segment(b,{x:a[0],y:a[1]},{x:z[0],y:z[1]},.65)&&edge===2&&!corrected&&impact>100&&contact(s,'sling'+i,.25)){b.vy-=90;b.vx+=i?-110:110;s.score+=25;emit(s,'sling',b.x,b.y);}}});
-        s.flippers.forEach((f,i)=>{if(segment(b,f,flipperTip(f,i),.82,f.omega,f,FLIPPER_RADIUS)&&contact(s,'flipper'+i,.08))emit(s,'flipper',b.x,b.y);});
+        for(const [a,z] of sideWalls)if(segment(b,{x:a[0],y:a[1]},{x:z[0],y:z[1]})&&contact(s,'rail',.12))emit(s,'rail',b.x,b.y);
+        slings.forEach((points,i)=>{const corrected=ejectInterior(b,points);for(let edge=0;edge<3;edge++){const a=points[edge],z=points[(edge+1)%3],dx=z[0]-a[0],dy=z[1]-a[1],length=Math.hypot(dx,dy),impact=Math.abs((b.vx*-dy+b.vy*dx)/length);if(segment(b,{x:a[0],y:a[1]},{x:z[0],y:z[1]})&&edge===2&&!corrected&&impact>100&&contact(s,'sling'+i,.25)){s.score+=25;emit(s,'sling',b.x,b.y);}}});
+        s.flippers.forEach((f,i)=>{if(segment(b,f,flipperTip(f,i),f.omega?.82:null,f.omega,f,FLIPPER_RADIUS)&&contact(s,'flipper'+i,.08))emit(s,'flipper',b.x,b.y);});
         bumpers.forEach((c,i)=>{if(circle(b,c,130)&&contact(s,'b'+i)){hit(s,'bumper',i);emit(s,'bumper',c.x,c.y);}});
-        bonusBumpers.forEach((c,i)=>{if(circle(b,c,90)&&contact(s,'bonus'+i)){s.score+=50;emit(s,'bumper',c.x,c.y);}});
+        bonusBumpers.forEach((c,i)=>{if(circle(b,c,0)&&contact(s,'bonus'+i)){s.score+=50;emit(s,'bumper',c.x,c.y);}});
         // Rollover switches detect entry without changing the ball's position or velocity.
         b.rollovers ||= [];
         targets.forEach((c,i)=>{const inside=Math.hypot(b.x-c.x,b.y-c.y)<c.r+b.r;if(inside&&!b.rollovers[i]){hit(s,'target',i);emit(s,'target',c.x,c.y);}b.rollovers[i]=inside;});
         if(!b.scoopBlocked&&Math.hypot(b.x-scoop.x,b.y-scoop.y)<scoop.r&&contact(s,'scoop',1.5)){b.x=scoop.x;b.y=scoop.y;b.vx=0;b.vy=0;b.captureUntil=s.time+2;emit(s,'scoop',scoop.x,scoop.y);continue;}
-        const speed=Math.hypot(b.vx,b.vy);if(speed>1100){b.vx*=1100/speed;b.vy*=1100/speed;}b.stuck=speed<35?b.stuck+h:0;if(b.stuck>3){b.vx=b.x<240?150:-150;b.vy=-220;b.stuck=0;emit(s,'pulse',b.x,b.y);}
+        const speed=Math.hypot(b.vx,b.vy);if(speed>1100){b.vx*=1100/speed;b.vy*=1100/speed;}
         // Numerical guards keep a ball on the table without hiding a normal bottom drain.
-        if(b.x<15){b.x=15;b.vx=Math.abs(b.vx);}if(b.x>462){b.x=462;b.vx=-Math.abs(b.vx);}if(b.y<25){b.y=25;b.vy=Math.abs(b.vy);}
+        if(b.x<15){b.x=15;b.vx=Math.abs(b.vx)*passiveRestitution(b.vx);}if(b.x>462){b.x=462;b.vx=-Math.abs(b.vx)*passiveRestitution(b.vx);}if(b.y<25){b.y=25;b.vy=Math.abs(b.vy)*passiveRestitution(b.vy);}
         if(b.y>782||(b.y>715&&(b.x<80||b.x>400))){s.balls=s.balls.filter(other=>other!==b);if(!s.balls.length){const saved=s.time<s.saveUntil;if(!saved&&s.lives!==null)s.lives--;if(s.lives===0){s.phase='lost';emit(s,'lost');}else{s.balls=[ball()];s.phase='ready';emit(s,saved?'saved':'drain');}}}
         if(s.phase==='won'||s.phase==='lost')break;
       }
       if(s.phase==='won'||s.phase==='lost')break;
     }
   }
-  const api={W,H,R,RAIL_RADIUS,FLIPPER_RADIUS,FLIPPER_LENGTH,launchPath,launchPoint,launchDistances,ramp,rampPoint,bonusBumpers,bumpers,targets,scoop,wormhole,slings,deflectors,walls,sideLanes,guides,sideWalls,create,launch,tick,flipperTip};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.OrbitPinball=api;
+  const api={W,H,R,RAIL_RADIUS,FLIPPER_RADIUS,FLIPPER_LENGTH,passiveRestitution,launchPath,launchPoint,launchDistances,ramp,rampPoint,bonusBumpers,bumpers,targets,scoop,wormhole,slings,deflectors,walls,sideLanes,guides,sideWalls,create,launch,tick,flipperTip};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.OrbitPinball=api;
 })(typeof window==='undefined'?{}:window);
