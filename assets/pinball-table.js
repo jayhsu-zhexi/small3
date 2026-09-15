@@ -25,8 +25,8 @@
   const guides=[leftDeflector,[[64,557],[61,604]],[[61,604],[143,687]],[[395,557],[397,604]],[[397,604],[326,687]],[[74,611],[73,704]]];
   const deflectors=[[[152,85],[194,109],[166,145],[147,132]],[[299,82],[321,94],[294,129],[283,118]],[[151,220],[178,215],[166,254]]];
   // Shared scoring chamber outline, with one lower gate and an elevated feed.
-  const chamberLeft=[[16,350],[16,470],[42,495],[52,520],[48,550],[80,590]];
-  const chamberRight=[[16,350],[100,350],[108,410],[96,475],[78,510],[78,535],[108,570],[110,595]];
+  const chamberLeft=[[20,350],[18,425],[27,485],[46,535],[65,565],[80,590]];
+  const chamberRight=[[20,350],[100,350],[112,400],[112,455],[101,495],[99,530],[104,565],[110,595]];
   const chamberFloor=[...chamberLeft,...chamberRight.slice(1).reverse()];
   const purpleWalls=[chamberLeft,chamberRight].flatMap(p=>p.slice(1).map((b,i)=>[p[i],b]));
   const sideWalls=sideLanes.flatMap(points=>points.slice(1).map((point,i)=>[points[i],point])).concat(guides,purpleWalls,deflectors.flatMap(p=>p.map((a,i)=>[a,p[(i+1)%p.length]])));

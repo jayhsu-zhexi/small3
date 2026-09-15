@@ -43,9 +43,14 @@
     for(const b of game.balls)if(!b.rampUntil&&!b.lane&&!b.deck)drawBall(b);
     for(const c of E.table.components)if(c.layer===1)drawComponent(c);
     for(const b of game.balls)if(b.lane)drawBall(b);
-    ctx.save();ctx.shadowColor='#000';ctx.shadowBlur=14;ctx.shadowOffsetY=10;
-    path(E.table.chamberFloor,true);ctx.fillStyle='#472567';ctx.fill();ctx.restore();
-    path(E.table.chamberFloor,true);ctx.strokeStyle='#ba8ae6';ctx.lineWidth=3;ctx.stroke();
+    // Extruded deck rim and inset lighting follow the physical deck outline.
+    ctx.save();ctx.translate(0,9);ctx.shadowColor='#000';ctx.shadowBlur=16;ctx.shadowOffsetY=5;
+    path(E.table.chamberFloor,true);ctx.fillStyle='#19132b';ctx.fill();ctx.restore();
+    const deckFinish=ctx.createLinearGradient(18,350,114,560);deckFinish.addColorStop(0,'#775397');deckFinish.addColorStop(.45,'#503564');deckFinish.addColorStop(1,'#29223f');
+    path(E.table.chamberFloor,true);ctx.fillStyle=deckFinish;ctx.fill();
+    ctx.save();path(E.table.chamberFloor,true);ctx.clip();
+    ctx.strokeStyle='#c8acd51c';ctx.lineWidth=1;for(let y=366;y<590;y+=18)line([20,y],[120,y-25],'#c8acd51c',1);ctx.restore();
+    path(E.table.chamberFloor,true);ctx.strokeStyle='#b0a1c4';ctx.lineJoin='round';ctx.lineWidth=3;ctx.stroke();
     const a=E.table.chamberLeft.at(-1),z=E.table.chamberRight.at(-1),holeX=(a[0]+z[0])/2,holeY=(a[1]+z[1])/2;
     ctx.beginPath();ctx.ellipse(holeX,holeY,15,10,0,0,Math.PI*2);ctx.fillStyle='#030713';ctx.fill();ctx.strokeStyle='#c4a1eb';ctx.lineWidth=2;ctx.stroke();
     for(const c of E.table.components)if(c.layer===2)drawComponent(c);
