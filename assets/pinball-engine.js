@@ -12,6 +12,10 @@
   const leftReturn=[[42,500],[42,280],[48,235],[74,215],[100,235],[106,280],[106,420],[128,490]];
   const rightReturn=[[405,370],[405,280],[399,235],[373,215],[347,235],[341,280],[341,370]];
   const sideLanes=[smooth(leftReturn),smooth(rightReturn)];
+  // The raised orbit is a separate height layer; balls below it retain ground collisions.
+  const ramp=smooth([[135,520],[103,470],[108,420],[140,360],[125,280],[100,190],[75,70],[150,55],[240,55],[365,65],[401,150],[390,230],[378,350]]);
+  const rampDistances=[0];for(let i=1;i<ramp.length;i++)rampDistances.push(rampDistances[i-1]+Math.hypot(ramp[i][0]-ramp[i-1][0],ramp[i][1]-ramp[i-1][1]));
+  function rampPoint(progress){const d=Math.max(0,Math.min(1,progress))*rampDistances.at(-1);let i=1;while(i<ramp.length-1&&rampDistances[i]<d)i++;const t=(d-rampDistances[i-1])/(rampDistances[i]-rampDistances[i-1]);return {x:ramp[i-1][0]+(ramp[i][0]-ramp[i-1][0])*t,y:ramp[i-1][1]+(ramp[i][1]-ramp[i-1][1])*t};}
   const guides=[[[82,150],[136,181]],[[344,181],[395,150]],[[90,545],[90,690]],[[90,690],[115,718]],[[365,545],[365,690]],[[365,690],[350,718]]];
   const sideWalls=sideLanes.flatMap(points=>points.slice(1).map((point,i)=>[points[i],point])).concat(guides);
   function create(mode='mission'){if(!['mission','practice'].includes(mode))throw Error('Unknown mode');return {mode,phase:'ready',paused:false,time:0,lives:mode==='practice'?null:3,score:0,stage:0,lit:[false,false,false],sequence:0,completed:0,balls:[ball()],flippers:[{x:130,y:732,a:.36,omega:0},{x:350,y:732,a:Math.PI-.36,omega:0}],saveUntil:0,cooldowns:{},events:[]};}
@@ -43,12 +47,15 @@
       s.flippers.forEach((f,i)=>{const held=i?input.right:input.left,target=i?Math.PI+(held?.5:-.36):(held?-.5:.36),previous=f.a,speed=held?17:10;f.a+=Math.sign(target-f.a)*Math.min(Math.abs(target-f.a),speed*h);f.omega=(f.a-previous)/h;});
       if(s.phase==='ready')continue;
       for(const b of [...s.balls]){
+        if(b.rampUntil){const p=rampPoint(1-(b.rampUntil-s.time)/2.4);b.x=p.x;b.y=p.y;if(s.time>=b.rampUntil){b.rampUntil=0;b.x=wormhole.x;b.y=wormhole.y;b.vx=0;b.vy=-650;b.returning=true;b.scoopBlocked=true;s.score+=500;emit(s,'orbit',b.x,b.y);}continue;}
+        if(b.rampBlocked&&b.y>600)b.rampBlocked=false;
         if(b.captureUntil){if(s.time<b.captureUntil)continue;b.captureUntil=0;b.x=wormhole.x;b.y=wormhole.y;b.vx=0;b.vy=-650;b.stuck=0;b.returning=true;b.scoopBlocked=true;hit(s,'scoop',0);emit(s,'warp',b.x,b.y);if(s.phase==='won')break;continue;}
         // The return rail ejects toward open play instead of dropping into its own scoop.
         if(b.returning&&b.y>390&&b.vy>0){b.returning=false;b.vx=-300;b.vy=280;emit(s,'rail',b.x,b.y);}
         if(b.scoopBlocked&&b.x<320&&b.y>400)b.scoopBlocked=false;
         b.vy+=720*h;b.vx*=Math.exp(-.055*h);b.vy*=Math.exp(-.055*h);b.x+=b.vx*h;b.y+=b.vy*h;
         if(b.lane){b.x=437;if(b.y<=128){b.lane=false;b.x=397;b.y=125;b.vx=-340;b.vy=-170;}continue;}
+        if(!b.rampBlocked&&b.vy<-120&&Math.hypot(b.x-ramp[0][0],b.y-ramp[0][1])<23){b.rampUntil=s.time+2.4;b.rampBlocked=true;b.vx=0;b.vy=0;emit(s,'ramp',b.x,b.y);continue;}
         for(const [a,z] of walls)segment(b,{x:a[0],y:a[1]},{x:z[0],y:z[1]});
         for(const [a,z] of sideWalls)if(segment(b,{x:a[0],y:a[1]},{x:z[0],y:z[1]},.88)&&contact(s,'rail',.12))emit(s,'rail',b.x,b.y);
         slings.forEach((points,i)=>{for(let edge=0;edge<3;edge++){const a=points[edge],z=points[(edge+1)%3];if(segment(b,{x:a[0],y:a[1]},{x:z[0],y:z[1]},1.08)&&contact(s,'sling'+i)){b.vy-=130;b.vx+=i?-70:70;s.score+=25;emit(s,'sling',b.x,b.y);}}});
@@ -65,5 +72,5 @@
       if(s.phase==='won'||s.phase==='lost')break;
     }
   }
-  const api={W,H,R,RAIL_RADIUS,FLIPPER_RADIUS,FLIPPER_LENGTH,bumpers,targets,scoop,wormhole,slings,walls,sideLanes,guides,sideWalls,create,launch,tick,flipperTip};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.OrbitPinball=api;
+  const api={W,H,R,RAIL_RADIUS,FLIPPER_RADIUS,FLIPPER_LENGTH,ramp,rampPoint,bumpers,targets,scoop,wormhole,slings,walls,sideLanes,guides,sideWalls,create,launch,tick,flipperTip};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.OrbitPinball=api;
 })(typeof window==='undefined'?{}:window);

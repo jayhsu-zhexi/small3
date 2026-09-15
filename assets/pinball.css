@@ -4,3 +4,13 @@
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
 body{overflow-x:hidden}
 .layout{position:relative}
+
+/* Lacquered arcade cabinet, kept upright for consistent touch aiming. */
+body{background:radial-gradient(ellipse at 50% 20%,#281b4c 0,transparent 65%),#080713}
+.board{border:5px solid #333340;border-radius:8px;box-shadow:0 0 0 2px #9290a3,inset 0 0 0 2px #151321,0 18px 45px #000b;background:#090717}
+canvas{border-radius:3px}
+.hud>div{background:linear-gradient(145deg,#1c1534,#080815);border-color:#8b7cad;border-radius:3px}
+.hud strong{color:#ffdeec;text-shadow:0 0 12px #ff68b866;letter-spacing:1px}
+.task{background:#121021;border-color:#70638d;border-radius:3px}
+.controls button{background:linear-gradient(160deg,#65376d,#28203e);border-color:#cda6e4;color:#ffe1ff}
+.home h1 span{color:#efb8ff;text-shadow:0 3px #58326d,0 0 24px #cb7ff344}

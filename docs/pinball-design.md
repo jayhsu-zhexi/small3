@@ -40,3 +40,19 @@
 - 能源塔改為 (224,205,r30)、(180,345,r28)、(272,345,r28)，塔間與塔到軌道淨距均至少為球徑加 8，保留上方目標的進球空間。
 - 三角反彈板加上與碰撞範圍一致的金屬邊框；保持兩側落球口與中央落球口。
 - 新增以彈珠半徑膨脹障礙物的通道連通檢查，從下半場確認可到達兩側彎道、上方目標與救援艙；保留實際射入、回球、落球及不重複吸球的動態測試。
+
+
+## 街機球台版本
+使用者提供經典太空彈珠台照片作為機台結構與視覺密度參考。新版本採原創紫色太空印刷台面、金屬外框、高架環軌與發光方向燈，保持正向俯視操作。高架為独立運動層，向上射入入口後沿共享曲線行進 2.4 秒，完成加 500 分，接回右側回球軌。下方彈珠可從橋下通行；傳送、暫停、球數與既有任務均保留。
+
+圖像使用內建 imagegen 生成，原始檔保存在 assets/pinball-cabinet-v2.png，網頁載入同名 WebP。原圖 937 × 1678，轉為 WebP quality 90，未裁切或改繪。此檔僅為平面印刷底圖，所有實際機械元件在遊戲中獨立繪製與運作。
+
+### 圖像完整提示詞
+Use case: stylized-concept
+Asset type: production raster underlay artwork for a playable digital pinball field; flat printed artwork only, not a mockup.
+Primary request: NEW ORIGINAL premium 1990s space arcade pinball lacquer artwork, portrait aspect ratio 480:860. Orthographic perfectly top-down rectangle, absolutely no perspective. Full-bleed game-ready image.
+Scene/backdrop: rich dark indigo and violet base with a painted cosmic nebula and dense fine screenprinted texture. Upper 45% remains predominantly dark to leave room for code-rendered mechanical targets. Lower 25% is uncluttered dark violet.
+Subject: an intricate painted spacecraft illustration centered at x50%, y57%; orbital circuit decals; subtle magenta, cyan, and gold arrow paths near the left and right sides; a flat printed central reactor medallion at x50%, y70%. All subjects and details are ink illustrations on one flat surface.
+Style/medium: richly illustrated vintage space arcade cabinet print, sophisticated airbrush painting, luminous neon accents, polished lacquer print texture, crisp detailed spacecraft, restrained high-contrast highlights against navy purple. Rich and professional, not sparse vector art.
+Composition/framing: portrait 480:860 proportions, edge-to-edge straight rectangular art. Thin metallic cabinet bezel only within outermost 3% perimeter. Large dark readable areas in upper 45% and lower 25% for gameplay overlays.
+Constraints: NO physical raised obstacles, NO actual flippers, NO bumpers, NO rails, NO ball, NO UI, NO text, NO logos, NO numbers, NO lettering, NO scoreboard. No device, no surrounding frame, no screenshot, no perspective cabinet render. This image is only the illustrated flat playfield skin beneath separately rendered functional components. The metallic edge is confined to the outermost 3%; everything inside it is FLAT PRINTED ART.

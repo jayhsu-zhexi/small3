@@ -71,3 +71,11 @@ const step=4,cols=120,rows=215,seen=new Set(),queue=[[224,552]];seen.add(138*col
 for(let head=0;head<queue.length;head++){const [x,y]=queue[head];for(const [dx,dy] of [[step,0],[-step,0],[0,step],[0,-step]]){const nx=x+dx,ny=y+dy,key=ny/step*cols+nx/step;if(nx<32||nx>412||ny<52||ny>780||seen.has(key)||!clear(nx,ny))continue;seen.add(key);queue.push([nx,ny]);}}
 for(const [x,y] of [[76,300],[372,300],[224,280],[364,452],...E.targets.map(c=>[c.x,c.y+c.r+E.R+8])])assert.ok(queue.some(([px,py])=>Math.hypot(px-x,py-y)<8),'Every return pocket, upper target and scoop approach must connect to the main field with ball-sized clearance');
 console.log('PASS: bumper gaps include ball clearance and all objectives/return pockets connect to the lower playfield.');
+
+const orbit=E.create();put(orbit,135,530,0,-400);E.tick(orbit,1/120);assert.ok(orbit.balls[0].rampUntil,'An upward shot enters the raised ramp');
+advance(orbit,1);assert.ok(orbit.balls[0].rampUntil);assert.equal(orbit.score,0,'Ground targets below the raised ball must not score');
+orbit.paused=true;const orbitSnapshot=JSON.stringify(orbit);advance(orbit,5);assert.equal(JSON.stringify(orbit),orbitSnapshot);orbit.paused=false;
+advance(orbit,1.42);assert.equal(orbit.balls[0].rampUntil,0);assert.equal(orbit.score,500);assert.ok(orbit.balls[0].returning);assert.equal(orbit.lives,3);
+const downward=E.create();put(downward,135,515,0,200);E.tick(downward,1/120);assert.ok(!downward.balls[0].rampUntil,'Descending balls pass under the entry rather than being vacuumed up');
+const restartOrbit=E.create();assert.ok(!restartOrbit.balls[0].rampUntil);
+console.log('PASS: raised orbit accepts aimed shots, isolates ground collisions, pauses safely, scores once and exits to the return rail.');
