@@ -16,7 +16,7 @@
   // Trace the approved fixed artwork: outer horseshoe and separate inner right return rail.
   const sideLanes=[smooth([[77,133],[58,108],[58,64],[82,29],[118,29],[155,53],[222,40],[290,36],[345,57],[389,106],[419,181],[423,280]]),smooth([[317,99],[344,115],[365,160],[365,218],[347,273]])];
   // Only the short left hairpin is raised; it does not wrap around the whole table.
-  const ramp=smooth([[181,376],[163,334],[130,294],[96,269],[65,274],[43,302],[47,335],[69,362],[86,410],[72,465],[62,550]]);
+  const ramp=smooth([[181,376],[163,334],[130,294],[96,269],[65,274],[43,302],[47,335],[69,362],[86,410],[72,465],[62,540],[80,566],[96,590]]);
   const rampDistances=[0];for(let i=1;i<ramp.length;i++)rampDistances.push(rampDistances[i-1]+Math.hypot(ramp[i][0]-ramp[i-1][0],ramp[i][1]-ramp[i-1][1]));
   function rampPoint(progress){const d=Math.max(0,Math.min(1,progress))*rampDistances.at(-1);let i=1;while(i<ramp.length-1&&rampDistances[i]<d)i++;const t=(d-rampDistances[i-1])/(rampDistances[i]-rampDistances[i-1]);return {x:ramp[i-1][0]+(ramp[i][0]-ramp[i-1][0])*t,y:ramp[i-1][1]+(ramp[i][1]-ramp[i-1][1])*t};}
   const guides=[[[64,557],[61,604]],[[61,604],[143,687]],[[395,557],[397,604]],[[397,604],[326,687]],[[74,611],[73,704]]];
@@ -59,7 +59,7 @@
       s.flippers.forEach((f,i)=>{const held=i?input.right:input.left,target=i?Math.PI+(held?.5:-.36):(held?-.5:.36),previous=f.a,speed=held?17:10;f.a+=Math.sign(target-f.a)*Math.min(Math.abs(target-f.a),speed*h);f.omega=(f.a-previous)/h;});
       if(s.phase==='ready')continue;
       for(const b of [...s.balls]){
-        if(b.rampUntil){const p=rampPoint(1-(b.rampUntil-s.time)/2.4);b.x=p.x;b.y=p.y;if(s.time>=b.rampUntil){b.rampUntil=0;b.x=ramp.at(-1)[0];b.y=ramp.at(-1)[1];b.vx=90;b.vy=200;s.score+=500;emit(s,'orbit',b.x,b.y);}continue;}
+        if(b.rampUntil){const p=rampPoint(1-(b.rampUntil-s.time)/2.4);b.x=p.x;b.y=p.y;if(s.time>=b.rampUntil){b.rampUntil=0;b.x=ramp.at(-1)[0];b.y=ramp.at(-1)[1];b.vx=130;b.vy=200;s.score+=500;emit(s,'orbit',b.x,b.y);}continue;}
         if(b.rampBlocked&&b.y>600)b.rampBlocked=false;
         if(b.captureUntil){if(s.time<b.captureUntil)continue;b.captureUntil=0;b.x=wormhole.x;b.y=wormhole.y;b.vx=0;b.vy=-650;b.stuck=0;b.returning=true;b.scoopBlocked=true;hit(s,'scoop',0);emit(s,'warp',b.x,b.y);if(s.phase==='won')break;continue;}
         // The return rail ejects toward open play instead of dropping into its own scoop.
@@ -79,7 +79,9 @@
         s.flippers.forEach((f,i)=>{if(segment(b,f,flipperTip(f,i),.82,f.omega,f,FLIPPER_RADIUS)&&contact(s,'flipper'+i,.08))emit(s,'flipper',b.x,b.y);});
         bumpers.forEach((c,i)=>{if(circle(b,c,130)&&contact(s,'b'+i)){hit(s,'bumper',i);emit(s,'bumper',c.x,c.y);}});
         bonusBumpers.forEach((c,i)=>{if(circle(b,c,90)&&contact(s,'bonus'+i)){s.score+=50;emit(s,'bumper',c.x,c.y);}});
-        targets.forEach((c,i)=>{if(circle(b,c,70)&&contact(s,'t'+i,.3)){hit(s,'target',i);emit(s,'target',c.x,c.y);}});
+        // Rollover switches detect entry without changing the ball's position or velocity.
+        b.rollovers ||= [];
+        targets.forEach((c,i)=>{const inside=Math.hypot(b.x-c.x,b.y-c.y)<c.r+b.r;if(inside&&!b.rollovers[i]){hit(s,'target',i);emit(s,'target',c.x,c.y);}b.rollovers[i]=inside;});
         if(!b.scoopBlocked&&Math.hypot(b.x-scoop.x,b.y-scoop.y)<scoop.r&&contact(s,'scoop',1.5)){b.x=scoop.x;b.y=scoop.y;b.vx=0;b.vy=0;b.captureUntil=s.time+2;emit(s,'scoop',scoop.x,scoop.y);continue;}
         const speed=Math.hypot(b.vx,b.vy);if(speed>1100){b.vx*=1100/speed;b.vy*=1100/speed;}b.stuck=speed<35?b.stuck+h:0;if(b.stuck>3){b.vx=b.x<240?150:-150;b.vy=-220;b.stuck=0;emit(s,'pulse',b.x,b.y);}
         // Numerical guards keep a ball on the table without hiding a normal bottom drain.

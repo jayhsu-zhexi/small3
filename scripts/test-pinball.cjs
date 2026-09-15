@@ -53,3 +53,13 @@ for(const x of [342,350,360,370]){
 }
 const activeSling=E.create();put(activeSling,321,590,200,0);advance(activeSling,.08);assert.ok(activeSling.score>=25,'The inward-facing sling still kicks and scores on a real impact');
 console.log('PASS: right sling photo positions escape without score farming; the active front still responds.');
+
+for(const c of E.targets){
+ const rollover=E.create();put(rollover,c.x,c.y-18,0,180);
+ for(let i=0;i<25;i++){E.tick(rollover,1/240);assert.ok(rollover.balls[0].vy>0,'Upper rollover lanes cannot bounce a falling ball upward');}
+ assert.equal(rollover.score,150,'One passage scores once');assert.ok(rollover.balls[0].y>c.y);
+}
+const returnLane=E.create();put(returnLane,E.ramp[0][0],E.ramp[0][1]+10,0,-400);let caught=false,prematureDrain=false;
+for(let i=0;i<1200&&returnLane.phase==='playing';i++){E.tick(returnLane,1/120);caught||=returnLane.events.some(e=>e.kind==='flipper');if(!caught&&returnLane.events.some(e=>e.kind==='drain'))prematureDrain=true;returnLane.events=[];}
+assert.ok(caught,'Left ramp return must reach a flipper in the normal playfield');assert.equal(prematureDrain,false,'Ramp exit cannot feed directly into the left outlane');
+console.log('PASS: top rollover lanes do not rebound, and the left ramp feeds a flipper before any drain.');
