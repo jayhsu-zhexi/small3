@@ -1,0 +1,33 @@
+(function(){
+'use strict';
+const t=window.OrbitPinballTable,d=window.PinballDesign,$=id=>document.getElementById(id),canvas=$('editor'),ctx=canvas.getContext('2d'),history=[];
+const names={rail:'牆面',boundary:'外側邊界',polygon:'導流板',sling:'三角導流板',bumper:'碰撞球',sensor:'任務通道',scoop:'右側蟲洞入口',portal:'左上蟲洞出口',track:'高架軌道',flipper:'擋板'};
+let selected='',index=0,drag=null,dirty=false;
+const bg=new Image();bg.onload=draw;bg.src='/assets/pinball-cabinet-v2.webp';
+const component=()=>t.components.find(c=>c.id===selected);
+const nodes=c=>c?.points|| (c?.shape?[[c.shape.x,c.shape.y]]:c?.pivot?[[c.pivot.x,c.pivot.y]]:[]);
+function message(s){$('status').textContent=s;}
+function remember(before){history.push(before||d.snapshot());if(history.length>60)history.shift();dirty=true;}
+function list(){const old=selected;$('component').replaceChildren();for(const c of t.components.filter(c=>c.type!=='drain'&&c.id!=='top-perimeter')){const option=document.createElement('option');option.value=c.id;option.textContent=(names[c.type]||'元件')+' · '+c.id;$('component').append(option);}selected=t.components.some(c=>c.id===old)?old:$('component').value;$('component').value=selected;refresh();}
+function refresh(){const c=component(),p=nodes(c);index=Math.min(index,p.length-1);$('node').replaceChildren();p.forEach((_,i)=>{const o=document.createElement('option');o.value=i;o.textContent='節點 '+(i+1);$('node').append(o);});$('node').value=index;const point=p[index];if(point){$('x').value=Math.round(point[0]*10)/10;$('y').value=Math.round(point[1]*10)/10;}$('radius').disabled=$('size').disabled=!c?.shape?.r;$('radius').value=c?.shape?.r||'';$('remove').disabled=!selected.startsWith('custom-');$('undo').disabled=!history.length;draw();}
+function move(x,y){const c=component();x=Math.max(0,Math.min(480,x));y=Math.max(0,Math.min(860,y));const before=d.snapshot();if(c.points){c.points[index][0]=x;c.points[index][1]=y;}else{const p=c.shape||c.pivot;p.x=x;p.y=y;}try{d.validate(d.snapshot());d.rebuild();return true;}catch(e){d.apply(before);message(e.message);return false;}}
+function stroke(points,close){ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(...p):ctx.moveTo(...p));if(close)ctx.closePath();ctx.stroke();}
+function draw(){ctx.clearRect(0,0,480,860);if(bg.complete&&bg.naturalWidth){ctx.globalAlpha=.35;ctx.drawImage(bg,0,0,480,860);ctx.globalAlpha=1;}ctx.lineWidth=.5;ctx.strokeStyle='#253348';for(let x=0;x<=480;x+=40)stroke([[x,0],[x,860]]);for(let y=0;y<=860;y+=40)stroke([[0,y],[480,y]]);for(const c of [...t.components].sort((a,b)=>a.layer-b.layer)){ctx.strokeStyle=c.id===selected?'#ffda85':c.type==='track'?'#987bc1':'#a0b9cf';ctx.lineWidth=c.type==='track'?c.halfWidth*2:8;if(c.points)stroke(c.points,['polygon','sling'].includes(c.type));else if(c.shape?.r){ctx.beginPath();ctx.arc(c.shape.x,c.shape.y,c.shape.r,0,Math.PI*2);ctx.fillStyle=c.id===selected?'#967638':'#164c6a';ctx.fill();ctx.lineWidth=3;ctx.stroke();}else if(c.pivot){const a=c.id==='left-flipper'?.36:Math.PI-.36;stroke([[c.pivot.x,c.pivot.y],[c.pivot.x+Math.cos(a)*c.length,c.pivot.y+Math.sin(a)*c.length]]);}else if(c.type==='drain'){ctx.lineWidth=2;ctx.strokeStyle='#ef7887';stroke([[c.shape.minX,c.shape.minY],[c.shape.maxX,c.shape.minY]]);}}const c=component();nodes(c).forEach((p,i)=>{ctx.beginPath();ctx.arc(...p,i===index?7:4,0,Math.PI*2);ctx.fillStyle=i===index?'#fff2b2':'#61e8fa';ctx.fill();});}
+function point(e){const b=canvas.getBoundingClientRect();return [(e.clientX-b.left)*480/b.width,(e.clientY-b.top)*860/b.height];}
+canvas.addEventListener('pointerdown',e=>{if(drag)return;const p=point(e),c=component();let nearest=nodes(c).map((n,i)=>({i,dist:Math.hypot(n[0]-p[0],n[1]-p[1])})).sort((a,b)=>a.dist-b.dist)[0];if(!nearest||nearest.dist>22){let best;for(const candidate of t.components.filter(c=>c.type!=='drain'&&c.id!=='top-perimeter'))nodes(candidate).forEach((n,i)=>{const dist=Math.hypot(n[0]-p[0],n[1]-p[1]);if(!best||dist<best.dist)best={id:candidate.id,i,dist};});if(!best||best.dist>25)return;selected=best.id;index=best.i;$('component').value=selected;}else index=nearest.i;drag={id:e.pointerId,before:d.snapshot()};canvas.setPointerCapture(e.pointerId);e.preventDefault();refresh();});
+canvas.addEventListener('pointermove',e=>{if(drag?.id!==e.pointerId)return;move(...point(e));refresh();});
+function end(e){if(drag?.id!==e.pointerId)return;const before=drag.before;drag=null;if(e.type==='pointercancel')d.apply(before);else if(JSON.stringify(before)!==JSON.stringify(d.snapshot()))remember(before);refresh();}
+for(const event of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(event,end);
+$('component').onchange=()=>{selected=$('component').value;index=0;refresh();};$('node').onchange=()=>{index=Number($('node').value);refresh();};
+$('position').onclick=()=>{const x=Number($('x').value),y=Number($('y').value);if(!Number.isFinite(x)||!Number.isFinite(y))return;const before=d.snapshot();if(move(x,y))remember(before);refresh();};
+$('size').onclick=()=>{const r=Number($('radius').value);if(r<5||r>40||!Number.isFinite(r)){message('半徑請輸入 5～40。');return;}remember();component().shape.r=r;refresh();};
+$('add').onclick=()=>{const before=d.snapshot(),next=d.snapshot();next.walls.push([[200,400],[280,440]]);try{d.apply(next);remember(before);selected='custom-'+(next.walls.length-1);index=0;list();}catch(e){message(e.message);}};
+$('remove').onclick=()=>{const next=d.snapshot();next.walls.splice(Number(selected.split('-')[1]),1);remember();d.apply(next);selected='';list();};
+$('undo').onclick=()=>{if(!history.length)return;d.apply(history.pop());dirty=true;list();};
+$('reset').onclick=()=>{if(!confirm('還原原始球台？目前設計仍可用「復原上一步」找回。'))return;remember();d.apply(d.original);list();message('已還原；儲存後才會套用到遊戲。');};
+function save(){try{d.save();dirty=false;message('已儲存在這個瀏覽器。重新開始遊戲即可試玩。');return true;}catch(e){message('無法儲存：'+e.message+'。可先匯出備份。');return false;}}
+$('save').onclick=save;$('play').onclick=()=>{if(save())location.href='/pinball';};
+$('export').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify(d.snapshot(),null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='pinball-design.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);message('已匯出設計檔，可傳給我套用到正式球台。');};
+$('import').onchange=async()=>{const f=$('import').files[0];if(!f)return;try{if(f.size>200000)throw Error('檔案過大');const next=JSON.parse(await f.text());d.validate(next);remember();d.apply(next);list();message('已匯入。按儲存並試玩即可使用。');}catch(e){message('無法匯入：'+e.message);}$('import').value='';};
+window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}});list();if(d.loadError)message(d.loadError);
+})();
