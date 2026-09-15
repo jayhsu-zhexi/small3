@@ -9,6 +9,10 @@
   const walls=[[[28,705],[28,565]],[[28,565],[16,490]],[[16,490],[16,340]],[[16,340],[49,230]],[[435,365],[435,800]],[[464,800],[464,140]],[[423,705],[423,535]]];
   // Open U-shaped return channels, sampled once for identical rendering and collisions.
   function smooth(points){const out=[];for(let i=0;i<points.length-1;i++){const a=points[Math.max(0,i-1)],b=points[i],c=points[i+1],d=points[Math.min(points.length-1,i+2)];for(let j=0;j<6;j++){const t=j/6;out.push([0,1].map(k=>.5*(2*b[k]+(-a[k]+c[k])*t+(2*a[k]-5*b[k]+4*c[k]-d[k])*t*t+(-a[k]+3*b[k]-3*c[k]+d[k])*t*t*t)));}}out.push(points.at(-1));return out;}
+  // Centerline traced from the fixed artwork, from spring cap to the inward-facing gate.
+  const launchPath=smooth([[448,686],[445,610],[441,520],[437,440],[433,399],[428,386],[418,384],[407,396],[404,425],[383,444],[366,436]]);
+  const launchDistances=[0];for(let i=1;i<launchPath.length;i++)launchDistances.push(launchDistances[i-1]+Math.hypot(launchPath[i][0]-launchPath[i-1][0],launchPath[i][1]-launchPath[i-1][1]));
+  function launchPoint(distance){let i=1;const d=Math.max(0,Math.min(launchDistances.at(-1),distance));while(i<launchPath.length-1&&launchDistances[i]<d)i++;const t=(d-launchDistances[i-1])/(launchDistances[i]-launchDistances[i-1]);return {x:launchPath[i-1][0]+(launchPath[i][0]-launchPath[i-1][0])*t,y:launchPath[i-1][1]+(launchPath[i][1]-launchPath[i-1][1])*t};}
   // Trace the approved fixed artwork: outer horseshoe and separate inner right return rail.
   const sideLanes=[smooth([[77,133],[58,108],[58,64],[82,29],[118,29],[155,53],[222,40],[290,36],[345,57],[389,106],[419,181],[423,280]]),smooth([[317,99],[344,115],[365,160],[365,218],[347,273]])];
   // Only the short left hairpin is raised; it does not wrap around the whole table.
@@ -19,9 +23,9 @@
   const deflectors=[[[152,85],[194,109],[166,145],[147,132]],[[299,82],[321,94],[294,129],[283,118]],[[151,220],[178,215],[166,254]]];
   const sideWalls=sideLanes.flatMap(points=>points.slice(1).map((point,i)=>[points[i],point])).concat(guides,deflectors.flatMap(p=>p.map((a,i)=>[a,p[(i+1)%p.length]])));
   function create(mode='mission'){if(!['mission','practice'].includes(mode))throw Error('Unknown mode');return {mode,phase:'ready',paused:false,time:0,lives:mode==='practice'?null:3,score:0,stage:0,lit:[false,false,false],sequence:0,completed:0,balls:[ball()],flippers:[{x:148,y:709,a:.36,omega:0},{x:335,y:709,a:Math.PI-.36,omega:0}],saveUntil:0,cooldowns:{},events:[]};}
-  function ball(){return {x:449,y:778,vx:0,vy:0,r:R,lane:true,stuck:0};}
+  function ball(){return {x:launchPath[0][0],y:launchPath[0][1],vx:0,vy:0,r:R,lane:true,stuck:0};}
   function emit(s,kind,x=240,y=400){s.events.push({kind,x,y});}
-  function launch(s,power=.7){if(s.paused||s.phase!=='ready')return false;const p=Math.max(0,Math.min(1,Number.isFinite(power)?power:.7)),b=s.balls[0];b.vy=-1090-p*220;s.phase='playing';s.saveUntil=s.time+8;emit(s,'launch',b.x,b.y);return true;}
+  function launch(s,power=.7){if(s.paused||s.phase!=='ready')return false;const p=Math.max(0,Math.min(1,Number.isFinite(power)?power:.7)),b=s.balls[0];b.launchDistance=0;b.launchSpeed=620+p*260;b.vy=-b.launchSpeed;s.phase='playing';s.saveUntil=s.time+8;emit(s,'launch',b.x,b.y);return true;}
   function flipperTip(f,index){return {x:f.x+Math.cos(f.a)*FLIPPER_LENGTH,y:f.y+Math.sin(f.a)*FLIPPER_LENGTH};}
   function segment(b,a,z,r=.8,omega=0,pivot=a,radius=RAIL_RADIUS){
     const dx=z.x-a.x,dy=z.y-a.y,t=Math.max(0,Math.min(1,((b.x-a.x)*dx+(b.y-a.y)*dy)/(dx*dx+dy*dy||1))),px=a.x+t*dx,py=a.y+t*dy;
@@ -53,8 +57,13 @@
         // The return rail ejects toward open play instead of dropping into its own scoop.
         if(b.returning&&b.y>315&&b.vy>0){b.returning=false;b.vx=-220;b.vy=230;emit(s,'rail',b.x,b.y);}
         if(b.scoopBlocked&&b.x<330&&b.y>330)b.scoopBlocked=false;
+        if(b.lane){
+          b.launchDistance=(b.launchDistance||0)+b.launchSpeed*h;
+          const p=launchPoint(b.launchDistance);b.x=p.x;b.y=p.y;
+          if(b.launchDistance>=launchDistances.at(-1)){b.lane=false;const a=launchPath.at(-2),z=launchPath.at(-1),length=Math.hypot(z[0]-a[0],z[1]-a[1]);b.vx=(z[0]-a[0])/length*b.launchSpeed*.65;b.vy=(z[1]-a[1])/length*b.launchSpeed*.65;b.scoopBlocked=true;emit(s,'rail',b.x,b.y);}
+          continue;
+        }
         b.vy+=720*h;b.vx*=Math.exp(-.055*h);b.vy*=Math.exp(-.055*h);b.x+=b.vx*h;b.y+=b.vy*h;
-        if(b.lane){b.x=449;if(b.y<=128){b.lane=false;b.x=391;b.y=103;b.vx=-340;b.vy=-170;}continue;}
         if(!b.rampBlocked&&b.vy<-120&&Math.hypot(b.x-ramp[0][0],b.y-ramp[0][1])<23){b.rampUntil=s.time+2.4;b.rampBlocked=true;b.vx=0;b.vy=0;emit(s,'ramp',b.x,b.y);continue;}
         for(const [a,z] of walls)segment(b,{x:a[0],y:a[1]},{x:z[0],y:z[1]});
         for(const [a,z] of sideWalls)if(segment(b,{x:a[0],y:a[1]},{x:z[0],y:z[1]},.88)&&contact(s,'rail',.12))emit(s,'rail',b.x,b.y);
@@ -73,5 +82,5 @@
       if(s.phase==='won'||s.phase==='lost')break;
     }
   }
-  const api={W,H,R,RAIL_RADIUS,FLIPPER_RADIUS,FLIPPER_LENGTH,ramp,rampPoint,bonusBumpers,bumpers,targets,scoop,wormhole,slings,deflectors,walls,sideLanes,guides,sideWalls,create,launch,tick,flipperTip};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.OrbitPinball=api;
+  const api={W,H,R,RAIL_RADIUS,FLIPPER_RADIUS,FLIPPER_LENGTH,launchPath,launchPoint,launchDistances,ramp,rampPoint,bonusBumpers,bumpers,targets,scoop,wormhole,slings,deflectors,walls,sideLanes,guides,sideWalls,create,launch,tick,flipperTip};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.OrbitPinball=api;
 })(typeof window==='undefined'?{}:window);

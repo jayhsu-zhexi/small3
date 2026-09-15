@@ -34,3 +34,11 @@ const down=E.create();put(down,E.ramp[0][0],E.ramp[0][1],0,200);E.tick(down,1/12
 assert.equal(E.bonusBumpers.length,4);for(const c of E.bonusBumpers){const g=E.create();put(g,c.x,c.y+c.r+E.R-1,0,-20);E.tick(g,1/240);assert.ok(g.score>=50,'Visible auxiliary bumpers must score');}
 assert.doesNotMatch(fs.readFileSync('assets/pinball.css','utf8'),/transform\s*:\s*rotate\(/);
 console.log('PASS: approved layout center/side drains, rescue return, short left hairpin, auxiliary bumpers and pause-safe layer separation.');
+
+for(const power of [0,.5,1]){
+ const shot=E.create();assert.equal(shot.balls[0].x,E.launchPath[0][0]);assert.equal(shot.balls[0].y,E.launchPath[0][1]);E.launch(shot,power);
+ let previous={...shot.balls[0]},exited=false;
+ for(let i=0;i<200;i++){E.tick(shot,1/240);const b=shot.balls[0];assert.ok(Math.hypot(b.x-previous.x,b.y-previous.y)<5,'Launch cannot teleport between lane and field');if(b.lane){const expected=E.launchPoint(b.launchDistance);assert.ok(Math.hypot(b.x-expected.x,b.y-expected.y)<.001);}else{assert.ok(b.vx<0,'Shooter exit points into the table');exited=true;break;}previous={...b};}
+ assert.ok(exited);
+}
+console.log('PASS: all launch strengths follow the illustrated spring-to-gate centerline and enter play continuously.');
