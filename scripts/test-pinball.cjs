@@ -31,7 +31,7 @@ const orbit=E.create();put(orbit,E.ramp[0][0],E.ramp[0][1]+10,0,-400);E.tick(orb
 advance(orbit,1);assert.equal(orbit.score,0);orbit.paused=true;const frozenRamp=JSON.stringify(orbit);advance(orbit,3);assert.equal(JSON.stringify(orbit),frozenRamp);orbit.paused=false;advance(orbit,1.42);assert.equal(orbit.score,500);assert.equal(orbit.balls[0].rampUntil,0);assert.ok(Math.abs(orbit.balls[0].x-E.ramp.at(-1)[0])<12);
 assert.ok(E.ramp.every(([x,y])=>x<200&&y>250),'Approved ramp remains a short left-side hairpin');
 const down=E.create();put(down,E.ramp[0][0],E.ramp[0][1],0,200);E.tick(down,1/120);assert.ok(!down.balls[0].rampUntil);
-assert.equal(E.bonusBumpers.length,4);for(const c of E.bonusBumpers){const g=E.create();put(g,c.x,c.y+c.r+E.R-1,0,-20);E.tick(g,1/240);assert.ok(g.score>=50,'Visible auxiliary bumpers must score');}
+assert.equal(E.bonusBumpers.length,4);for(const c of E.bonusBumpers){const g=E.create();put(g,c.x,c.y+c.r+E.R-1,0,-20);g.balls[0].deck=c!==E.bonusBumpers[0];E.tick(g,1/240);assert.ok(g.score>=50,'Visible auxiliary bumpers must score');}
 assert.doesNotMatch(fs.readFileSync('assets/pinball.css','utf8'),/transform\s*:\s*rotate\(/);
 console.log('PASS: approved layout center/side drains, rescue return, short left hairpin, auxiliary bumpers and pause-safe layer separation.');
 
@@ -85,7 +85,7 @@ for(const y of [300,340,365,450,500,600]){
  const right=E.create('practice');put(right,410,y,900,0);
  for(let i=0;i<360;i++){E.tick(right,1/120);for(const b of right.balls){if(b.lane||b.rampUntil||b.captureUntil)continue;assert.ok(b.x<=E.rightLimit(b.y,b.r)+.001,'Active play cannot enter the black margin or shooter lane');}}
 }
-const purpleSide=E.create();put(purpleSide,140,410,-400,0);advance(purpleSide,.12);assert.ok(purpleSide.balls[0].x>115,'Purple side wall blocks lateral entry');
+const purpleSide=E.create();put(purpleSide,140,410,-400,0);purpleSide.balls[0].deck=true;advance(purpleSide,.12);assert.ok(purpleSide.balls[0].x>115,'Purple side wall blocks lateral entry');
 const purpleGate=E.create();put(purpleGate,94,615,0,-240);advance(purpleGate,.12);assert.ok(purpleGate.balls[0].y<600,'Purple lower opening admits the ball');
 const purpleOut=E.create();put(purpleOut,94,580,0,200);advance(purpleOut,.2);assert.ok(purpleOut.balls[0].y>610,'The same lower opening lets the ball return');
 const markup=fs.readFileSync('pinball.html','utf8');assert.match(markup,/<\/canvas><\/div><div id="notice"/,'Messages must be outside the board container');
@@ -102,7 +102,7 @@ assert.match(uiSource,/E\.table\.components/,'Renderer reads the component regis
 assert.ok(fs.readFileSync('pinball.html','utf8').indexOf('pinball-table.js')<fs.readFileSync('pinball.html','utf8').indexOf('pinball-engine.js'));
 console.log('PASS: rendered components, collider edges, circles, paths, drains and flippers share the table definitions.');
 const portal=E.create();put(portal,E.scoop.x,E.scoop.y);E.tick(portal,1/240);const releaseAt=portal.balls[0].captureUntil;assert.ok(Math.abs(releaseAt-portal.time-1)<1/240+.00001);while(portal.time+1/240<releaseAt)E.tick(portal,1/240);assert.ok(portal.balls[0].captureUntil);while(portal.balls[0].captureUntil)E.tick(portal,1/240);assert.equal(portal.balls[0].x,E.wormhole.x);assert.equal(portal.balls[0].y,E.wormhole.y);assert.ok(portal.balls[0].vy>0);assert.ok(E.wormhole.x<150&&E.wormhole.y<120);
-for(const bumper of E.bonusBumpers.slice(1)){const chamberScore=E.create();put(chamberScore,bumper.x,bumper.y-bumper.r-E.R+1,0,120);E.tick(chamberScore,1/240);assert.equal(chamberScore.score,50,'Each of the three chamber bumpers scores');}
+for(const bumper of E.bonusBumpers.slice(1)){const chamberScore=E.create();put(chamberScore,bumper.x,bumper.y-bumper.r-E.R+1,0,120);chamberScore.balls[0].deck=true;E.tick(chamberScore,1/240);assert.equal(chamberScore.score,50,'Each of the three chamber bumpers scores');}
 const chamberRun=E.create();put(chamberRun,E.ramp[0][0],E.ramp[0][1]+10,0,-400);let chamberEntered=false,chamberExited=false;for(let i=0;i<1800&&chamberRun.phase==='playing';i++){E.tick(chamberRun,1/120);const b=chamberRun.balls[0];if(!b.lane&&!b.rampUntil&&b.y>370&&b.y<500&&b.x<110)chamberEntered=true;if(chamberEntered&&b.y>600&&b.x>80)chamberExited=true;}assert.ok(chamberEntered);assert.ok(chamberExited,'Chamber feed eventually leaves the lower gate into normal play');assert.ok(E.launchPath.at(-1)[0]>=300,'Yellow track stops at the marked top-right gate');
 console.log('PASS: one-second upper-left wormhole, three scoring chamber bumpers and lower chamber exit.');
 // Red-line regression: ground balls slide along the new upper-left guide, never into the old pocket.
@@ -112,3 +112,7 @@ for(const y of [155,200,260,310,345])for(const vx of [-700,0,250]){
  assert.ok(cleared,'Red-line guide must carry the ball out of the upper-left pocket');
 }
 console.log('PASS: red-line left guide clears all sampled heights and impact speeds.');
+const elevated=E.create('practice');put(elevated,E.ramp[0][0],E.ramp[0][1]+10,0,-400);let onDeck=false,dropping=false,returned=false,scored=false;for(let i=0;i<1800&&!returned;i++){E.tick(elevated,1/120);const b=elevated.balls[0];onDeck||=!!b.deck;scored||=onDeck&&elevated.score>500;dropping||=!!b.dropUntil;returned=onDeck&&!b.deck&&!b.rampUntil; }assert.ok(onDeck&&dropping&&returned&&scored,'Ramp feeds scoring upper deck, then the lower hole returns the ball');
+const lower=E.create('practice'),upperBumper=E.bonusBumpers[1];put(lower,upperBumper.x,upperBumper.y,0,100);E.tick(lower,1/240);assert.equal(lower.score,0,'Ground ball cannot hit an upper-deck bumper');assert.ok(!lower.balls[0].deck);
+const dropPause=E.create('practice');put(dropPause,95,593,0,100);dropPause.balls[0].deck=true;E.tick(dropPause,1/240);assert.ok(dropPause.balls[0].dropUntil);dropPause.paused=true;const pausedDrop=JSON.stringify(dropPause);advance(dropPause,1);assert.equal(JSON.stringify(dropPause),pausedDrop);dropPause.paused=false;advance(dropPause,.3);assert.ok(!dropPause.balls[0].deck);
+console.log('PASS: elevated deck collision separation, scoring, hole transition and pause-safe falling.');

@@ -38,11 +38,11 @@
     ...walls.map((points,i)=>({id:'wall-'+i,type:'rail',points,radius:RAIL_RADIUS,layer:0})),
     ...sideLanes.map((points,i)=>({id:'orbit-'+i,type:'rail',points,radius:RAIL_RADIUS,layer:0})),
     ...guides.map((points,i)=>({id:'guide-'+i,type:'rail',points,radius:RAIL_RADIUS,layer:0})),
-    ...purpleWalls.map((points,i)=>({id:'chamber-'+i,type:'rail',points,radius:RAIL_RADIUS,layer:0})),
+    ...purpleWalls.map((points,i)=>({id:'chamber-'+i,type:'rail',points,radius:RAIL_RADIUS,layer:2})),
     ...deflectors.map((points,i)=>({id:'deflector-'+i,type:'polygon',points,radius:RAIL_RADIUS,layer:0})),
     ...slings.map((points,i)=>({id:'sling-'+i,type:'sling',points,radius:RAIL_RADIUS,layer:0})),
     ...bumpers.map((shape,i)=>({id:'bumper-'+i,type:'bumper',shape,kick:130,layer:0})),
-    ...bonusBumpers.map((shape,i)=>({id:'bonus-'+i,type:'bumper',shape,kick:0,layer:0})),
+    ...bonusBumpers.map((shape,i)=>({id:'bonus-'+i,type:'bumper',shape,kick:0,layer:i?2:0})),
     ...targets.map((shape,i)=>({id:'rollover-'+i,type:'sensor',shape,layer:0})),
     {id:'scoop',type:'scoop',shape:scoop,layer:0},
     {id:'wormhole-exit',type:'portal',shape:wormhole,layer:0},
@@ -58,6 +58,6 @@
     return points.slice(1).map((b,i)=>({component:c,a:points[i],b,radius:c.radius}));
   });
 
-const api={W,H,R,RAIL_RADIUS,FLIPPER_RADIUS,FLIPPER_LENGTH,bumpers,targets,scoop,wormhole,bonusBumpers,slings,walls,launchPath,launchDistances,launchPoint,sideLanes,ramp,rampDistances,rampPoint,guides,deflectors,chamberFloor,purpleWalls,sideWalls,leftBoundary,rightBoundary,components,railColliders,drains};
+const api={W,H,R,RAIL_RADIUS,FLIPPER_RADIUS,FLIPPER_LENGTH,bumpers,targets,scoop,wormhole,bonusBumpers,slings,walls,launchPath,launchDistances,launchPoint,sideLanes,ramp,rampDistances,rampPoint,guides,deflectors,chamberLeft,chamberRight,chamberFloor,purpleWalls,sideWalls,leftBoundary,rightBoundary,components,railColliders,drains};
 root.OrbitPinballTable=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window==='undefined'?globalThis:window);
