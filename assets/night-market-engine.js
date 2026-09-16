@@ -1,8 +1,9 @@
 (function(root){
 'use strict';
 const W=480,H=760,R=7,left=20,right=416,slotWidth=44;
-const pins=[];for(let row=0;row<9;row++)for(let col=0;col<8;col++){const x=col===0&&row%2===0?43:50+col*46+(row%2?23:0);if(x<400)pins.push({x,y:155+row*51,r:4});}
-for(let row=1;row<9;row+=2)pins.push({x:43,y:155+row*51,r:4});
+// Centered staggered lattice: every row mirrors across the playfield center.
+const pins=[],pitch=35.2,center=(left+right)/2;
+for(let row=0;row<9;row++){const count=row%2?10:11;for(let col=0;col<count;col++)pins.push({x:center+(col-(count-1)/2)*pitch,y:155+row*51,r:4});}
 const patterns=[];for(let a=0;a<7;a++)for(let b=a+1;b<8;b++)for(let c=b+1;c<9;c++)patterns.push([a,b,c]);
 function randomTargets(previous){const last=previous?patterns.findIndex(p=>p.every((v,i)=>v===previous[i])):-1;let i=Math.floor(Math.random()*(patterns.length-(last>=0?1:0)));if(last>=0&&i>=last)i++;return [...patterns[i]];}
 function create(){return {phase:'scan',paused:false,time:0,scan:0,targets:randomTargets(),remaining:10,shots:0,hits:0,score:0,streak:0,best:0,ball:null,result:null,events:[]};}
