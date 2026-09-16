@@ -17,7 +17,16 @@ function create(E,ctx){
  function draw(s,power=0){ctx.setTransform(2,0,0,2,0,0);ctx.clearRect(0,0,480,760);
   ctx.save();ctx.beginPath();ctx.roundRect(2,2,476,756,19);ctx.clip();ctx.fillStyle='#4c2b19';ctx.fillRect(0,0,480,760);atlas(materials,0,0,0,480,760);ctx.restore();
   round(9,9,462,742,14,'#00000000','#c09a57');round(16,24,410,705,12,'#0a211d','#b58b4c');
-  ctx.save();ctx.beginPath();ctx.roundRect(21,29,400,695,9);ctx.clip();atlas(materials,1,21,29,400,695);ctx.fillStyle=gradient(20,20,380,700,['#123a2910','#04181290']);ctx.fillRect(20,20,402,710);ctx.restore();
+  ctx.save();ctx.beginPath();ctx.roundRect(21,29,400,695,9);ctx.clip();ctx.fillStyle='#18382b';ctx.fillRect(21,29,400,695);ctx.globalAlpha=.32;atlas(materials,1,21,29,400,695);ctx.globalAlpha=1;
+  const enamel=ctx.createRadialGradient(205,300,20,215,370,370);enamel.addColorStop(0,'#79916b30');enamel.addColorStop(.6,'#17372820');enamel.addColorStop(1,'#020e09bb');ctx.fillStyle=enamel;ctx.fillRect(21,29,400,695);
+  // Faint brass engravings recall the reference's night-market street, never solid obstacles.
+  ctx.save();ctx.globalAlpha=.28;ctx.strokeStyle='#dab36e';ctx.lineWidth=.7;
+  for(const [x,y,w,h] of [[25,300,29,74],[29,407,32,94],[380,365,31,83],[375,497,37,98]]){
+   ctx.strokeRect(x,y,w,h);ctx.beginPath();ctx.moveTo(x-3,y);ctx.lineTo(x+w/2,y-12);ctx.lineTo(x+w+3,y);ctx.stroke();
+   for(let n=1;n<4;n++)line(x+n*w/4,y+4,x+n*w/4,y+h,'#dab36e',.6);
+   line(x,y+19,x+w,y+19,'#dab36e',.7);line(x,y+h-20,x+w,y+h-20,'#dab36e',.7);
+  }
+  text('夜',39,259,16,'#dab36e');text('市',39,280,16,'#dab36e');text('好',396,452,14,'#dab36e');text('玩',396,473,14,'#dab36e');ctx.restore();ctx.restore();
   // Engraved arch and festival ornaments are decoration, not hidden colliders.
   ctx.beginPath();ctx.moveTo(24,136);ctx.bezierCurveTo(30,9,397,9,412,136);ctx.strokeStyle='#b69557';ctx.lineWidth=2;ctx.stroke();
   ctx.beginPath();ctx.moveTo(29,137);ctx.bezierCurveTo(35,18,391,18,407,137);ctx.strokeStyle='#dcc68a55';ctx.lineWidth=1;ctx.stroke();
