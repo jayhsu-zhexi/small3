@@ -1,28 +1,26 @@
-(()=>{
- 'use strict';
- const E=window.NightMarket,$=id=>document.getElementById(id),canvas=$('table'),ctx=canvas.getContext('2d'),button=$('launch');let s=E.create(),holding=false,charge=0,last=0,previous='ready',acc=0;
- function circle(x,y,r,color){ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();}
- function draw(){
-  ctx.clearRect(0,0,480,660);ctx.fillStyle='#ffedb5';ctx.fillRect(0,0,480,660);
-  ctx.strokeStyle='#c9974d';ctx.lineWidth=5;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(19,628);ctx.lineTo(19,60);ctx.quadraticCurveTo(19,20,60,20);ctx.lineTo(421,20);ctx.quadraticCurveTo(469,20,469,65);ctx.lineTo(469,628);ctx.stroke();
-  ctx.fillStyle='#efd798';ctx.fillRect(417,90,46,538);ctx.strokeStyle='#be8f48';ctx.beginPath();ctx.moveTo(411,90);ctx.lineTo(411,628);ctx.stroke();
-  ctx.fillStyle='#886038';ctx.font='bold 17px system-ui';ctx.textAlign='center';ctx.fillText('彈 彈 跳 跳，好 運 到！',216,89);
-  for(const p of E.pegs){circle(p.x+1,p.y+3,7,'#bf9f68');circle(p.x,p.y,6,'#278d8a');circle(p.x-1.5,p.y-2,2,'#a3ece0');}
-  for(let i=0;i<7;i++){const x=19+i*56;ctx.fillStyle=s.bin===i?'#ffbf36':i%2?'#f4be75':'#f8d899';ctx.fillRect(x+2,555,52,73);ctx.fillStyle=i===3?'#a63529':'#71472b';ctx.font='900 23px system-ui';ctx.fillText(E.values[i],x+28,651);if(i){ctx.strokeStyle='#b67e42';ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(x,558);ctx.lineTo(x,627);ctx.stroke();}}
-  ctx.strokeStyle='#a57541';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(19,628);ctx.lineTo(411,628);ctx.stroke();
-  ctx.strokeStyle='#b68d56';ctx.lineWidth=3;ctx.beginPath();for(let i=0;i<7;i++){ctx.moveTo(437,625+i*3);ctx.lineTo(456,626+i*3);}ctx.stroke();
-  const b=s.ball;circle(b.x+2,b.y+3,9,'#0002');const g=ctx.createRadialGradient(b.x-3,b.y-4,1,b.x,b.y,9);g.addColorStop(0,'#ffffff');g.addColorStop(.4,'#e5f7ff');g.addColorStop(1,'#376579');circle(b.x,b.y,8,g);
- }
- function start(){if(s.phase!=='ready'||holding)return;holding=true;charge=0;$('launchText').textContent='放開發射！';}
- function release(){if(!holding)return;holding=false;E.launch(s,charge);charge=0;}
- function cancel(){holding=false;charge=0;if(s.phase==='ready')$('launchText').textContent='按住發射';}
- button.addEventListener('pointerdown',e=>{if(e.button!==0)return;e.preventDefault();button.setPointerCapture(e.pointerId);start();});
- button.addEventListener('pointerup',release);button.addEventListener('pointercancel',cancel);button.addEventListener('lostpointercapture',cancel);
- button.addEventListener('click',e=>{if(e.detail===0&&s.phase==='ready'){E.launch(s,.5);}});
- window.addEventListener('keydown',e=>{if(e.code==='Space'&&e.target!==$('reset')){e.preventDefault();if(!e.repeat)start();}});
- window.addEventListener('keyup',e=>{if(e.code==='Space'){e.preventDefault();release();}});
- window.addEventListener('blur',cancel);document.addEventListener('visibilitychange',()=>{cancel();last=0;});
- $('reset').addEventListener('click',()=>{s=E.create();cancel();previous='';});
- function frame(t){const dt=last?Math.min(.05,(t-last)/1000):0;last=t;if(!document.hidden){if(holding)charge=Math.min(1,charge+dt/.95);acc+=dt;while(acc>=1/120){E.step(s,1/120);acc-=1/120;}if(previous!==s.phase){previous=s.phase;button.disabled=s.phase!=='ready';$('launchText').textContent=s.phase==='ready'?'按住發射':'彈珠旅行中…';$('notice').textContent=s.phase==='result'?'太棒了！得到 '+E.values[s.bin]+' 分！':s.phase==='ready'?'換你囉！按住蓄力，放開發射':'看看彈珠會落在哪一格？';}$('score').textContent=s.score;$('count').textContent=s.count;$('charge').style.width=(charge*100)+'%';draw();}requestAnimationFrame(frame);}
- requestAnimationFrame(frame);
+(function(){
+'use strict';
+const E=window.NightPinball,$=id=>document.getElementById(id),ctx=$('table').getContext('2d');let s=E.create(),last=0,charge=null,owner=null,muted=false,audio=null,lastTone=0,modal=false;
+function tone(kind){if(muted)return;try{if(!audio||audio.state!=='running')return;const now=audio.currentTime;if(kind==='pin'&&now-lastTone<.06)return;lastTone=now;const o=audio.createOscillator(),g=audio.createGain();o.type=kind==='miss'?'triangle':'sine';o.frequency.setValueAtTime(({scan:450,lock:720,launch:180,pin:1250,hit:880,miss:170,over:660,weak:250})[kind]||500,now);o.frequency.exponentialRampToValueAtTime(kind==='hit'?1500:300,now+.12);g.gain.setValueAtTime(.05,now);g.gain.exponentialRampToValueAtTime(.001,now+.18);o.connect(g);g.connect(audio.destination);o.start();o.stop(now+.2);}catch{}}
+function unlock(){try{if(!audio){const C=window.AudioContext||window.webkitAudioContext;if(C)audio=new C();}audio?.resume()?.catch(()=>{});}catch{}}
+function clearCharge(){charge=null;owner=null;$('fill').style.width='0%';$('power').setAttribute('aria-valuenow','0');}
+function lock(){unlock();E.stop(s);update();}
+function begin(id){if(s.phase!=='ready'||s.paused||modal||charge!==null)return;unlock();charge=performance.now();owner=id;}
+function release(id,cancel=false){if(id!==owner)return;const p=Math.min(1,(performance.now()-charge)/1200);clearCharge();if(!cancel)E.launch(s,p);update();}
+function update(){for(const [id,value] of [['score',s.score],['remaining',s.remaining],['streak',s.streak]])$(id).textContent=value;$('stop').disabled=s.phase!=='scan'||s.paused;$('launch').disabled=s.phase!=='ready'||s.paused;$('pause').textContent=s.paused?'繼續':'暫停';$('targets').textContent='亮燈球道：'+s.targets.map(n=>n+1).join('、');let msg=s.paused?'已暫停，按「繼續」回到遊戲。':s.phase==='scan'?'先停止跑燈，鎖定目標球道。':s.phase==='ready'?'目標已鎖定，按住發射調整力道。':s.phase==='flight'?'看看彈珠會落在哪一個球道！':s.phase==='result'?(s.result.hit?'命中第 '+(s.result.slot+1)+' 道！＋'+s.result.gain+' 分':'落在第 '+(s.result.slot+1)+' 道，下球再調整力道。'):'挑戰完成！';if(s.weakNotice&&s.phase==='ready')msg='力道不足，彈珠已退回；不扣球，再試一次。';if($('notice').textContent!==msg)$('notice').textContent=msg;}
+function round(x,y,w,h,r,fill,stroke){ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke();}}
+function text(str,x,y,size,color){ctx.font='bold '+size+'px system-ui';ctx.textAlign='center';ctx.fillStyle=color;ctx.fillText(str,x,y);}
+function draw(){ctx.setTransform(2,0,0,2,0,0);ctx.clearRect(0,0,480,760);round(2,2,476,756,22,'#231c31','#a97d57');round(13,15,413,726,15,'#101d2c','#58717b');const gradient=ctx.createLinearGradient(0,80,0,730);gradient.addColorStop(0,'#192d40');gradient.addColorStop(1,'#101526');ctx.fillStyle=gradient;ctx.fillRect(22,90,392,550);text('彈 彈 有 賞',218,61,27,'#ffd898');text(s.phase==='scan'?'看準燈號・按下停止':'亮燈球道就是目標',218,92,13,'#8edcd6');
+ for(let i=0;i<14;i++){ctx.beginPath();ctx.arc(29+i*32,18,3,0,Math.PI*2);ctx.fillStyle=i%2?'#ffe09b':'#de729d';ctx.fill();}
+ ctx.beginPath();ctx.moveTo(451,708);ctx.lineTo(451,64);ctx.quadraticCurveTo(451,25,386,34);ctx.strokeStyle='#99744b';ctx.lineWidth=25;ctx.stroke();ctx.strokeStyle='#1a1b29';ctx.lineWidth=19;ctx.stroke();text('↑',451,580,22,'#ffdb92');
+ for(const p of E.pins){ctx.beginPath();ctx.arc(p.x+1,p.y+3,6,0,Math.PI*2);ctx.fillStyle='#030c19';ctx.fill();ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle='#a4cdd5';ctx.fill();ctx.beginPath();ctx.arc(p.x-1,p.y-1,1.5,0,Math.PI*2);ctx.fillStyle='#f1ffff';ctx.fill();}
+ for(let i=0;i<9;i++){const x=20+i*44,lit=s.targets.includes(i),land=s.result&&s.result.slot===i&&s.phase==='result';round(x+2,643,40,82,7,land?'#b37944':lit?'#285e61':'#202539',lit?'#78f4d7':'#536072');text(String(i+1),x+22,694,22,lit?'#fff1ad':'#9bacc0');if(lit){text('▼',x+22,632,15,'#ffdc86');ctx.beginPath();ctx.arc(x+22,658,4,0,Math.PI*2);ctx.fillStyle='#a2ffe5';ctx.fill();}}
+ const b=s.ball||{x:451,y:690};ctx.save();ctx.shadowColor='#000';ctx.shadowBlur=7;ctx.shadowOffsetY=3;const shine=ctx.createRadialGradient(b.x-2,b.y-3,1,b.x,b.y,8);shine.addColorStop(0,'#fff');shine.addColorStop(.3,'#e9eff5');shine.addColorStop(1,'#607991');ctx.beginPath();ctx.arc(b.x,b.y,7,0,Math.PI*2);ctx.fillStyle=shine;ctx.fill();ctx.restore();text('10 BALL CHALLENGE',220,746,11,'#a98e7c');
+}
+function reset(){s=E.create();modal=false;clearCharge();$('result').close();$('confirm').close();update();}
+$('stop').onclick=lock;$('launch').addEventListener('pointerdown',e=>{e.preventDefault();$('launch').setPointerCapture(e.pointerId);begin(e.pointerId);});for(const type of ['pointerup','pointercancel','lostpointercapture'])$('launch').addEventListener(type,e=>release(e.pointerId,type!=='pointerup'));$('launch').addEventListener('contextmenu',e=>e.preventDefault());$('launch').onclick=e=>{if(e.detail===0&&s.phase==='ready'&&!s.paused){unlock();E.launch(s,.6);}};
+$('pause').onclick=()=>{if(s.phase==='over')return;clearCharge();s.paused=!s.paused;if(!s.paused)unlock();update();};$('sound').onclick=()=>{muted=!muted;$('sound').textContent=muted?'音效關':'音效開';$('sound').setAttribute('aria-pressed',String(!muted));if(!muted)unlock();};
+let previousPause=false;$('restart').onclick=()=>{previousPause=s.paused;s.paused=true;modal=true;clearCharge();$('confirm').showModal();update();};function cancel(){modal=false;s.paused=previousPause;$('confirm').close();update();}$('cancel').onclick=cancel;$('confirm').addEventListener('cancel',e=>{e.preventDefault();cancel();});$('confirmRestart').onclick=reset;$('again').onclick=reset;$('result').addEventListener('cancel',e=>e.preventDefault());
+window.addEventListener('keydown',e=>{if(e.code!=='Space'||e.repeat||modal||s.paused||['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName))return;e.preventDefault();if(s.phase==='scan')lock();else begin('key');});window.addEventListener('keyup',e=>{if(e.code==='Space')release('key');});function background(){clearCharge();if(s.phase!=='over'){s.paused=true;update();}}window.addEventListener('blur',background);document.addEventListener('visibilitychange',()=>{if(document.hidden)background();});window.addEventListener('pagehide',()=>audio?.close()?.catch(()=>{}));
+function frame(now){const dt=last?Math.min(.05,(now-last)/1000):0;last=now;E.tick(s,dt);for(const event of s.events){tone(event.kind);if(event.kind==='weak')s.weakNotice=true;if(event.kind==='launch')s.weakNotice=false;if(event.kind==='over'){modal=true;$('finalScore').textContent=s.score+' 分';$('summary').textContent='命中 '+s.hits+' / 10 球（'+s.hits*10+'%）・最高連中 '+s.best+' 球';$('result').showModal();}}s.events=[];if(charge!==null){const percent=Math.min(100,(now-charge)/12);$('fill').style.width=percent+'%';$('power').setAttribute('aria-valuenow',Math.round(percent));}update();draw();requestAnimationFrame(frame);}if(ctx)requestAnimationFrame(frame);else{$('notice').textContent='瀏覽器不支援 Canvas，請換一個瀏覽器。';$('stop').disabled=true;}
 })();
