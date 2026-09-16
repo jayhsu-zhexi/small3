@@ -6,6 +6,18 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
+      "source": "/pinball-night-market.html",
+      "destination": "/pinball-night-market.html"
+    },
+    {
+      "source": "/pinball-editor.html",
+      "destination": "/pinball-editor.html"
+    },
+    {
+      "source": "/pinball-classic.html",
+      "destination": "/pinball-classic.html"
+    },
+    {
       "source": "/pinball",
       "destination": "/pinball.html"
     },

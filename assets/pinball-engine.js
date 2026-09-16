@@ -15,6 +15,26 @@
     const ux=-omega*(py-pivot.y),uy=omega*(px-pivot.x),v=(b.vx-ux)*nx+(b.vy-uy)*ny;
     if(v<0){const bounce=r===null?passiveRestitution(v):r;b.vx-=(1+bounce)*v*nx;b.vy-=(1+bounce)*v*ny;return true;}return false;
   }
+  // Powered rubber faces: only approaching impacts fire, with per-ball cooldowns.
+  function springSegment(s,b,a,z,enabled,key,r=null,radius=RAIL_RADIUS){
+    const dx=z.x-a.x,dy=z.y-a.y,len=Math.hypot(dx,dy)||1;
+    let nx=-dy/len,ny=dx/len;
+    if((b.x-a.x)*nx+(b.y-a.y)*ny<0){nx=-nx;ny=-ny;}
+    // The red rubber faces point into the playfield; the return-lane backs stay passive.
+    if((key==='left-return-inner'&&nx<0)||(key==='orbit-1'&&nx>0))enabled=false;
+    const impact=-(b.vx*nx+b.vy*ny);
+    const hit=segment(b,a,z,enabled?.86:r,0,undefined,radius);
+    if(hit&&enabled&&impact>85){
+      b.springCooldowns ||= {};
+      if((b.springCooldowns[key]||0)<=s.time){
+        b.springCooldowns[key]=s.time+.22;
+        const outgoing=b.vx*nx+b.vy*ny,kick=Math.max(0,Math.min(key.startsWith('deflector-')?105:180,800-outgoing));
+        b.vx+=nx*kick;b.vy+=ny*kick;
+        emit(s,'spring',b.x,b.y);
+      }
+    }
+    return hit;
+  }
   function ejectInterior(b,points){
     const cross=points.map((a,i)=>{const z=points[(i+1)%points.length];return (z[0]-a[0])*(b.y-a[1])-(z[1]-a[1])*(b.x-a[0]);});
     if(!(cross.every(v=>v>=0)||cross.every(v=>v<=0)))return false;
@@ -24,15 +44,22 @@
     const inward=b.vx*best.nx+b.vy*best.ny;if(inward<0){b.vx-=inward*best.nx;b.vy-=inward*best.ny;}return true;
   }
   function leftLimit(y,r=R){
-    for(let i=1;i<leftBoundary.length;i++){const a=leftBoundary[i-1],z=leftBoundary[i];if(z[1]>a[1]&&y>=a[1]&&y<=z[1]){const dx=z[0]-a[0],dy=z[1]-a[1];return a[0]+(y-a[1])*dx/dy+(r+RAIL_RADIUS+.1)*Math.hypot(dx,dy)/dy;}}
+    const edge=table.componentPoints(table.components.find(c=>c.id==='left-perimeter'));for(let i=1;i<edge.length;i++){const a=edge[i-1],z=edge[i];if(z[1]>a[1]&&y>=a[1]&&y<=z[1]){const dx=z[0]-a[0],dy=z[1]-a[1];return a[0]+(y-a[1])*dx/dy+(r+RAIL_RADIUS+.1)*Math.hypot(dx,dy)/dy;}}
     return r+20;
   }
-  function rightLimit(y,r=R){for(let i=1;i<rightBoundary.length;i++){const a=rightBoundary[i-1],z=rightBoundary[i];if(y>=a[1]&&y<=z[1])return a[0]+(z[0]-a[0])*(y-a[1])/(z[1]-a[1])-r-RAIL_RADIUS;}return 423-r-RAIL_RADIUS;}
+  function rightLimit(y,r=R){const edge=table.componentPoints(table.components.find(c=>c.id==='right-perimeter'));for(let i=1;i<edge.length;i++){const a=edge[i-1],z=edge[i];if(y>=a[1]&&y<=z[1])return a[0]+(z[0]-a[0])*(y-a[1])/(z[1]-a[1])-r-RAIL_RADIUS;}return 423-r-RAIL_RADIUS;}
   function contain(b){
     if(b.y<25+b.r){b.y=25+b.r;if(b.vy<0)b.vy=-b.vy*passiveRestitution(b.vy);}
     const left=leftLimit(b.y,b.r),right=rightLimit(b.y,b.r);
-    if(b.x<left){b.x=left;if(b.vx<0)b.vx=-b.vx*passiveRestitution(b.vx);}
-    if(b.x>right){b.x=right;if(b.vx>0)b.vx=-b.vx*passiveRestitution(b.vx);}
+    function reflectBoundary(id,sign){
+      const points=table.componentPoints(table.components.find(c=>c.id===id));
+      let nx=sign,ny=0;
+      for(let i=1;i<points.length;i++){const a=points[i-1],z=points[i],dx=z[0]-a[0],dy=z[1]-a[1];if(dy>0&&b.y>=a[1]&&b.y<=z[1]){const len=Math.hypot(dx,dy);nx=sign*dy/len;ny=-sign*dx/len;break;}}
+      const v=b.vx*nx+b.vy*ny;
+      if(v<0){const impulse=(1+passiveRestitution(v))*v;b.vx-=impulse*nx;b.vy-=impulse*ny;}
+    }
+    if(b.x<left){b.x=left;reflectBoundary('left-perimeter',1);}
+    if(b.x>right){b.x=right;reflectBoundary('right-perimeter',-1);}
   }
   function circle(b,c,kick){let dx=b.x-c.x,dy=b.y-c.y,d=Math.hypot(dx,dy);if(d>=b.r+c.r)return false;if(d<.001){dx=0;dy=1;d=1;}const nx=dx/d,ny=dy/d;b.x=c.x+nx*(b.r+c.r+.1);b.y=c.y+ny*(b.r+c.r+.1);const v=b.vx*nx+b.vy*ny;if(v<0){const bounce=kick? .85:passiveRestitution(v);b.vx-=(1+bounce)*v*nx;b.vy-=(1+bounce)*v*ny;}b.vx+=nx*kick;b.vy+=ny*kick;return true;}
   function contact(s,key,delay=.16){if((s.cooldowns[key]||0)>s.time)return false;s.cooldowns[key]=s.time+delay;return true;}
@@ -51,10 +78,13 @@
       s.flippers.forEach((f,i)=>{const held=i?input.right:input.left,target=i?Math.PI+(held?.5:-.36):(held?-.5:.36),previous=f.a,speed=held?17:10;f.a+=Math.sign(target-f.a)*Math.min(Math.abs(target-f.a),speed*h);f.omega=(f.a-previous)/h;});
       if(s.phase==='ready')continue;
       for(const b of [...s.balls]){
+        const orbitWell=table.components.find(c=>c.id==='orbit-wormhole').shape;
+        if(b.orbitCaptureUntil){if(s.time<b.orbitCaptureUntil)continue;b.orbitCaptureUntil=0;b.x=orbitWell.x;b.y=orbitWell.y;b.vx=80;b.vy=360;b.orbitBlocked=true;emit(s,'orbit-eject',b.x,b.y);continue;}
+        if(b.orbitBlocked&&b.y>orbitWell.y+80)b.orbitBlocked=false;
         if(b.tunnelUntil){const p=table.tunnelPoint(1-(b.tunnelUntil-s.time)/1.15);b.x=p.x;b.y=p.y;if(s.time>=b.tunnelUntil){b.tunnelUntil=0;b.vx=160;b.vy=180;b.tunnelBlocked=true;emit(s,'tunnel-exit',b.x,b.y);}continue;}
         if(b.tunnelBlocked&&b.x>175)b.tunnelBlocked=false;
         if(b.rampUntil){const p=rampPoint(1-(b.rampUntil-s.time)/2.4);b.x=p.x;b.y=p.y;if(s.time>=b.rampUntil){b.rampUntil=0;b.deck=true;b.x=ramp.at(-1)[0];b.y=ramp.at(-1)[1];b.vx=20;b.vy=180;s.score+=500;emit(s,'orbit',b.x,b.y);}continue;}
-        if(b.dropUntil){if(s.time<b.dropUntil)continue;b.dropUntil=0;b.deck=false;b.vx=130;b.vy=200;emit(s,'platform-drop',b.x,b.y);continue;}
+        if(b.dropUntil){if(s.time<b.dropUntil)continue;b.dropUntil=0;b.deck=false;b.vx=0;b.vy=200;emit(s,'platform-drop',b.x,b.y);continue;}
         if(b.deck){
           b.vy+=720*h;b.vx*=Math.exp(-.055*h);b.vy*=Math.exp(-.055*h);b.x+=b.vx*h;b.y+=b.vy*h;
           for(const c of railColliders.filter(c=>c.component.layer===2))segment(b,{x:c.a[0],y:c.a[1]},{x:c.b[0],y:c.b[1]},null,0,undefined,c.radius);
@@ -69,15 +99,28 @@
         if(b.lane){
           b.launchDistance=(b.launchDistance||0)+b.launchSpeed*h;
           const p=launchPoint(b.launchDistance);b.x=p.x;b.y=p.y;
-          if(b.launchDistance>=launchDistances.at(-1)){b.lane=false;const a=launchPath.at(-2),z=launchPath.at(-1),length=Math.hypot(z[0]-a[0],z[1]-a[1]);b.vx=(z[0]-a[0])/length*b.launchSpeed*.65;b.vy=(z[1]-a[1])/length*b.launchSpeed*.65;b.scoopBlocked=true;emit(s,'rail',b.x,b.y);}
+          if(b.launchDistance>=launchDistances.at(-1)){b.lane=false;const a=launchPath.at(-2),z=launchPath.at(-1),length=Math.hypot(z[0]-a[0],z[1]-a[1]);b.vx=(z[0]-a[0])/length*Math.max(620,b.launchSpeed*.8);b.vy=(z[1]-a[1])/length*Math.max(620,b.launchSpeed*.8);b.scoopBlocked=true;emit(s,'rail',b.x,b.y);}
           continue;
         }
+        const previousX=b.x,previousY=b.y;
         b.vy+=720*h;b.vx*=Math.exp(-.055*h);b.vy*=Math.exp(-.055*h);b.x+=b.vx*h;b.y+=b.vy*h;
+        if(!b.orbitBlocked&&b.vy<0&&Math.hypot(b.x-orbitWell.x,b.y-orbitWell.y)<orbitWell.r+b.r*.5){b.x=orbitWell.x;b.y=orbitWell.y;b.vx=0;b.vy=0;b.orbitCaptureUntil=s.time+1;s.score+=250;emit(s,'orbit-capture',b.x,b.y);continue;}
+        // One-way flap across the upper orbit mouth: up into the bowl is allowed,
+        // but balls already in the bowl cannot fall back down the opening.
+        for(const gate of table.components.filter(c=>c.type==='gate')){
+          const [a,z]=gate.points,dx=z[0]-a[0],dy=z[1]-a[1],len=Math.hypot(dx,dy),nx=-dy/len,ny=dx/len;
+          const before=(previousX-a[0])*nx+(previousY-a[1])*ny,v=b.vx*nx+b.vy*ny;
+          const along=((b.x-a[0])*dx+(b.y-a[1])*dy)/(len*len),side=(b.x-a[0])*nx+(b.y-a[1])*ny,reach=b.r+gate.radius;
+          if(before<=0&&v>0&&along>=0&&along<=1&&side>-reach){b.x-=(side+reach+.05)*nx;b.y-=(side+reach+.05)*ny;b.vx-=1.35*v*nx;b.vy-=1.35*v*ny;if(contact(s,'gate',.12))emit(s,'rail',b.x,b.y);}
+        }
         const tunnel=table.components.find(c=>c.id==='lower-tunnel');
-        if(!b.tunnelBlocked&&b.vy<-120&&Math.hypot(b.x-tunnel.points[0][0],b.y-tunnel.points[0][1])<tunnel.entryRadius){b.tunnelUntil=s.time+1.15;b.vx=0;b.vy=0;emit(s,'tunnel',b.x,b.y);continue;}
+        if(tunnel.type==='track'&&!b.tunnelBlocked&&b.vy<-120&&Math.hypot(b.x-tunnel.points[0][0],b.y-tunnel.points[0][1])<tunnel.entryRadius){b.tunnelUntil=s.time+1.15;b.vx=0;b.vy=0;emit(s,'tunnel',b.x,b.y);continue;}
         if(!b.rampBlocked&&b.vy<-120&&Math.hypot(b.x-ramp[0][0],b.y-ramp[0][1])<table.components.find(c=>c.id==='left-ramp').entryRadius){b.rampUntil=s.time+2.4;b.rampBlocked=true;b.vx=0;b.vy=0;emit(s,'ramp',b.x,b.y);continue;}
-        for(const c of railColliders.filter(c=>c.component.layer===0))if(segment(b,{x:c.a[0],y:c.a[1]},{x:c.b[0],y:c.b[1]},null,0,undefined,c.radius)&&contact(s,'rail',.12))emit(s,'rail',b.x,b.y);
-        slings.forEach((points,i)=>{const corrected=ejectInterior(b,points);for(let edge=0;edge<3;edge++){const a=points[edge],z=points[(edge+1)%3],dx=z[0]-a[0],dy=z[1]-a[1],length=Math.hypot(dx,dy),impact=Math.abs((b.vx*-dy+b.vy*dx)/length);if(segment(b,{x:a[0],y:a[1]},{x:z[0],y:z[1]})&&edge===2&&!corrected&&impact>100&&contact(s,'sling'+i,.25)){s.score+=25;emit(s,'sling',b.x,b.y);}}});
+        for(const c of railColliders.filter(c=>c.component.layer===0)){
+          const p=c.component,active=p.id==='left-return-inner'||(p.id==='orbit-1'&&Math.max(c.a[1],c.b[1])>=210)||(['deflector-0','deflector-1'].includes(p.id)&&c.a===p.points[1]&&c.b===p.points[2]);
+          if(springSegment(s,b,{x:c.a[0],y:c.a[1]},{x:c.b[0],y:c.b[1]},active,p.id,p.restitution??null,c.radius)&&contact(s,'rail',.12))emit(s,'rail',b.x,b.y);
+        }
+        slings.forEach((points,i)=>{const corrected=ejectInterior(b,points);for(let edge=0;edge<3;edge++){const a=points[edge],z=points[(edge+1)%3],dx=z[0]-a[0],dy=z[1]-a[1],length=Math.hypot(dx,dy),impact=Math.abs((b.vx*-dy+b.vy*dx)/length);if(springSegment(s,b,{x:a[0],y:a[1]},{x:z[0],y:z[1]},edge===2&&!corrected,'sling'+i)&&edge===2&&!corrected&&impact>100&&contact(s,'sling'+i,.25)){s.score+=25;emit(s,'sling',b.x,b.y);}}});
         s.flippers.forEach((f,i)=>{if(segment(b,f,flipperTip(f,i),f.omega?.82:null,f.omega,f,f.radius||FLIPPER_RADIUS)&&contact(s,'flipper'+i,.08))emit(s,'flipper',b.x,b.y);});
         table.components.filter(c=>c.type==='bumper'&&c.layer===0).forEach(c=>{const main=c.id.startsWith('bumper-'),i=Number(c.id.split('-')[1]);if(circle(b,c.shape,c.kick)&&contact(s,c.id)){if(main)hit(s,'bumper',i);else s.score+=50;emit(s,'bumper',c.shape.x,c.shape.y);}});
         // Rollover switches detect entry without changing the ball's position or velocity.
