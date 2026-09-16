@@ -18,18 +18,30 @@ function create(E,ctx){
   ctx.save();ctx.beginPath();ctx.roundRect(2,2,476,756,19);ctx.clip();ctx.fillStyle='#4c2b19';ctx.fillRect(0,0,480,760);atlas(materials,0,0,0,480,760);ctx.restore();
   round(9,9,462,742,14,'#00000000','#c09a57');round(16,24,410,705,12,'#0a211d','#b58b4c');
   ctx.save();ctx.beginPath();ctx.roundRect(21,29,400,695,9);ctx.clip();atlas(materials,1,21,29,400,695);ctx.fillStyle=gradient(20,20,380,700,['#123a2910','#04181290']);ctx.fillRect(20,20,402,710);ctx.restore();
-  round(54,41,314,65,13,gradient(0,40,0,70,['#274337','#0a231d']),'#a98549');text('夜 市 彈 珠 台',211,76,27,'#f8dfaa');text('小小彈珠・大大快樂',211,96,11,'#baac7c');
-  for(const x of [37,385]){line(x,46,x,56,'#a9813d',1);round(x-8,55,16,21,6,'#b44b25','#e5b764');line(x,56,x,74,'#efaf61',2);line(x,78,x,83,'#d59c43',2);}
-  text(s.phase==='scan'?'停下燈號，試試手氣':s.phase==='ready'?'看準亮燈球道，準備發射':'讓每一顆彈珠，找到好落點',218,130,11,'#cfbd89');
+  // Engraved arch and festival ornaments are decoration, not hidden colliders.
+  ctx.beginPath();ctx.moveTo(24,136);ctx.bezierCurveTo(30,9,397,9,412,136);ctx.strokeStyle='#b69557';ctx.lineWidth=2;ctx.stroke();
+  ctx.beginPath();ctx.moveTo(29,137);ctx.bezierCurveTo(35,18,391,18,407,137);ctx.strokeStyle='#dcc68a55';ctx.lineWidth=1;ctx.stroke();
+  text('復 刻 童 年 ・ 彈 出 好 時 光',218,75,17,'#e6c58d');
+  text('TAIWAN NIGHT MARKET',218,96,9,'#b49a68');
+  for(const x of [62,374]){line(x,65,x,85,'#ba914b',1);round(x-7,84,14,21,5,'#a04b24','#e3b360');line(x,85,x,104,'#eab763',1);line(x,106,x,115,'#c09144',1);}
+  text(s.phase==='scan'?'停下燈號，試試手氣':s.phase==='ready'?'看準亮燈球道，準備發射':'小小彈珠・大大快樂',218,130,11,'#cfbd89');
   // The visible shooter is drawn on the existing physical launch path.
   ctx.beginPath();ctx.moveTo(451,708);ctx.lineTo(451,64);ctx.quadraticCurveTo(451,25,386,34);ctx.lineCap='round';ctx.lineWidth=28;ctx.strokeStyle='#26170d';ctx.stroke();ctx.lineWidth=25;ctx.strokeStyle=gradient(434,0,32,0,['#4d301a','#e3bd76','#73502c']);ctx.stroke();ctx.lineWidth=18;ctx.strokeStyle='#13201c';ctx.stroke();ctx.lineWidth=1;ctx.strokeStyle='#b7b79a';ctx.stroke();
   for(let i=0;i<9;i++){const y=714+i*(2.5-power*.6);line(443,y,459,y+1,'#bd9865',1.2);}round(442,738-power*4,18,7,3,'#4d2816','#bd9854');
   for(const p of E.pins){circle(p.x+1,p.y+2,p.r+1,'#010e1099');if(!atlas(sprites,0,p.x-p.r*1.55,p.y-p.r*1.55,p.r*3.1,p.r*3.1)){circle(p.x,p.y,p.r,gradient(p.x-4,p.y-4,7,7,['#fff1b8','#be8937','#593719']));circle(p.x-1,p.y-1,1.2,'#fff1c7');}}
   for(let i=0;i<9;i++){const x=20+i*44,lit=s.targets.includes(i),land=s.phase==='result'&&s.result?.slot===i;
-   round(x+2,643,40,82,4,gradient(x,640,0,90,lit?['#523914','#2b2113']:['#14231c','#171b13']),lit?'#dbb25d':'#7a633b');
+   // Recessed wood floor, dark rear wall and raised brass dividers share physical lane edges.
+   round(x+2,644,40,82,1,gradient(x,644,0,82,['#090c08','#22190d','#49331c']),'#80613a');
+   ctx.save();ctx.globalAlpha=.3;atlas(materials,3,x+4,674,36,50);ctx.restore();
+   ctx.fillStyle=gradient(x,643,12,0,['#000b','#0000']);ctx.fillRect(x+3,644,12,79);
+   line(x+4,673,x+40,673,'#b58a4544',1);
+   round(x,640,4,86,1,gradient(x,640,4,0,['#6d471f','#ffe0a0','#987039']));
+   line(x+5,646,x+5,724,'#0009',2);
+   if(i===8)round(x+42,640,4,86,1,gradient(x+42,640,4,0,['#6d471f','#ffe0a0','#987039']));
    if(lit){const glow=ctx.createRadialGradient(x+22,669,2,x+22,682,44);glow.addColorStop(0,'#ffcc4b70');glow.addColorStop(1,'#ffb42200');ctx.fillStyle=glow;ctx.fillRect(x+3,644,38,80);if(!atlas(sprites,2,x+9,648,26,26))circle(x+22,661,5,'#ffe395');text('▼',x+22,631,12,'#ebc873');}
    text(String(i+1),x+22,701,24,lit?'#ffe6a4':'#c5ac77');if(land){ctx.strokeStyle=s.result.hit?'#fff0bb':'#bf9c61';ctx.lineWidth=2;ctx.strokeRect(x+4,645,36,78);}
   }
+  round(19,726,399,5,1,gradient(19,726,0,5,['#ffda8e','#7b4c25']));
   const b=s.ball||{x:451,y:690};
   if(!reduced.matches&&s.ball&&s.phase==='flight'&&s.time!==lastTime){trail.push({x:b.x,y:b.y});if(trail.length>7)trail.shift();}else if(!s.ball||s.phase!=='flight')trail=[];lastTime=s.time;
   if(!reduced.matches)for(let i=1;i<trail.length;i++){ctx.globalAlpha=i/trail.length*.24;line(trail[i-1].x,trail[i-1].y,trail[i].x,trail[i].y,'#ffe9b5',2+i*.35);}ctx.globalAlpha=1;
