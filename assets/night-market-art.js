@@ -14,7 +14,28 @@ function create(E,ctx){
  function text(str,x,y,size,color){ctx.font='600 '+size+'px "Microsoft JhengHei",serif';ctx.textAlign='center';ctx.fillStyle=color;ctx.fillText(str,x,y);}
  function event(e,time){if(e.kind==='launch'||e.kind==='weak'){trail=[];return;}if(!['pin','hit','miss'].includes(e.kind)||!Number.isFinite(e.x)||!Number.isFinite(e.y))return;if(e.kind==='pin'&&(reduced.matches||time-lastImpact<.035))return;if(e.kind==='pin')lastImpact=time;effects.push({...e,at:time,life:e.kind==='pin'?.28:e.kind==='hit'?1.05:.5});if(effects.length>28)effects.shift();}
  function clear(){effects=[];trail=[];lastTime=-1;lastImpact=-1;}
- function draw(s,power=0){ctx.setTransform(2,0,0,2,0,0);ctx.clearRect(0,0,480,760);
+ function draw(s,power=0){ctx.setTransform(2,0,0,2,0,0);ctx.clearRect(0,0,560,760);
+  // Separate decorative wings sit outside the unchanged 480px physical table.
+  round(0,2,560,756,14,'#352315','#bd9959');
+  atlas(materials,0,0,2,560,756);ctx.translate(40,0);
+  for(const x of [-36,482]){
+   round(x,18,34,721,12,gradient(x,18,34,0,['#071d17','#264335','#0c2119']),'#caa768');
+   round(x+3,22,28,713,10,'#00000000','#74613b');
+   const cx=x+17;
+   for(const y of [36,719]){circle(cx,y,5,gradient(cx-5,y-5,10,10,['#ffebaf','#99713a','#382718']));line(cx-2,y-2,cx+2,y+2,'#44321a',1);}
+   // Etched lantern chains, shop roofs, lattice windows and floral scrolls.
+   line(cx,55,cx,99,'#bd9554',1);
+   for(const y of [103,139]){round(cx-9,y,18,23,7,'#65451c','#e3bd74');ctx.beginPath();ctx.ellipse(cx,y+11,4,11,0,0,Math.PI*2);ctx.strokeStyle='#e3bd74';ctx.lineWidth=.8;ctx.stroke();line(cx,y+24,cx,y+31,'#d5ac61',1);}
+   for(const [n,ch] of [...(x<0?'台灣夜市':'彈出好運')].entries())text(ch,cx,211+n*24,17,'#dbb778');
+   for(const y of [340,441,542]){
+    ctx.beginPath();ctx.moveTo(x+4,y+12);ctx.lineTo(cx,y);ctx.lineTo(x+30,y+12);ctx.lineTo(x+27,y+15);ctx.lineTo(x+7,y+15);ctx.closePath();ctx.strokeStyle='#d2a75d';ctx.lineWidth=1;ctx.stroke();
+    ctx.strokeRect(x+7,y+15,20,60);
+    for(let j=1;j<4;j++)line(x+7+j*5,y+18,x+7+j*5,y+72,'#a78349',.7);
+    for(let j=0;j<3;j++)line(x+7,y+26+j*18,x+27,y+26+j*18,'#cba465',.8);
+    line(x+3,y+78,x+31,y+78,'#e0b76a',1);
+   }
+   for(const y of [315,637,675]){ctx.beginPath();ctx.moveTo(cx,y-10);ctx.bezierCurveTo(cx-17,y,cx-9,y+15,cx,y+5);ctx.bezierCurveTo(cx+9,y+15,cx+17,y,cx,y-10);ctx.strokeStyle='#b6914e';ctx.lineWidth=1;ctx.stroke();circle(cx,y,2,'#e4c581');}
+  }
   ctx.save();ctx.beginPath();ctx.roundRect(2,2,476,756,19);ctx.clip();ctx.fillStyle='#4c2b19';ctx.fillRect(0,0,480,760);atlas(materials,0,0,0,480,760);ctx.restore();
   round(9,9,462,742,14,'#00000000','#c09a57');round(16,24,410,705,12,'#0a211d','#b58b4c');
   ctx.save();ctx.beginPath();ctx.roundRect(21,29,400,695,9);ctx.clip();ctx.fillStyle='#18382b';ctx.fillRect(21,29,400,695);ctx.globalAlpha=.32;atlas(materials,1,21,29,400,695);ctx.globalAlpha=1;
@@ -30,6 +51,9 @@ function create(E,ctx){
   // Engraved arch and festival ornaments are decoration, not hidden colliders.
   ctx.beginPath();ctx.moveTo(24,136);ctx.bezierCurveTo(30,9,397,9,412,136);ctx.strokeStyle='#b69557';ctx.lineWidth=2;ctx.stroke();
   ctx.beginPath();ctx.moveTo(29,137);ctx.bezierCurveTo(35,18,391,18,407,137);ctx.strokeStyle='#dcc68a55';ctx.lineWidth=1;ctx.stroke();
+  // Layered brass arch joins the outer side rails without entering the pin lattice.
+  ctx.beginPath();ctx.moveTo(13,728);ctx.lineTo(13,143);ctx.bezierCurveTo(13,5,427,5,427,143);ctx.lineTo(427,728);
+  ctx.strokeStyle='#19130c';ctx.lineWidth=9;ctx.stroke();ctx.strokeStyle=gradient(13,0,414,0,['#80602e','#ffdb8c','#8f682e','#f1ce86','#77502a']);ctx.lineWidth=5;ctx.stroke();ctx.strokeStyle='#ffe6a388';ctx.lineWidth=1;ctx.stroke();
   text('復 刻 童 年 ・ 彈 出 好 時 光',218,75,17,'#e6c58d');
   text('TAIWAN NIGHT MARKET',218,96,9,'#b49a68');
   for(const x of [62,374]){line(x,65,x,85,'#ba914b',1);round(x-7,84,14,21,5,'#a04b24','#e3b360');line(x,85,x,104,'#eab763',1);line(x,106,x,115,'#c09144',1);}
