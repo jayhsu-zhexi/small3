@@ -13,10 +13,11 @@
   if(![10,20,100,1000,99999].includes(limit)||!['+','-','mixed'].includes(operation))throw Error('請選擇有效的出題範圍與運算。');
   const pick=max=>Math.floor(Math.max(0,Math.min(.999999999,random()))*(max+1));
   const op=operation==='mixed'?(pick(1)?'+':'-'):operation;
-  let answer=1+pick(limit-1);
-  let a=op==='+'?pick(answer):answer+pick(limit-answer),b=op==='+'?answer-a:a-answer;
+  // Both operands are positive; subtraction also keeps a strictly positive answer.
+  let total=2+pick(limit-2);
+  let a=op==='+'?1+pick(total-2):total,b=op==='+'?total-a:1+pick(total-2);
   // Avoid an identical consecutive question, including deterministic RNGs.
-  if(s.problem&&s.problem.a===a&&s.problem.b===b&&s.problem.op===op){answer=answer%limit+1;a=op==='+'?Math.min(a,answer):Math.max(a,answer);b=op==='+'?answer-a:a-answer;}
+  if(s.problem&&s.problem.a===a&&s.problem.b===b&&s.problem.op===op){total=2+(total-1)%(limit-1);if(op==='+'){a=Math.min(a,total-1);b=total-a;}else{a=total;b=Math.min(b,a-1);}}
   setProblem(s,a,op,b);
  }
  const api={MAX,create,value,move,clear,setProblem,check,free,randomProblem};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.AbacusPractice=api;

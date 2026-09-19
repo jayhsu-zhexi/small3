@@ -2,15 +2,17 @@
  'use strict';
  const E=window.AbacusPractice,s=E.create(),$=id=>document.getElementById(id),names=['萬位','千位','百位','十位','個位'],columns=[];let dirty=false,autoSettings=null;
  let soundEnabled=true,audioContext=null,soundToken=0;const voices=new Set();
- function stopSound(){soundToken++;for(const voice of voices){try{voice.osc.stop();}catch(_){}voice.osc.disconnect();voice.gain.disconnect();}voices.clear();}
- function playAnswerSound(correct){
-  stopSound();if(!soundEnabled)return;const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;
+ const errorAudio=typeof window.Audio==='function'?new window.Audio('/assets/abacus-error-kenney-v1.wav'):null;
+ if(errorAudio){errorAudio.preload='auto';errorAudio.volume=.9;}
+ function stopSound(){soundToken++;if(errorAudio){errorAudio.pause();try{errorAudio.currentTime=0;}catch(_){}}for(const voice of voices){try{voice.osc.stop();}catch(_){}voice.osc.disconnect();voice.gain.disconnect();}voices.clear();}
+ function playAnswerSound(correct,fallback=false){
+  stopSound();if(!soundEnabled)return;if(!correct&&errorAudio&&!fallback){const token=soundToken;errorAudio.onplaying=()=>{if(token!==soundToken||!soundEnabled||document.hidden)errorAudio.pause();};try{const playing=errorAudio.play();if(playing&&playing.catch)playing.catch(()=>{if(token===soundToken&&soundEnabled&&!document.hidden)playAnswerSound(false,true);});return;}catch(_){playAnswerSound(false,true);return;}}const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;
   try{
    if(!audioContext||audioContext.state==='closed')audioContext=new Audio();
    const token=soundToken,ctx=audioContext;
    const schedule=()=>{if(token!==soundToken||!soundEnabled||document.hidden||ctx.state!=='running')return;
-    const notes=correct?[[0,880,.17],[.18,659.25,.22],[.43,880,.17],[.61,659.25,.26]]:[[0,155,.16],[.23,130,.19]];
-    for(const [offset,hz,duration] of notes){const osc=ctx.createOscillator(),gain=ctx.createGain(),voice={osc,gain};const start=ctx.currentTime+.015+offset;osc.type=correct?'sine':'triangle';osc.frequency.setValueAtTime(hz,start);gain.gain.setValueAtTime(0,start);gain.gain.linearRampToValueAtTime(correct?.13:.10,start+.015);gain.gain.exponentialRampToValueAtTime(.001,start+duration);osc.connect(gain);gain.connect(ctx.destination);voices.add(voice);osc.onended=()=>{voices.delete(voice);osc.disconnect();gain.disconnect();};osc.start(start);osc.stop(start+duration+.02);}
+    const notes=correct?[[0,880,.17],[.18,659.25,.22],[.43,880,.17],[.61,659.25,.26]]:[[0,220,.20],[.25,165,.23]];
+    for(const [offset,hz,duration] of notes){const osc=ctx.createOscillator(),gain=ctx.createGain(),voice={osc,gain};const start=ctx.currentTime+.015+offset;osc.type=correct?'sine':'sawtooth';osc.frequency.setValueAtTime(hz,start);gain.gain.setValueAtTime(0,start);gain.gain.linearRampToValueAtTime(correct?.13:.18,start+.015);gain.gain.exponentialRampToValueAtTime(.001,start+duration);osc.connect(gain);gain.connect(ctx.destination);voices.add(voice);osc.onended=()=>{voices.delete(voice);osc.disconnect();gain.disconnect();};osc.start(start);osc.stop(start+duration+.02);}
    };
    if(ctx.state==='suspended')ctx.resume().then(schedule).catch(()=>{});else schedule();
   }catch(_){stopSound();}
