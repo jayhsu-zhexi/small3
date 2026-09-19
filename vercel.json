@@ -5,6 +5,9 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
+    {"source":"/abacus","destination":"/abacus.html"},
+    {"source":"/abacus/","destination":"/abacus.html"},
+    {"source":"/abacus.html","destination":"/abacus.html"},
     {
       "source": "/pinball-night-market.html",
       "destination": "/pinball-night-market.html"
