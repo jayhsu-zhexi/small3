@@ -1,15 +1,30 @@
 (()=>{
  'use strict';
  const E=window.AbacusPractice,s=E.create(),$=id=>document.getElementById(id),names=['萬位','千位','百位','十位','個位'],columns=[];let dirty=false,autoSettings=null;
+ let soundEnabled=true,audioContext=null,soundToken=0;const voices=new Set();
+ function stopSound(){soundToken++;for(const voice of voices){try{voice.osc.stop();}catch(_){}voice.osc.disconnect();voice.gain.disconnect();}voices.clear();}
+ function playAnswerSound(correct){
+  stopSound();if(!soundEnabled)return;const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;
+  try{
+   if(!audioContext||audioContext.state==='closed')audioContext=new Audio();
+   const token=soundToken,ctx=audioContext;
+   const schedule=()=>{if(token!==soundToken||!soundEnabled||document.hidden||ctx.state!=='running')return;
+    const notes=correct?[[0,880,.17],[.18,659.25,.22],[.43,880,.17],[.61,659.25,.26]]:[[0,155,.16],[.23,130,.19]];
+    for(const [offset,hz,duration] of notes){const osc=ctx.createOscillator(),gain=ctx.createGain(),voice={osc,gain};const start=ctx.currentTime+.015+offset;osc.type=correct?'sine':'triangle';osc.frequency.setValueAtTime(hz,start);gain.gain.setValueAtTime(0,start);gain.gain.linearRampToValueAtTime(correct?.13:.10,start+.015);gain.gain.exponentialRampToValueAtTime(.001,start+duration);osc.connect(gain);gain.connect(ctx.destination);voices.add(voice);osc.onended=()=>{voices.delete(voice);osc.disconnect();gain.disconnect();};osc.start(start);osc.stop(start+duration+.02);}
+   };
+   if(ctx.state==='suspended')ctx.resume().then(schedule).catch(()=>{});else schedule();
+  }catch(_){stopSound();}
+ }
+ $('soundToggle').addEventListener('click',()=>{soundEnabled=!soundEnabled;stopSound();$('soundToggle').textContent=soundEnabled?'♪ 音效開':'♪ 音效關';$('soundToggle').setAttribute('aria-pressed',String(soundEnabled));$('soundToggle').setAttribute('aria-label',soundEnabled?'音效已開啟，按下關閉':'音效已關閉，按下開啟');});
  let effectTimer=null;
- function hideEffect(){clearTimeout(effectTimer);effectTimer=null;$('answerEffect').hidden=true;}
+ function hideEffect(){stopSound();clearTimeout(effectTimer);effectTimer=null;$('answerEffect').hidden=true;}
  function showEffect(correct){hideEffect();const effect=$('answerEffect');effect.dataset.kind=correct?'success':'retry';$('effectLabel').textContent=correct?'答對了！':'再試一次';effect.hidden=false;effect.style.animation='none';void effect.offsetWidth;effect.style.animation='';effectTimer=setTimeout(hideEffect,1100);}
  if(document.addEventListener)document.addEventListener('visibilitychange',()=>{if(document.hidden)hideEffect();});
  function feedback(message,kind=''){hideEffect();const box=$('feedback');box.textContent=message;box.dataset.kind=kind;}
  function render(){columns.forEach(({buttons,digit},col)=>{const upper=s.digits[col]>=5,lower=s.digits[col]%5;buttons.forEach((button,i)=>{const active=i===0?upper:i<=lower;button.style.top=(i===0?(upper?52:0):108+(i<=lower?(i-1)*44:64+(i-1)*44))/348*100+'%';button.setAttribute('aria-pressed',String(active));button.setAttribute('aria-label',names[col]+'，'+(i===0?'上珠，值五':'下珠第'+i+'顆，值一')+'，'+(active?'已靠梁，按下移開':'未靠梁，按下靠梁'));});digit.textContent=s.digits[col];});$('value').textContent=E.value(s).toLocaleString('en-US');$('mode').textContent=s.problem?'題目練習':'自由練習';$('questionLabel').textContent=s.problem?'用算盤撥出答案':'隨手撥一個數字';$('question').textContent=s.problem?s.problem.a+' '+(s.problem.op==='+'?'＋':'−')+' '+s.problem.b+' ＝ ?':'自由撥珠';$('check').disabled=!s.problem||dirty;$('check').textContent=autoSettings&&s.result===true?'下一題':'確認答案';$('questionLabel').textContent=autoSettings?'電腦出題':s.problem?'用算盤撥出答案':'隨手撥一個數字';}
  names.forEach((name,col)=>{const lane=document.createElement('div');lane.className='ab-column';lane.setAttribute('role','group');lane.setAttribute('aria-label',name);const buttons=[];for(let i=0;i<5;i++){const button=document.createElement('button');button.type='button';button.className='ab-bead';button.addEventListener('click',()=>{E.move(s,col,i);render();feedback(dirty?'設定已修改，請先按「用這兩個數字出題」。':s.problem?'撥好後按「確認答案」。':'自由練習中，隨時可以清空重來。');});lane.append(button);buttons.push(button);}if(col===1||col===4){const dot=document.createElement('span');dot.className='ab-dot';lane.append(dot);}$('field').append(lane);const label=document.createElement('div'),text=document.createElement('span'),digit=document.createElement('strong');text.textContent=name;label.append(text,digit);$('places').append(label);columns.push({buttons,digit});});
  $('clear').addEventListener('click',()=>{E.clear(s);render();feedback(dirty?'算盤已清空；設定已修改，請重新出題。':s.problem?'算盤已清空，題目保留，可以重新算。':'算盤已清空，可以開始撥珠。');});
- $('check').addEventListener('click',()=>{if(dirty||!s.problem)return;if(autoSettings&&s.result===true){nextAuto();return;}const correct=E.check(s);render();feedback(correct?(autoSettings?'✓ 答對了！按「下一題」繼續挑戰。':'✓ 答對了！你撥出了正確的答案。'):'再試一次，還沒有答對。可以調整算珠，再按「確認答案」。',correct?'success':'retry');showEffect(correct);});
+ $('check').addEventListener('click',()=>{if(dirty||!s.problem)return;if(autoSettings&&s.result===true){nextAuto();return;}const correct=E.check(s);render();feedback(correct?(autoSettings?'✓ 答對了！按「下一題」繼續挑戰。':'✓ 答對了！你撥出了正確的答案。'):'再試一次，還沒有答對。可以調整算珠，再按「確認答案」。',correct?'success':'retry');showEffect(correct);playAnswerSound(correct);});
  $('problemForm').addEventListener('submit',e=>{e.preventDefault();try{E.setProblem(s,$('first').value,$('subtract').checked?'-':'+',$('second').value);autoSettings=null;dirty=false;$('formError').textContent='';if($('problemDialog').open)$('problemDialog').close();render();feedback('題目準備好了！算盤已歸零，撥好後再確認答案。');}catch(error){dirty=true;$('formError').textContent=error.message;render();feedback('請先修正題目設定。');}});
  for(const id of ['first','second','add','subtract'])$(id).addEventListener('input',()=>{dirty=true;$('formError').textContent='';render();feedback('設定已修改，按「用這兩個數字出題」開始新題。');});
  $('free').addEventListener('click',()=>{E.free(s);autoSettings=null;dirty=false;$('formError').textContent='';if($('problemDialog').open)$('problemDialog').close();render();feedback('已回到自由練習，保留現在的算珠。');});
