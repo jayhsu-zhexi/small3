@@ -42,6 +42,26 @@ html.art-ready .feedback[data-kind="retry"]{color:#7c3e18}
 @media(max-width:420px){html.art-ready .practice{padding:10px}html.art-ready .ab-frame{padding-left:5px;padding-right:5px}html.art-ready .ab-field{padding:0}html.art-ready .board-head{padding:9px}html.art-ready .board-head .secondary{padding:12px;min-height:50px}html.art-ready .ab-bead{width:42px;left:calc(50% - 21px)}html.art-ready .primary,html.art-ready .secondary{font-size:15px}}
 @media(prefers-reduced-motion:reduce){html.art-ready .ab-bead,html.art-ready .primary,html.art-ready .secondary{transition:none}html.art-ready .primary:active:not(:disabled),html.art-ready .secondary:active{transform:none}}
 /* The mobile play surface uses the available height; only the question dialog scrolls. */
+.source-switch{display:flex;gap:8px;margin-bottom:18px}.source-switch button{flex:1;min-height:44px;border:1px solid #b99b60;border-radius:9px;background:#f8eed9;color:#3b493b;font:inherit}.source-switch button[aria-pressed="true"]{background:#244c39;color:#fff0c5;box-shadow:inset 0 1px 1px #fff3,0 2px 4px #0003}#computerForm[hidden],#problemForm[hidden]{display:none}#computerForm select{display:block;width:100%;margin:8px 0 18px;padding:12px;border:1px solid #b99b60;border-radius:9px;background:#fffaf0;color:#263d32;font:inherit}#computerForm select:focus-visible{outline:3px solid #38745b;outline-offset:2px}
+/* The image has transparent vertical padding; cover crops padding, not the button face. */
+html.confirm-art-ready #check{width:232px;max-width:100%;height:52px;min-height:52px;background:transparent;border:0;border-radius:12px;box-shadow:none;filter:none;position:relative;isolation:isolate;padding:8px 18px;color:#fff2cf}
+html.confirm-art-ready #check:after{content:'';position:absolute;inset:-4px 0;z-index:-1;background:url('/assets/abacus-confirm-v1.png') center/100% auto no-repeat;filter:drop-shadow(0 2px 2px #0005);pointer-events:none}
+html.confirm-art-ready #check:before{display:none}
+html.confirm-art-ready #check:hover:not(:disabled):after{filter:brightness(1.12) drop-shadow(0 3px 2px #0005)}
+html.confirm-art-ready #check:disabled{color:#c3c6b5;text-shadow:0 1px 1px #000}
+html.confirm-art-ready #check:disabled:after{filter:saturate(.35) brightness(.75)}
+html.confirm-art-ready #check:active:not(:disabled){box-shadow:none}
+@media(max-width:820px) and (max-height:480px) and (orientation:landscape){html.confirm-art-ready #check{width:130px;min-height:44px;height:44px}html.confirm-art-ready #check:after{inset:0 -3px;background-size:auto 56px}}
+/* A separate, size-independent face avoids stretching the decorative button atlas. */
+#check{width:min(100%,260px);align-self:center;justify-self:center;display:flex;align-items:center;justify-content:center;gap:10px;margin:8px auto;min-height:48px;padding:10px 20px;border:1px solid #dab879;border-radius:12px;background:linear-gradient(180deg,#38644f,#204333 58%,#19392c);color:#fff2cf;font-size:16px;font-weight:650;letter-spacing:1px;text-shadow:0 1px 2px #102a20;filter:none;box-shadow:inset 0 1px 0 #fff5,inset 0 -2px 0 #112c2580,0 3px 0 #152d23,0 5px 8px #0004;transition:transform .12s,box-shadow .12s,background .12s}
+#check:before{content:'✓';display:grid;place-items:center;width:22px;height:22px;flex:none;border:1px solid #dfc58788;border-radius:50%;background:#0c2b244d;color:#ffe0a0;font-size:14px;letter-spacing:0}
+#check:hover:not(:disabled){filter:none;background:linear-gradient(#44765e,#28543f)}
+#check:active:not(:disabled){transform:translateY(2px);filter:none;box-shadow:inset 0 2px 4px #0004,0 1px 0 #152d23}
+#check:disabled{filter:none;background:linear-gradient(#424e43,#333e35);color:#bdc4b8;border-color:#8c8b6c;box-shadow:inset 0 1px 0 #ffffff20,0 2px 0 #243027;cursor:default;text-shadow:none}
+#check:disabled:before{color:inherit;border-color:#b3baa355;background:#1e302933}
+@media(max-width:820px){#check{min-height:44px;height:44px;padding:8px 18px;margin:1px auto 3px;width:min(78%,260px);flex:none}}
+@media(max-width:820px) and (max-height:480px) and (orientation:landscape){#check{width:100%;padding:8px;gap:6px;font-size:14px;letter-spacing:0}}
+@media(prefers-reduced-motion:reduce){#check{transition:none}#check:active:not(:disabled){transform:none}}
 @media(max-width:820px) and (max-height:480px) and (orientation:landscape){.workspace{height:100%}}
 @media(max-width:820px){.workspace{align-items:stretch}}
 @media(max-width:820px){

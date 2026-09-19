@@ -9,5 +9,14 @@
  function setProblem(s,a,op,b){a=parse(a);b=parse(b);if(op!=='+'&&op!=='-')throw Error('請選擇加法或減法。');const answer=op==='+'?a+b:a-b;if(answer<0)throw Error('減法的第一個數字要大於或等於第二個數字。');if(answer>MAX)throw Error('答案超過五檔算盤的範圍，請換小一點的數字。');s.problem={a,b,op,answer};clear(s);}
  function check(s){if(!s.problem)return null;s.result=value(s)===s.problem.answer;return s.result;}
  function free(s){s.problem=null;s.result=null;}
- const api={MAX,create,value,move,clear,setProblem,check,free};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.AbacusPractice=api;
+ function randomProblem(s,limit=100,operation='mixed',random=Math.random){
+  if(![10,20,100,1000,99999].includes(limit)||!['+','-','mixed'].includes(operation))throw Error('請選擇有效的出題範圍與運算。');
+  const pick=max=>Math.floor(Math.max(0,Math.min(.999999999,random()))*(max+1));
+  const op=operation==='mixed'?(pick(1)?'+':'-'):operation;
+  let a=pick(limit),b=pick(op==='+'?limit-a:a);
+  // Avoid an identical consecutive question, including deterministic RNGs.
+  if(s.problem&&s.problem.a===a&&s.problem.b===b&&s.problem.op===op){if(op==='+'){a=(a+1)%(limit+1);b=Math.min(b,limit-a);}else b=(b+1)%(a+1);if(s.problem.a===a&&s.problem.b===b)a=(a+1)%(limit+1);}
+  setProblem(s,a,op,b);
+ }
+ const api={MAX,create,value,move,clear,setProblem,check,free,randomProblem};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.AbacusPractice=api;
 })(typeof window==='undefined'?globalThis:window);
