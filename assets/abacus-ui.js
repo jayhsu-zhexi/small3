@@ -1,6 +1,6 @@
 (()=>{
  'use strict';
- const E=window.AbacusPractice,s=E.create(),$=id=>document.getElementById(id),names=['萬位','千位','百位','十位','個位'],columns=[];let dirty=false,autoSettings=null;
+ const E=window.AbacusPractice,s=E.create(),$=id=>document.getElementById(id),names=['萬位','千位','百位','十位','個位'],columns=[];let dirty=false,autoSettings=null,practiceSet=null,manualDrafts=[null],manualIndex=0;
  let soundEnabled=true,audioContext=null,soundToken=0;const voices=new Set();
  const errorAudio=typeof window.Audio==='function'?new window.Audio('/assets/abacus-error-kenney-v1.wav'):null;
  if(errorAudio){errorAudio.preload='auto';errorAudio.volume=.9;}
@@ -23,22 +23,47 @@
  function showEffect(correct){hideEffect();const effect=$('answerEffect');effect.dataset.kind=correct?'success':'retry';$('effectLabel').textContent=correct?'答對了！':'再試一次';effect.hidden=false;effect.style.animation='none';void effect.offsetWidth;effect.style.animation='';effectTimer=setTimeout(hideEffect,1100);}
  if(document.addEventListener)document.addEventListener('visibilitychange',()=>{if(document.hidden)hideEffect();});
  function feedback(message,kind=''){hideEffect();const box=$('feedback');box.textContent=message;box.dataset.kind=kind;}
- function render(){columns.forEach(({buttons,digit},col)=>{const upper=s.digits[col]>=5,lower=s.digits[col]%5;buttons.forEach((button,i)=>{const active=i===0?upper:i<=lower;button.style.top=(i===0?(upper?52:0):108+(i<=lower?(i-1)*44:64+(i-1)*44))/348*100+'%';button.setAttribute('aria-pressed',String(active));button.setAttribute('aria-label',names[col]+'，'+(i===0?'上珠，值五':'下珠第'+i+'顆，值一')+'，'+(active?'已靠梁，按下移開':'未靠梁，按下靠梁'));});digit.textContent=s.digits[col];});$('value').textContent=E.value(s).toLocaleString('en-US');$('mode').textContent=s.problem?'題目練習':'自由練習';$('questionLabel').textContent=s.problem?'用算盤撥出答案':'隨手撥一個數字';$('question').textContent=s.problem?(s.problem.terms||[s.problem.a,s.problem.b]).map((n,i)=>(i?((s.problem.ops||[s.problem.op])[i-1]==='+'?' ＋ ':' − '):'')+n).join('')+' ＝ ?':'自由撥珠';$('check').disabled=!s.problem||dirty;$('check').textContent=autoSettings&&s.result===true?'下一題':'確認答案';$('questionLabel').textContent=autoSettings?'電腦出題':s.problem?'用算盤撥出答案':'隨手撥一個數字';}
- names.forEach((name,col)=>{const lane=document.createElement('div');lane.className='ab-column';lane.setAttribute('role','group');lane.setAttribute('aria-label',name);const buttons=[];for(let i=0;i<5;i++){const button=document.createElement('button');button.type='button';button.className='ab-bead';const activate=()=>{E.move(s,col,i);render();feedback(dirty?'設定已修改，請先按「開始練習」。':s.problem?'撥好後按「確認答案」。':'自由練習中，隨時可以清空重來。');};
- let touchClick=false;const contacts=new Set();
- button.addEventListener('pointerdown',event=>{if(event.pointerType!=='touch'&&event.pointerType!=='pen'){touchClick=false;return;}event.preventDefault();touchClick=true;if(contacts.size)return;contacts.add(event.pointerId);if(button.setPointerCapture)button.setPointerCapture(event.pointerId);activate();});
- for(const type of ['pointerup','pointercancel','lostpointercapture'])button.addEventListener(type,event=>contacts.delete(event.pointerId));
+ function render(){columns.forEach(({buttons,digit},col)=>{const upper=s.digits[col]>=5,lower=s.digits[col]%5;buttons.forEach((button,i)=>{const active=i===0?upper:i<=lower;button.style.top=(i===0?(upper?52:0):108+(i<=lower?(i-1)*44:64+(i-1)*44))/348*100+'%';button.setAttribute('aria-pressed',String(active));button.setAttribute('aria-label',names[col]+'，'+(i===0?'上珠，值五':'下珠第'+i+'顆，值一')+'，'+(active?'已靠梁，按下移開':'未靠梁，按下靠梁'));});digit.textContent=s.digits[col];});$('value').textContent=E.value(s).toLocaleString('en-US');$('mode').textContent=s.problem?'題目練習':'自由練習';$('questionLabel').textContent=s.problem?'用算盤撥出答案':'隨手撥一個數字';$('question').textContent=s.problem?(s.problem.terms||[s.problem.a,s.problem.b]).map((n,i)=>(i?((s.problem.ops||[s.problem.op])[i-1]==='+'?' ＋ ':' − '):'')+n).join('')+' ＝ ?':'自由撥珠';$('check').disabled=!s.problem||dirty;$('check').textContent=practiceSet?(practiceSet.completed?'已完成':practiceSet.solved?'下一題':'確認答案'):'確認答案';if(practiceSet&&practiceSet.completed)$('check').disabled=true;$('questionLabel').textContent=practiceSet?(practiceSet.source==='auto'?'電腦出題':'自己出題')+' · 第 '+(practiceSet.index+1)+'／'+practiceSet.problems.length+' 題':s.problem?'用算盤撥出答案':'隨手撥一個數字';}
+ names.forEach((name,col)=>{const lane=document.createElement('div');lane.className='ab-column';lane.setAttribute('role','group');lane.setAttribute('aria-label',name);const buttons=[];for(let i=0;i<5;i++){const button=document.createElement('button');button.type='button';button.className='ab-bead';const activate=()=>{if(practiceSet&&practiceSet.solved)return;E.move(s,col,i);render();feedback(dirty?'設定已修改，請先按「開始練習」。':s.problem?'撥好後按「確認答案」。':'自由練習中，隨時可以清空重來。');};
+ // Each new contact is a complete bead action. Do not wait for a release event:
+ // an interrupted iPad gesture must never leave a bead permanently locked.
+ let touchClick=false;
+ button.addEventListener('pointerdown',event=>{if(event.pointerType!=='touch'&&event.pointerType!=='pen'){touchClick=false;return;}event.preventDefault();touchClick=true;activate();});
  button.addEventListener('click',event=>{if(event&&touchClick&&event.detail!==0)return;activate();});lane.append(button);buttons.push(button);}if(col===1||col===4){const dot=document.createElement('span');dot.className='ab-dot';lane.append(dot);}$('field').append(lane);const label=document.createElement('div'),text=document.createElement('span'),digit=document.createElement('strong');text.textContent=name;label.append(text,digit);$('places').append(label);columns.push({buttons,digit});});
- $('clear').addEventListener('click',()=>{E.clear(s);render();feedback(dirty?'算盤已清空；設定已修改，請重新出題。':s.problem?'算盤已清空，題目保留，可以重新算。':'算盤已清空，可以開始撥珠。');});
- $('check').addEventListener('click',()=>{if(dirty||!s.problem)return;if(autoSettings&&s.result===true){nextAuto();return;}const correct=E.check(s);render();feedback(correct?(autoSettings?'✓ 答對了！按「下一題」繼續挑戰。':'✓ 答對了！你撥出了正確的答案。'):'再試一次，還沒有答對。可以調整算珠，再按「確認答案」。',correct?'success':'retry');showEffect(correct);playAnswerSound(correct);});
- $('problemForm').addEventListener('submit',e=>{e.preventDefault();try{const count=Number($('manualCount').value||2),terms=[$('first').value,$('second').value],ops=[$('subtract').checked?'-':'+'];for(let i=3;i<=count;i++){terms.push($('term'+i).value);ops.push($('op'+i).value);}E.setSequence(s,terms,ops);autoSettings=null;dirty=false;$('formError').textContent='';if($('problemDialog').open)$('problemDialog').close();render();feedback('題目準備好了！算盤已歸零，撥好後再確認答案。');}catch(error){dirty=true;$('formError').textContent=error.message;render();feedback('請先修正題目設定。');}});
+ $('clear').addEventListener('click',()=>{if(practiceSet&&practiceSet.solved)return;E.clear(s);render();feedback(dirty?'算盤已清空；設定已修改，請重新出題。':s.problem?'算盤已清空，題目保留，可以重新算。':'算盤已清空，可以開始撥珠。');});
+ function expression(problem){return (problem.terms||[problem.a,problem.b]).map((n,i)=>(i?((problem.ops||[problem.op])[i-1]==='+'?' ＋ ':' − '):'')+ (n===''?'□':n)).join('')+' ＝ ?';}
+ function readManual(){const count=Number($('manualCount').value||2),terms=[$('first').value,$('second').value],ops=[$('subtract').checked?'-':'+'];for(let i=3;i<=count;i++){terms.push($('term'+i).value);ops.push($('op'+i).value||'+');}return {terms,ops};}
+ function validateQuestion(question){const temp=E.create();E.setSequence(temp,question.terms,question.ops);return temp.problem;}
+ function loadManual(index){manualIndex=index;const question=manualDrafts[index];$('manualCount').value=String(question.terms.length);['first','second','term3','term4','term5'].forEach((id,i)=>{$(id).value=question.terms[i]===undefined?'1':String(question.terms[i]);});$('subtract').checked=question.ops[0]==='-';$('add').checked=!$('subtract').checked;for(let i=3;i<=5;i++)$('op'+i).value=question.ops[i-2]||'+';updateTerms();}
+ function renderManualList(){
+  $('manualSetTitle').textContent='正在編輯第 '+(manualIndex+1)+' 題';$('addQuestion').disabled=manualDrafts.length>=20;
+  const rows=manualDrafts.map((question,index)=>{const row=document.createElement('div'),select=document.createElement('button'),remove=document.createElement('button');row.className='question-set-row';select.type='button';select.textContent='第 '+(index+1)+' 題 · '+expression(question).replace(/ ＝ \?$/,'');select.setAttribute('aria-pressed',String(index===manualIndex));select.addEventListener('click',()=>loadManual(index));remove.type='button';remove.textContent='×';remove.setAttribute('aria-label','移除第 '+(index+1)+' 題');remove.disabled=manualDrafts.length===1;remove.addEventListener('click',()=>{if(manualDrafts.length===1)return;manualDrafts.splice(index,1);const next=index<manualIndex?manualIndex-1:index===manualIndex?Math.min(index,manualDrafts.length-1):manualIndex;dirty=true;loadManual(next);render();});row.append(select,remove);return row;});$('manualQuestionList').replaceChildren(...rows);
+ }
+ $('addQuestion').addEventListener('click',()=>{try{validateQuestion(readManual());if(manualDrafts.length>=20)throw Error('一組最多 20 題。');const current=readManual();manualDrafts.push({terms:current.terms.map(()=>''),ops:current.ops.slice()});dirty=true;loadManual(manualDrafts.length-1);render();}catch(error){$('formError').textContent=error.message;}});
+ function loadPracticeQuestion(){const p=practiceSet.problems[practiceSet.index];E.setSequence(s,p.terms||[p.a,p.b],p.ops||[p.op]);practiceSet.solved=false;dirty=false;render();}
+ function startSet(problems,source){practiceSet=problems.length>1||source==='auto'?{problems,index:0,source,solved:false,completed:false}:null;if(practiceSet)loadPracticeQuestion();else E.setSequence(s,problems[0].terms,problems[0].ops);}
+ $('closeCompletion').addEventListener('click',()=>{$('completionDialog').close();$('openProblem').focus();});
+ $('check').addEventListener('click',()=>{
+  if(dirty||!s.problem||practiceSet&&practiceSet.completed)return;
+  if(practiceSet&&practiceSet.solved){practiceSet.index++;loadPracticeQuestion();feedback('下一題準備好了！算盤已歸零。');return;}
+  const correct=E.check(s);if(correct&&practiceSet){practiceSet.solved=true;if(practiceSet.index===practiceSet.problems.length-1)practiceSet.completed=true;}
+  render();feedback(correct?(practiceSet?(practiceSet.completed?'✓ 全部完成了！每一道都算對了。':'✓ 答對了！按「下一題」繼續挑戰。'):'✓ 答對了！你撥出了正確的答案。'):'再試一次，還沒有答對。可以調整算珠，再按「確認答案」。',correct?'success':'retry');showEffect(correct);playAnswerSound(correct);
+  if(practiceSet&&practiceSet.completed){$('completionSummary').textContent='你完成了 '+practiceSet.problems.length+' 題練習！';$('completionDialog').showModal();}
+ });
+ $('problemForm').addEventListener('submit',e=>{e.preventDefault();try{
+  manualDrafts[manualIndex]=readManual();const problems=[];
+  for(let i=0;i<manualDrafts.length;i++){try{problems.push(validateQuestion(manualDrafts[i]));}catch(error){loadManual(i);throw Error('第 '+(i+1)+' 題：'+error.message);}}
+  startSet(problems,'manual');autoSettings=null;dirty=false;$('formError').textContent='';if($('problemDialog').open)$('problemDialog').close();render();feedback('題目準備好了！共 '+problems.length+' 題，撥好後再確認答案。');
+ }catch(error){dirty=true;$('formError').textContent=error.message;render();feedback('請先修正題目設定。');}});
  for(const id of ['first','second','add','subtract','manualCount','term3','term4','term5','op3','op4','op5'])$(id).addEventListener('input',()=>{dirty=true;updateTerms();render();feedback('設定已修改，按「開始練習」開始新題。');});
- $('free').addEventListener('click',()=>{E.free(s);autoSettings=null;dirty=false;$('formError').textContent='';if($('problemDialog').open)$('problemDialog').close();render();feedback('已回到自由練習，保留現在的算珠。');});
+ $('free').addEventListener('click',()=>{E.free(s);autoSettings=null;practiceSet=null;dirty=false;$('formError').textContent='';if($('problemDialog').open)$('problemDialog').close();render();feedback('已回到自由練習，保留現在的算珠。');});
  function source(computer){$('computerForm').hidden=!computer;$('problemForm').hidden=computer;$('computerSource').setAttribute('aria-pressed',String(computer));$('manualSource').setAttribute('aria-pressed',String(!computer));}
  $('manualSource').addEventListener('click',()=>source(false));
  $('computerSource').addEventListener('click',()=>source(true));
- function nextAuto(){E.randomSequence(s,autoSettings.limit,autoSettings.operation,autoSettings.count);dirty=false;render();feedback('電腦已出題，撥好算珠後按「確認答案」。');}
- $('computerForm').addEventListener('submit',e=>{e.preventDefault();const settings={limit:Number($('autoLimit').value),operation:$('autoOperation').value,count:Number($('autoCount').value||2)};try{E.randomSequence(s,settings.limit,settings.operation,settings.count);autoSettings=settings;dirty=false;$('autoError').textContent='';$('formError').textContent='';if($('problemDialog').open)$('problemDialog').close();render();feedback('電腦已出題，撥好算珠後按「確認答案」。');}catch(error){$('autoError').textContent=error.message;}});
+ $('computerForm').addEventListener('submit',e=>{e.preventDefault();const settings={limit:Number($('autoLimit').value),operation:$('autoOperation').value,count:Number($('autoCount').value||2),total:Number($('autoTotal').value||5)};try{
+  if(![5,10,20].includes(settings.total))throw Error('請選擇 5、10 或 20 題。');const temp=E.create(),problems=[];for(let i=0;i<settings.total;i++){E.randomSequence(temp,settings.limit,settings.operation,settings.count);problems.push(temp.problem);}
+  startSet(problems,'auto');autoSettings=settings;dirty=false;$('autoError').textContent='';$('formError').textContent='';if($('problemDialog').open)$('problemDialog').close();render();feedback('電腦已準備 '+settings.total+' 題，撥好算珠後按「確認答案」。');
+ }catch(error){$('autoError').textContent=error.message;}});
  function signAt(index){return index===1?($('subtract').checked?'-':'+'):$('op'+(index+1)).value||'+';}
  const signButtons=[];
  function setSign(index,sign){if(index===1){$('subtract').checked=sign==='-';$('add').checked=sign==='+';}else $('op'+(index+1)).value=sign;dirty=true;updateTerms();render();feedback('設定已修改，按「開始練習」開始新題。');}
@@ -47,7 +72,7 @@
   const ids=['first','second','term3','term4','term5'],count=Number($('manualCount').value||2);let total=0,error='';
   for(let i=0;i<5;i++){if(i>=2)$('termRow'+(i+1)).hidden=i>=count;const raw=$(ids[i]).value;let invalid=false;if(i<count){if(!/^\d{1,5}$/.test(raw)){invalid=true;if(!error)error='請填入第 '+(i+1)+' 口的整數。';}else {total+=(i&&signAt(i)==='-'?-1:1)*Number(raw);if(total<0||total>99999){invalid=true;if(!error)error='第 '+(i+1)+' 口算完超出 0～99,999，請調整。';}}}$(ids[i]).setAttribute('aria-invalid',String(invalid));}
   $('manualPreview').textContent=ids.slice(0,count).map((id,i)=>(i?(signAt(i)==='+'?' ＋ ':' − '):'')+($(id).value||'□')).join('')+' ＝ ?';
-  $('formError').textContent=error;signButtons.forEach(({button,index,sign})=>button.setAttribute('aria-pressed',String(signAt(index)===sign)));
+  manualDrafts[manualIndex]=readManual();renderManualList();$('formError').textContent=error;signButtons.forEach(({button,index,sign})=>button.setAttribute('aria-pressed',String(signAt(index)===sign)));
  }
  updateTerms();
  // A focused, touch-friendly editor avoids the software keyboard covering settings.
@@ -60,7 +85,7 @@
  keypad.append(keySigns);
  const keyPreview=document.createElement('div');keyPreview.className='keypad-preview';keyPreview.setAttribute('aria-label','題目預覽');keyPreview.setAttribute('aria-live','polite');keypad.append(keyPreview);
  function showNumber(){
-  const count=Number($('manualCount').value||2);keyTitle.textContent='第 '+(activeNumber+1)+' 口 / 共 '+count+' 口';keyValue.textContent=$(numberIds[activeNumber]).value||'□';
+  const count=Number($('manualCount').value||2);keyTitle.textContent='第 '+(manualIndex+1)+' 題 · 第 '+(activeNumber+1)+' 口 / 共 '+count+' 口';keyValue.textContent=$(numberIds[activeNumber]).value||'□';
   const parts=[];numberIds.slice(0,count).forEach((id,index)=>{if(index){const sign=document.createElement('span');sign.textContent=signAt(index)==='+'?' ＋ ':' − ';parts.push(sign);}const term=document.createElement('span');term.className='preview-term'+(index===activeNumber?' is-editing':'');term.textContent=$(id).value||'□';if(index===activeNumber){term.setAttribute('aria-current','true');term.setAttribute('aria-label','正在修改第 '+(index+1)+' 口：'+term.textContent);}parts.push(term);});const ending=document.createElement('span');ending.textContent=' ＝ ?';parts.push(ending);keyPreview.replaceChildren(...parts);
   keySigns.hidden=activeNumber===0;keySignButtons.forEach(({button,sign})=>button.setAttribute('aria-pressed',String(activeNumber>0&&signAt(activeNumber)===sign)));
  }
@@ -77,8 +102,8 @@
  numberIds.forEach((id,index)=>{const field=$(id);field.readOnly=true;field.setAttribute('inputmode','none');field.setAttribute('aria-haspopup','dialog');field.addEventListener('click',()=>{activeNumber=index;replaceNumber=true;showNumber();keypad.showModal();});field.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();activeNumber=index;replaceNumber=true;showNumber();keypad.showModal();}});});
  keypad.addEventListener('keydown',event=>{const key=event.key;if(/^\d$/.test(key)||key==='Backspace'||key==='Delete'){event.preventDefault();numberKey(key==='Backspace'?'⌫':key==='Delete'?'清除':key);}else if(key==='Enter'&&event.target===keypad){event.preventDefault();numberKey('完成');}});
  let draft=null;
- $('openProblem').addEventListener('click',()=>{hideEffect();draft={first:$('first').value,second:$('second').value,subtract:$('subtract').checked,extra:['manualCount','term3','term4','term5','op3','op4','op5'].map(id=>[id,$(id).value]),dirty};$('problemDialog').showModal();});
- function cancelDraft(){if(draft){$('first').value=draft.first;$('second').value=draft.second;$('subtract').checked=draft.subtract;$('add').checked=!draft.subtract;draft.extra.forEach(([id,value])=>{$(id).value=value;});updateTerms();dirty=draft.dirty;$('formError').textContent='';render();}draft=null;}
+ $('openProblem').addEventListener('click',()=>{hideEffect();draft={manualDrafts:manualDrafts.map(q=>({terms:q.terms.slice(),ops:q.ops.slice()})),manualIndex,first:$('first').value,second:$('second').value,subtract:$('subtract').checked,extra:['manualCount','term3','term4','term5','op3','op4','op5'].map(id=>[id,$(id).value]),dirty};$('problemDialog').showModal();});
+ function cancelDraft(){if(draft){manualDrafts=draft.manualDrafts;manualIndex=draft.manualIndex;$('first').value=draft.first;$('second').value=draft.second;$('subtract').checked=draft.subtract;$('add').checked=!draft.subtract;draft.extra.forEach(([id,value])=>{$(id).value=value;});updateTerms();dirty=draft.dirty;$('formError').textContent='';render();}draft=null;}
  $('closeProblem').addEventListener('click',()=>{cancelDraft();$('problemDialog').close();});
  $('problemDialog').addEventListener('cancel',()=>cancelDraft());
  $('problemDialog').addEventListener('close',()=>{draft=null;$('openProblem').focus();});
