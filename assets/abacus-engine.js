@@ -20,5 +20,26 @@
   if(s.problem&&s.problem.a===a&&s.problem.b===b&&s.problem.op===op){total=2+(total-1)%(limit-1);if(op==='+'){a=Math.min(a,total-1);b=total-a;}else{a=total;b=Math.min(b,a-1);}}
   setProblem(s,a,op,b);
  }
- const api={MAX,create,value,move,clear,setProblem,check,free,randomProblem};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.AbacusPractice=api;
+ function setSequence(s,numbers,ops){
+  if(!Array.isArray(numbers)||numbers.length<2||numbers.length>5||!Array.isArray(ops)||ops.length!==numbers.length-1)throw Error('請選擇 2～5 口，並填入每個數字及加減符號。');
+  const terms=numbers.map(parse);let answer=terms[0];
+  ops.forEach((op,i)=>{if(op!=='+'&&op!=='-')throw Error('請選擇加法或減法。');answer+=op==='+'?terms[i+1]:-terms[i+1];if(answer<0||answer>MAX)throw Error('第 '+(i+2)+' 口算完須介於 0～99,999，請調整題目。');});
+  s.problem={a:terms[0],b:terms[1],op:ops[0],terms,ops:ops.slice(),answer};clear(s);
+ }
+ function randomSequence(s,limit=100,operation='mixed',count=2,random=Math.random){
+  if(!Number.isInteger(count)||count<2||count>5)throw Error('請選擇 2～5 口。');
+  if(![10,20,100,1000,99999].includes(limit)||!['+','-','mixed'].includes(operation))throw Error('請選擇有效的出題範圍與運算。');
+  if(count===2){randomProblem(s,limit,operation,random);return;}
+  const previous=s.problem,signature=p=>JSON.stringify([p.terms||[p.a,p.b],p.ops||[p.op]]),pick=(lo,hi)=>lo+Math.floor(Math.max(0,Math.min(.999999999,random()))*(hi-lo+1));
+  for(let attempt=0;attempt<8;attempt++){
+   const terms=[operation==='-'?pick(count,limit):operation==='+'?pick(1,limit-count+1):pick(1,limit)],ops=[];let running=terms[0];
+   for(let i=1;i<count;i++){const remaining=count-i-1;let op=operation;if(op==='mixed')op=running===1?'+':running===limit?'-':pick(0,1)?'+':'-';const n=op==='+'?pick(1,limit-running-(operation==='+'?remaining:0)):pick(1,running-1-(operation==='-'?remaining:0));terms.push(n);ops.push(op);running+=op==='+'?n:-n;}
+   const candidate={terms,ops};if(!previous||signature(candidate)!==signature(previous)){setSequence(s,terms,ops);return;}
+  }
+  // Deterministic bounded alternative even when an injected RNG always returns one value.
+  const terms=Array(count).fill(1),ops=Array(count-1).fill(operation==='-'?'-':'+');terms[0]=operation==='-'?count:1;
+  if(previous&&signature({terms,ops})===signature(previous))terms[0]++;
+  setSequence(s,terms,ops);
+ }
+ const api={MAX,create,value,move,clear,setProblem,setSequence,check,free,randomProblem,randomSequence};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.AbacusPractice=api;
 })(typeof window==='undefined'?globalThis:window);
