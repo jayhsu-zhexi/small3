@@ -1,6 +1,9 @@
 (()=>{
  'use strict';
  const E=window.AbacusPractice,s=E.create(),$=id=>document.getElementById(id),names=['萬位','千位','百位','十位','個位'],columns=[];let dirty=false,autoSettings=null,practiceSet=null,manualDrafts=[null],manualIndex=0;
+ const manualStorageKey='small3.abacus.manual.v1';let storageReady=false,storageBlocked=false;
+ function saveManualDrafts(){if(!storageReady||storageBlocked)return;try{window.localStorage.setItem(manualStorageKey,JSON.stringify({version:1,questions:manualDrafts,index:manualIndex}));$('manualSaveStatus').textContent='已自動儲存在這台裝置';}catch(_){$('manualSaveStatus').textContent='瀏覽器無法儲存；關閉頁面後題目可能遺失。';}}
+ function restoreManualDrafts(){try{const raw=window.localStorage.getItem(manualStorageKey);if(!raw){$('manualSaveStatus').textContent='編輯後會自動儲存在這台裝置';return false;}if(raw.length>20000)throw Error('invalid');const saved=JSON.parse(raw);if(saved.version!==1||!Array.isArray(saved.questions)||saved.questions.length<1||saved.questions.length>20||!Number.isInteger(saved.index)||saved.index<0||saved.index>=saved.questions.length)throw Error('invalid');for(const q of saved.questions){if(!q||!Array.isArray(q.terms)||q.terms.length<2||q.terms.length>5||!q.terms.every(n=>typeof n==='string'&&/^\d{0,5}$/.test(n))||!Array.isArray(q.ops)||q.ops.length!==q.terms.length-1||!q.ops.every(op=>op==='+'||op==='-'))throw Error('invalid');}manualDrafts=saved.questions;loadManual(saved.index);$('manualSaveStatus').textContent='已載入這台裝置儲存的 '+manualDrafts.length+' 題';return true;}catch(_){storageBlocked=true;$('manualSaveStatus').textContent='無法讀取本機題目；這次不會覆寫原有資料。';return false;}}
  let soundEnabled=true,audioContext=null,soundToken=0;const voices=new Set();
  const errorAudio=typeof window.Audio==='function'?new window.Audio('/assets/abacus-error-kenney-v1.wav'):null;
  if(errorAudio){errorAudio.preload='auto';errorAudio.volume=.9;}
@@ -74,9 +77,9 @@
   const ids=['first','second','term3','term4','term5'],count=Number($('manualCount').value||2);let total=0,error='';
   for(let i=0;i<5;i++){if(i>=2)$('termRow'+(i+1)).hidden=i>=count;const raw=$(ids[i]).value;let invalid=false;if(i<count){if(!/^\d{1,5}$/.test(raw)){invalid=true;if(!error)error='請填入第 '+(i+1)+' 口的整數。';}else {total+=(i&&signAt(i)==='-'?-1:1)*Number(raw);if(total<0||total>99999){invalid=true;if(!error)error='第 '+(i+1)+' 口算完超出 0～99,999，請調整。';}}}$(ids[i]).setAttribute('aria-invalid',String(showErrors&&invalid));}
   $('manualPreview').textContent=ids.slice(0,count).map((id,i)=>(i?(signAt(i)==='+'?' ＋ ':' − '):'')+($(id).value||'□')).join('')+' ＝ ?';
-  manualDrafts[manualIndex]=readManual();renderManualList();$('formError').textContent=showErrors?error:'';signButtons.forEach(({button,index,sign})=>button.setAttribute('aria-pressed',String(signAt(index)===sign)));
+  manualDrafts[manualIndex]=readManual();renderManualList();saveManualDrafts();$('formError').textContent=showErrors?error:'';signButtons.forEach(({button,index,sign})=>button.setAttribute('aria-pressed',String(signAt(index)===sign)));
  }
- updateTerms();
+ if(!restoreManualDrafts())updateTerms();storageReady=true;
  // A focused, touch-friendly editor avoids the software keyboard covering settings.
  const numberIds=['first','second','term3','term4','term5'];
  const keypad=document.createElement('dialog'),keyTitle=document.createElement('h2'),keyValue=document.createElement('output'),keyGrid=document.createElement('div');
