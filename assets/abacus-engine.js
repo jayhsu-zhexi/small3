@@ -22,8 +22,9 @@
  }
  function setSequence(s,numbers,ops){
   if(!Array.isArray(numbers)||numbers.length<2||numbers.length>5||!Array.isArray(ops)||ops.length!==numbers.length-1)throw Error('請選擇 2～5 口，並填入每個數字及加減符號。');
-  const terms=numbers.map(parse);let answer=terms[0];
+  const terms=numbers.map((input,index)=>{const n=parse(input);if(n===0)throw Error('第 '+(index+1)+' 口必須大於 0，請輸入 1～99,999 的整數。');return n;});let answer=terms[0];
   ops.forEach((op,i)=>{if(op!=='+'&&op!=='-')throw Error('請選擇加法或減法。');answer+=op==='+'?terms[i+1]:-terms[i+1];if(answer<0||answer>MAX)throw Error('第 '+(i+2)+' 口算完須介於 0～99,999，請調整題目。');});
+  if(answer<=0)throw Error('答案必須大於 0，請調整數字或加減符號後再開始練習。');
   s.problem={a:terms[0],b:terms[1],op:ops[0],terms,ops:ops.slice(),answer};clear(s);
  }
  function randomSequence(s,limit=100,operation='mixed',count=2,random=Math.random){
