@@ -248,3 +248,25 @@ stories.saved['learning-planet-stories-v1-shop']='{bad';assert.equal(stories.run
 stories.run("story.values={unexpected:2};saveStory()");assert.equal(stories.run("readStory('shop')"),null);
 const cannotSave=boot();cannotSave.run("openStory('pets')");cannotSave.fail();cannotSave.run('storyExit.onclick()');assert.equal(cannotSave.run('storyActive'),true);assert.ok(cannotSave.run('storyStatus.textContent').includes('無法存檔'));
 console.log('PASS: independent story saves, hidden memory restore, malformed saves and storage failure handling.');
+
+// Distance comparison is not rounding: exact midpoints must remain equally near.
+const proximity=boot();
+for(let n=100;n<1000;n++){
+ const q=proximity.run(`nearestHundred(${n})`),lo=Math.floor(n/100)*100,hi=lo+100;
+ const expected=n-lo===hi-n?'一樣近':String(n-lo<hi-n?lo:hi);
+ assert.equal(q[3],expected);assert.equal(new Set(q[2]).size,3);assert.ok(q[2].includes(expected));
+ assert.ok(q[4].includes(`${n} − ${lo} = ${n-lo}`));assert.ok(q[4].includes(`${hi} − ${n} = ${hi-n}`));
+}
+for(const stage of [1,2,3]){
+ proximity.run(`subject='math';level=${stage};begin()`);
+ for(let i=0;i<8;i++){
+  if(i%4===0)assert.equal(proximity.run('current.prompt'),'比較靠近哪個整百數？');
+  proximity.answer();proximity.run('advance()');
+ }
+ assert.equal(proximity.run('stars'),8);
+}
+proximity.run("subject='math';level=1;begin();saveExitButton.onclick()");
+const resumedProximity=boot(proximity.saved);resumedProximity.run("restoreSession('math')");
+assert.equal(resumedProximity.run('current.prompt'),'比較靠近哪個整百數？');
+resumedProximity.answer();assert.ok(resumedProximity.run("$('hint').textContent").includes('所以'));
+console.log('PASS: 900 nearest-hundred comparisons including midpoints, all three stages, scoring, saved practice and distance feedback.');

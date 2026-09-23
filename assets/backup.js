@@ -12,7 +12,7 @@
   const object = x => !!x && typeof x === 'object' && !Array.isArray(x);
   const integer = (x, min, max) => Number.isInteger(x) && x >= min && x <= max;
   const strings = (x, max) => Array.isArray(x) && x.length <= max && x.every(v => typeof v === 'string');
-  const question = q => object(q) && ['prompt', 'display', 'answer', 'hint'].every(k => typeof q[k] === 'string') && strings(q.choices, 4) && q.choices.length === 4 && q.choices.filter(c => c === q.answer).length === 1;
+  const question = q => object(q) && ['prompt', 'display', 'answer', 'hint'].every(k => typeof q[k] === 'string') && strings(q.choices, 4) && [3, 4].includes(q.choices.length) && q.choices.filter(c => c === q.answer).length === 1;
   function session(s, subject) {
     return object(s) && s.version === 1 && Object.hasOwn(subjects, s.subject) && (!subject || s.subject === subject) && integer(s.level, 1, subjects[s.subject]) && integer(s.round, 0, 7) && integer(s.stars, 0, 8) && question(s.current) && strings(s.attempted, 4) && s.attempted.every(c => s.current.choices.includes(c) && c !== s.current.answer) && ['wrongQuestions', 'reviewDeck'].every(k => Array.isArray(s[k]) && s[k].length <= 8 && s[k].every(question)) && ['englishDeck', 'chineseDeck'].every(k => Array.isArray(s[k]) && s[k].length <= 200) && (!s.reviewMode || s.round < s.reviewDeck.length) && (s.reviewMode || !['english', 'chinese'].includes(s.subject) || s[s.subject === 'english' ? 'englishDeck' : 'chineseDeck'].length >= 8);
   }

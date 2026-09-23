@@ -99,3 +99,11 @@ console.log('PASS: quantity, matching, memory and reward controls retain DOM ide
   assert.equal(uiStorage.values['learning-planet-levels'], exported.entries['learning-planet-levels']);
   console.log('PASS: backup UI downloads on click, previews before changes, cancels safely, rejects invalid files, and reloads only after confirmed import.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
+const nearSave = boot();nearSave.run("subject='math';begin();saveExitButton.onclick()");
+const nearBackup=backup.parse(JSON.stringify(backup.capture(storage(nearSave.saved))));
+const nearDestination=storage();backup.restore(nearDestination,nearBackup);
+const nearReload=boot(nearDestination.values);nearReload.run("restoreSession('math')");
+assert.equal(nearReload.run('current.choices.length'),3);
+assert.equal(nearReload.run('current.prompt'),'比較靠近哪個整百數？');
+nearReload.answer();assert.equal(nearReload.run('stars'),1);
+console.log('PASS: three-choice distance practice survives export/import and remains playable.');
