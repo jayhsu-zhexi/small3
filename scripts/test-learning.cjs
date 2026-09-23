@@ -286,3 +286,16 @@ topicResume.run('reviewButton.onclick()');assert.equal(topicResume.run('reviewMo
 topicResume.run("subject='chinese';renderLevels()");assert.equal(topicResume.run("mathTopics.classList.contains('hidden')"),true);
 topicResume.run("subject='math';mathTopicButtons[0].onclick()");assert.equal(topicResume.run("$('levels').classList.contains('hidden')"),false);
 console.log('PASS: math subtopic selection, eight dedicated questions, saved mode, unchanged unlocks, targeted review and other-subject isolation.');
+const orderedChoices=boot();
+for(const n of [134,150,178,950]){
+ orderedChoices.run(`subject='math';mathPractice='nearest';begin();const fixed${n}=nearestHundred(${n});current={prompt:fixed${n}[0],display:fixed${n}[1],choices:[...fixed${n}[2]].reverse(),answer:fixed${n}[3],hint:fixed${n}[4]};render(current)`);
+ const lo=Math.floor(n/100)*100;
+ assert.equal(orderedChoices.run("$('answers').children.map(b=>b.textContent).join('|')"),`${lo}|一樣大|${lo+100}`);
+ assert.equal(orderedChoices.run("$('answers').classList.contains('proximity-answers')"),true);
+ orderedChoices.answer();assert.equal(orderedChoices.run('stars'),1);
+ orderedChoices.run('saveExitButton.onclick()');
+ const oldOrder=boot(orderedChoices.saved);oldOrder.run("restoreSession('math')");
+ assert.equal(oldOrder.run("$('answers').children[1].dataset.choice"),'一樣近');
+}
+orderedChoices.run("subject='chinese';begin()");assert.equal(orderedChoices.run("$('answers').classList.contains('proximity-answers')"),false);
+console.log('PASS: fixed lower/equal/upper row, midpoint label, restored choices, correct scoring and isolated layout.');
