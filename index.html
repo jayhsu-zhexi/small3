@@ -119,6 +119,7 @@
       ['找出不同的一個','其他三個字母相同。',['bdpq','bdpq','bqpq','bdpq'],'bqpq','注意第二個字母。'],
       ['找出完全一樣的色彩順序','目標：紅－藍－黃',['紅－黃－藍','藍－紅－黃','紅－藍－黃','黃－藍－紅'],'紅－藍－黃','在心裡念一次：紅、藍、黃。']
     ];
+    let mathPractice='mixed';
     let subject='math',level=1,round=0,stars=0,streak=0,current=null,locked=false,cooldown=false,attempted=new Set;
     let unlocks={math:1,chinese:1,focus:1};try{unlocks={...unlocks,...JSON.parse(localStorage.getItem('learning-planet-levels')||'{}')}}catch(e){}
     const $=id=>document.getElementById(id),shuffle=a=>[...a].sort(()=>Math.random()-.5);
@@ -263,6 +264,9 @@
     memoryButton.onclick=()=>{previewing=false;$('display').textContent='剛才背包裡的圖案順序是？';memoryButton.classList.add('hidden');$('answers').classList.remove('hidden');$('hintBtn').classList.remove('hidden');$('message').textContent='回想剛才的順序，再選答案。';buttonsState()};
     begin=function(){clearTimeout(feedbackTimer);clearTimeout(cooldownTimer);round=0;stars=0;streak=0;paused=false;adventureActive=true;wrongQuestions=[];reviewMode=false;reviewDeck=[];sessionId=newSessionId();difficultyTier=nextDifficulty(subject);seenQuestions=[];dueReviews=learning[subject].mistakes.filter(m=>m.due<=Date.now()).sort((a,b)=>a.due-b.due).slice(0,2);reviewButton.classList.add('hidden');if(subject==='english')prepareEnglish();if(subject==='chinese')prepareChinese();show('game');render()};
     function completeStage(){
+      if(subject==='math'&&mathPractice==='nearest'){
+        adventureActive=false;$('finishScore').textContent=stars;$('finishMode').textContent='比較靠近哪個整百數 · 練習完成';$('finishTitle').textContent='8 題練習完成！';$('finishText').textContent='獲得 '+stars+' 顆星。比較兩邊的差，差越小就越靠近；差一樣大，就一樣近。';$('next').classList.add('hidden');reviewButton.classList.toggle('hidden',wrongQuestions.length===0);reviewButton.textContent='練習這次的 '+wrongQuestions.length+' 道錯題';clearSession();show('finish');return;
+      }
       recordStage();
       adventureActive=false;const passed=stars>=5,max=stageCount();
       $('finishScore').textContent=stars;$('finishMode').textContent=labels[subject]+'第 '+level+' 關完成';$('finishTitle').textContent=passed?(level<max?'太棒了，下一站解鎖！':'冒險完成！'):'這次練習完成了';
@@ -294,7 +298,7 @@
     const saveExitButton=document.createElement('button');saveExitButton.id='saveExit';saveExitButton.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 3h12l4 4v14H3V3h2zM7 3v6h10V3M7 21v-8h10v8"/></svg><span>儲存並退出</span>';missionActions.appendChild(saveExitButton);
     function saveSession(){
       if(!adventureActive||!current)return;
-      try{localStorage.setItem(SESSION_KEY+'-'+subject,JSON.stringify({version:1,subject,level,round,stars,streak,current,attempted:[...attempted],locked,previewing,pendingAdvance,cooldownUntil,wrongQuestions,reviewMode,reviewDeck,englishDeck,chineseDeck,sessionId,difficultyTier,seenQuestions,dueReviews,sound:$('sound').checked,motion:$('motion').checked}));saveNote.textContent='各科分開存檔；進度和學習紀錄只存在這個瀏覽器，換裝置不會自動同步。';return true}catch(e){saveNote.textContent='此瀏覽器無法存檔，關閉頁面會失去本關進度。';$('message').textContent+='（目前無法存檔，請保持頁面開啟。）';return false}
+      try{localStorage.setItem(SESSION_KEY+'-'+subject,JSON.stringify({version:1,subject,mathPractice,level,round,stars,streak,current,attempted:[...attempted],locked,previewing,pendingAdvance,cooldownUntil,wrongQuestions,reviewMode,reviewDeck,englishDeck,chineseDeck,sessionId,difficultyTier,seenQuestions,dueReviews,sound:$('sound').checked,motion:$('motion').checked}));saveNote.textContent='各科分開存檔；進度和學習紀錄只存在這個瀏覽器，換裝置不會自動同步。';return true}catch(e){saveNote.textContent='此瀏覽器無法存檔，關閉頁面會失去本關進度。';$('message').textContent+='（目前無法存檔，請保持頁面開啟。）';return false}
     }
     function clearSession(){try{localStorage.setItem(SESSION_KEY+'-'+subject,'null')}catch(e){}savedButton.classList.add('hidden')}
     function readSession(kind=subject){
@@ -306,11 +310,11 @@
         return s;
       }catch(e){return null}
     }
-    function showSaved(){savedButton.classList.add('hidden');savedList.innerHTML='';for(const kind of Object.keys(labels)){const s=readSession(kind);if(!s)continue;const b=document.createElement('button');b.className='secondary';b.textContent='繼續'+labels[kind]+(s.reviewMode?'復習':'第 '+s.level+' 關')+' · 第 '+(s.round+1)+' 題';b.onclick=()=>restoreSession(kind);savedList.appendChild(b)}saveNote.textContent='各科分開存檔；開始同一科的新關卡會取代該科中途進度。紀錄只存在這個瀏覽器，換裝置不會同步。';renderParentRecords()}
+    function showSaved(){savedButton.classList.add('hidden');savedList.innerHTML='';for(const kind of Object.keys(labels)){const s=readSession(kind);if(!s)continue;const b=document.createElement('button');b.className='secondary';b.textContent='繼續'+labels[kind]+(s.subject==='math'&&s.mathPractice==='nearest'?'整百數練習':s.reviewMode?'復習':'第 '+s.level+' 關')+' · 第 '+(s.round+1)+' 題';b.onclick=()=>restoreSession(kind);savedList.appendChild(b)}saveNote.textContent='各科分開存檔；開始同一科的新關卡會取代該科中途進度。紀錄只存在這個瀏覽器，換裝置不會同步。';renderParentRecords()}
     function restoreSession(kind=subject){
       const s=readSession(kind);if(!s){showSaved();return}
       clearTimeout(cooldownTimer);clearTimeout(feedbackTimer);
-      subject=s.subject;level=s.level;round=s.round;stars=s.stars;streak=s.streak||0;current=s.current;attempted=new Set(s.attempted);locked=!!s.locked;previewing=!!s.previewing;pendingAdvance=!!s.pendingAdvance;cooldownUntil=Number(s.cooldownUntil)||0;cooldown=cooldownUntil>Date.now();wrongQuestions=s.wrongQuestions;reviewMode=!!s.reviewMode;reviewDeck=s.reviewDeck;englishDeck=s.englishDeck;chineseDeck=s.chineseDeck;paused=false;adventureActive=true;
+      subject=s.subject;mathPractice=s.mathPractice==='nearest'?'nearest':'mixed';level=s.level;round=s.round;stars=s.stars;streak=s.streak||0;current=s.current;attempted=new Set(s.attempted);locked=!!s.locked;previewing=!!s.previewing;pendingAdvance=!!s.pendingAdvance;cooldownUntil=Number(s.cooldownUntil)||0;cooldown=cooldownUntil>Date.now();wrongQuestions=s.wrongQuestions;reviewMode=!!s.reviewMode;reviewDeck=s.reviewDeck;englishDeck=s.englishDeck;chineseDeck=s.chineseDeck;paused=false;adventureActive=true;
       sessionId=typeof s.sessionId==='string'?s.sessionId:newSessionId();difficultyTier=[-1,0,1].includes(s.difficultyTier)?s.difficultyTier:0;seenQuestions=Array.isArray(s.seenQuestions)?s.seenQuestions.filter(x=>typeof x==='string'):[];dueReviews=Array.isArray(s.dueReviews)?s.dueReviews.filter(validMistake):[];
       document.querySelectorAll('.subject').forEach(b=>b.classList.toggle('active',b.dataset.kind===subject));
       $('sound').checked=!!s.sound;$('motion').checked=s.motion!==false;$('soundBtn').textContent=s.sound?'🔊':'🔇';document.body.classList.toggle('no-motion',s.motion===false);
@@ -422,7 +426,7 @@
     }
     function chineseCandidates(){const bank=level===1?chinese:level===3?chineseAdvanced:[...chinese,...chineseAdvanced];return [...chineseDeck,...bank].map(d=>({prompt:d[0],display:d[1],choices:mix(d[2]),answer:d[3],hint:d[4]}))}
     function generatedCandidates(){
-      if(subject==='math'&&round%4===0)return Array.from({length:48},()=>{const d=nearestHundred();return {prompt:d[0],display:d[1],choices:d[2],answer:d[3],hint:d[4]}});
+      if(subject==='math'&&(mathPractice==='nearest'||round%4===0))return Array.from({length:48},()=>{const d=nearestHundred();return {prompt:d[0],display:d[1],choices:d[2],answer:d[3],hint:d[4]}});
       if(subject==='english')return englishCandidates();if(subject==='chinese')return chineseCandidates();
       const candidates=Array.from({length:48},()=>subject==='focus'?focusChallenge():originalChallenge());
       // Navigation has only four arrows: enumerate them so a random collision cannot force a repeat.
@@ -432,13 +436,13 @@
     function uniqueFallback(){
       // Bounded random sampling must never fall through to an already played question.
       for(let n=0;;n++){
-        let q;if(subject==='math'){const a=12+n,b=3; q={prompt:'算算看',display:a+' + '+b+' = ?',answer:String(a+b),choices:mix([a+b,a+b+1,a+b-1,a+b+2].map(String)),hint:'先加到下一個整十，再把剩下的加上去。'}}
+        let q;if(subject==='math'&&mathPractice==='nearest'){const d=nearestHundred(101+n%899);q={prompt:d[0],display:d[1],choices:d[2],answer:d[3],hint:d[4]}}else if(subject==='math'){const a=12+n,b=3; q={prompt:'算算看',display:a+' + '+b+' = ?',answer:String(a+b),choices:mix([a+b,a+b+1,a+b-1,a+b+2].map(String)),hint:'先加到下一個整十，再把剩下的加上去。'}}
         else{const symbols=['★','●','▲','◆','○','■','△','□'],target=Array.from({length:3},(_,i)=>symbols[Math.floor(n/8**i)%8]).join('');q={prompt:'符號偵探',display:'目標：'+target,answer:target,choices:mix([target,...[1,2,3].map(offset=>symbols[(n%8+offset)%8]+target.slice(1))]),hint:'從左到右，一個一個比對。'}}
         if(!wasSeen(q,seenQuestions))return q;
       }
     }
     challenge=function(){let q;
-      if(round===2||round===5){const m=dueReviews.shift();if(m){const candidates=Array.from({length:24},()=>spacedQuestion(m));q=chooseFresh(candidates)}}
+      if(!(subject==='math'&&mathPractice==='nearest')&&(round===2||round===5)){const m=dueReviews.shift();if(m){const candidates=Array.from({length:24},()=>spacedQuestion(m));q=chooseFresh(candidates)}}
       if(!q)q=chooseFresh(generatedCandidates());
       if(!q)q=uniqueFallback();
       rememberQuestion(q);return q;
@@ -494,9 +498,9 @@
     function hideRestart(){pendingRestart=null;if(restartPanel.open)restartPanel.close()}
     restartPanel.oncancel=event=>{event.preventDefault();hideRestart()};
     restartPanel.onclose=()=>{pendingRestart=null};
-    function requestStart(){if(!readSession()){hideRestart();begin();return}pendingRestart={subject,level};restartText.textContent=labels[subject]+'已有未完成進度。重新開始第 '+level+' 關會取代原本的存檔。';if(!restartPanel.open)restartPanel.showModal()}
+    function requestStart(){if(!readSession()){hideRestart();begin();return}pendingRestart={subject,level,mathPractice};restartText.textContent=labels[subject]+'已有未完成進度。'+(subject==='math'&&mathPractice==='nearest'?'開始整百數練習':'重新開始第 '+level+' 關')+'會取代原本的存檔。';if(!restartPanel.open)restartPanel.showModal()}
     continueSaved.onclick=()=>{if(!pendingRestart)return;const kind=pendingRestart.subject;hideRestart();restoreSession(kind)};
-    confirmRestart.onclick=()=>{if(!pendingRestart)return;const target=pendingRestart;hideRestart();subject=target.subject;level=target.level;begin()};cancelRestart.onclick=hideRestart;
+    confirmRestart.onclick=()=>{if(!pendingRestart)return;const target=pendingRestart;hideRestart();subject=target.subject;level=target.level;mathPractice=target.mathPractice||'mixed';begin()};cancelRestart.onclick=hideRestart;
     const updateBeforeRestart=updateStart;updateStart=function(){hideRestart();updateBeforeRestart()};
     $('start').onclick=requestStart;$('again').onclick=requestStart;
     // More items within the existing topics; no new levels or reset of saved decks.
@@ -742,7 +746,18 @@
     function replayStory(){if(!storyActive||story.step!==4)return;story.variant=(story.variant+1)%4;story.step=0;resetStoryInputs();renderStory();saveStory()}
     storyExit.onclick=()=>{if(!storyActive||!saveStory())return;storyActive=false;show('menu');renderStoryMenu()};
     const showBeforeStories=show;show=function(id){showBeforeStories(id);if(id!=='story')storyActive=false;storyCard.classList.toggle('hidden',id!=='story');if(id==='menu')renderStoryMenu()};
-    renderLevels();showSaved();renderStoryMenu();
+    const mathTopics=document.createElement('section');mathTopics.id='mathTopics';mathTopics.setAttribute('aria-label','數學練習項目');
+    const mathTopicsTitle=document.createElement('h2');mathTopicsTitle.textContent='選擇數學練習';mathTopicsTitle.style.fontSize='1.1rem';mathTopics.appendChild(mathTopicsTitle);
+    const mathTopicButtons=[];
+    for(const [kind,label] of [['mixed','綜合練習'],['nearest','比較靠近哪個整百數']]){
+      const button=document.createElement('button');button.className='secondary';button.textContent=label;button.style.margin='4px';button.dataset.practice=kind;
+      button.onclick=()=>{mathPractice=kind;renderLevels();updateStart()};mathTopics.appendChild(button);mathTopicButtons.push(button);
+    }
+    $('adventureNote').before(mathTopics);
+    const levelsBeforeTopics=renderLevels;renderLevels=function(){levelsBeforeTopics();mathTopics.classList.toggle('hidden',subject!=='math');const dedicated=subject==='math'&&mathPractice==='nearest';$('levels').classList.toggle('hidden',dedicated);for(const button of mathTopicButtons){const selected=button.dataset.practice===mathPractice;button.setAttribute('aria-pressed',String(selected));button.style.borderColor=selected?'#635bdf':'';button.style.background=selected?'#eeebff':''}if(dedicated)$('adventureNote').textContent='每次 8 題，專心比較與兩個整百數的距離。可以直接練習，不用解鎖關卡；完成後可再練一次。'};
+    const startBeforeTopics=updateStart;updateStart=function(){startBeforeTopics();if(subject==='math'&&mathPractice==='nearest')$('start').textContent='開始整百數練習 · 8 題'};
+    const renderBeforeTopics=render;render=function(restored=null){renderBeforeTopics(restored);if(subject==='math'&&mathPractice==='nearest'&&!reviewMode)$('chip').textContent='數學 · 比較靠近哪個整百數'};
+    renderLevels();updateStart();showSaved();renderStoryMenu();
   </script>
   <script src="/assets/board-engine.js"></script>
   <script src="/assets/board-records.js"></script>

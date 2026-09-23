@@ -270,3 +270,19 @@ const resumedProximity=boot(proximity.saved);resumedProximity.run("restoreSessio
 assert.equal(resumedProximity.run('current.prompt'),'比較靠近哪個整百數？');
 resumedProximity.answer();assert.ok(resumedProximity.run("$('hint').textContent").includes('所以'));
 console.log('PASS: 900 nearest-hundred comparisons including midpoints, all three stages, scoring, saved practice and distance feedback.');
+const topicPractice=boot();
+topicPractice.run("subject='math';mathTopicButtons[1].onclick()");
+assert.equal(topicPractice.run('mathPractice'),'nearest');
+assert.equal(topicPractice.run("$('levels').classList.contains('hidden')"),true);
+assert.match(topicPractice.run("$('start').textContent"),/整百數練習/);
+topicPractice.run('begin()');topicPractice.answer(false);topicPractice.flush();topicPractice.answer();topicPractice.run('advance();saveExitButton.onclick()');
+const topicResume=boot(topicPractice.saved);topicResume.run("restoreSession('math')");
+assert.equal(topicResume.run('mathPractice'),'nearest');
+for(let i=1;i<8;i++){assert.equal(topicResume.run('current.prompt'),'比較靠近哪個整百數？');topicResume.answer();topicResume.run('advance()');}
+assert.equal(topicResume.run('stars'),7);assert.equal(topicResume.run('unlocks.math'),1);
+assert.equal(topicResume.run('learning.math.stages.length'),0);
+assert.equal(topicResume.run("$('next').classList.contains('hidden')"),true);
+topicResume.run('reviewButton.onclick()');assert.equal(topicResume.run('reviewMode'),true);assert.equal(topicResume.run('current.prompt'),'比較靠近哪個整百數？');
+topicResume.run("subject='chinese';renderLevels()");assert.equal(topicResume.run("mathTopics.classList.contains('hidden')"),true);
+topicResume.run("subject='math';mathTopicButtons[0].onclick()");assert.equal(topicResume.run("$('levels').classList.contains('hidden')"),false);
+console.log('PASS: math subtopic selection, eight dedicated questions, saved mode, unchanged unlocks, targeted review and other-subject isolation.');
