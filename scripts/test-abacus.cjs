@@ -88,3 +88,25 @@ console.log('PASS: local question drafts survive reload with selected question, 
  assert.equal(plays,0);assert.equal(player.volume,.9);assert.equal(player.src,'/assets/abacus-error-kenney-v1.wav');submit();click('check');assert.equal(plays,1);assert.equal(soundNotes.length,0);click('soundToggle');assert.equal(player.paused,true);rejectPlay(Error('cancelled'));await Promise.resolve();assert.equal(soundNotes.length,0);click('check');assert.equal(plays,1);click('soundToggle');click('check');rejectPlay(Error('decode failure'));await Promise.resolve();assert.deepEqual(soundNotes.map(n=>n.hz),[220,165]);click('clear');assert.equal(player.paused,true);
  console.log('PASS: packaged error audio plays only for wrong confirmation, respects mute, and safely falls back without stale playback.');
 })().catch(error=>{console.error(error);process.exitCode=1;});
+for(const mode of ['5','7','7+2']){
+ const state=E.create(mode),count=mode==='5'?5:mode==='7'?7:9,scale=mode==='7+2'?100:1;
+ assert.equal(state.digits.length,count);
+ for(let col=0;col<count;col++)for(let d=0;d<=9;d++){E.clear(state);if(d>=5)E.move(state,col,0);if(d%5)E.move(state,col,d%5);assert.equal(E.value(state),d*10**(count-1-col)/scale);}
+ state.digits.fill(9);assert.equal(E.value(state),state.max);
+ assert.throws(()=>E.setProblem(state,state.max,'+',scale===100?.01:1));
+}
+const decimal=E.create('7+2');
+for(const [terms,ops,expected] of [[[.1,.2],['+'],.3],[[1,.99],['-'],.01],[[9999999.98,.01],['+'],9999999.99],[[.1,.2,.3,.01],['+','-','+'],.01]]){
+ E.setSequence(decimal,terms,ops);assert.equal(decimal.problem.answer,expected);decimal.digits=String(Math.round(expected*100)).padStart(9,'0').split('').map(Number);assert.equal(E.check(decimal),true);
+}
+assert.throws(()=>E.setProblem(decimal,'1.001','+','1'));assert.throws(()=>E.setProblem(E.create('7'),'0.1','+','1'));
+const large=E.create('7');for(let i=0;i<100;i++){E.randomSequence(large,9999999,'mixed',5);assert(large.problem.answer>0&&large.problem.answer<=9999999);}
+setImmediate(()=>{
+node('abacusStyle').value='7+2';node('abacusStyle').events.change();assert.equal(node('field').children.length,9);assert.equal(node('value').textContent,'0.00');
+bead(7,1);bead(8,2);assert.equal(node('value').textContent,'0.12');
+const decimalKeys=node('problemDialog').children.find(c=>c.className==='number-keypad');decimalKeys.showModal=function(){this.open=true;};click('first');const decimalGrid=decimalKeys.children.find(c=>c.className==='number-key-grid');for(const key of ['0','.','1','2','3'])decimalGrid.children.find(b=>b.textContent===key).events.click();assert.equal(node('first').value,'0.12');
+node('abacusStyle').value='7';node('abacusStyle').events.change();assert.equal(node('field').children.length,7);assert.equal(node('value').textContent,'0');
+node('abacusStyle').value='5';node('abacusStyle').events.change();assert.equal(node('field').children.length,5);
+console.log('PASS: 5/7/9 rods, every place value, decimal precision/carry/borrow, max bounds, large questions, mode switching and decimal keypad.');
+
+});
