@@ -116,3 +116,20 @@ html.confirm-art-ready #check:active:not(:disabled){box-shadow:none}
 .ab-bead,html.art-ready .ab-bead{width:100%;max-width:48px;left:50%;transform:translateX(-50%)}
 .decimal-boundary:after{content:'•';position:absolute;right:-5px;top:26%;z-index:4;color:#fff7cf;font-size:20px;pointer-events:none;text-shadow:0 1px 2px #34200d}.ab-labels span{font-size:clamp(9px,2vw,14px)}
 @media(max-width:650px){.abacus-style{margin:0;font-size:12px;gap:4px}.abacus-style small{font-size:10px}.ab-labels span{font-size:9px}.board-head output{font-size:clamp(18px,5vw,26px)}}
+
+/* Rod pitch depends on the viewport once, never on the selected rod count. */
+#brass-abacus{width:100%;container-type:inline-size;display:flex;justify-content:safe center;overflow-x:auto;overflow-y:hidden;padding-bottom:3px}
+.ab-frame,html.art-ready .ab-frame{--rod-pitch:clamp(28px,calc((100cqw - 42px)/9),76px);width:calc(var(--columns,5)*var(--rod-pitch) + 42px);min-width:calc(var(--columns,5)*var(--rod-pitch) + 42px);flex:none;padding-left:12px;padding-right:12px}
+.ab-field{grid-template-columns:repeat(var(--columns,5),var(--rod-pitch))}
+.ab-labels{grid-template-columns:repeat(var(--columns,5),var(--rod-pitch))}
+.ab-bead,html.art-ready .ab-bead{width:calc(var(--rod-pitch) - 4px);max-width:48px}
+.ab-labels span{white-space:nowrap}
+@media(max-width:1366px) and (max-height:480px) and (orientation:landscape){.abacus-style{grid-column:1;grid-row:2;align-self:end;font-size:11px}.abacus-style small{display:none}.page-title{align-self:start}}
+
+.abacus-style{color:#fff2cd;gap:12px}.abacus-style>strong{color:#fff2cd;font-size:14px}.abacus-style small{color:#f0d9a7;text-shadow:0 1px 2px #071b13}
+.style-pictures{display:flex;gap:8px}.style-picture-button{display:flex;align-items:center;gap:6px;padding:3px 10px 3px 4px;border:2px solid #b39155;border-radius:10px;background:#fff8e9;color:#253e31;min-height:52px;box-shadow:0 3px 0 #17291d;font-size:14px;white-space:nowrap}.style-picture{display:block;width:60px;height:44px;background:#f4ead5 url('/assets/abacus-style-choices-v1.webp') no-repeat;background-size:300% 100%;border-radius:5px;flex:none}.style-picture-button[aria-pressed="true"]{border-color:#ffe099;background:#ffedbf;box-shadow:0 0 0 2px #6c4b20,0 3px 0 #17291d}.style-picture-button[aria-pressed="true"] strong:after{content:' ✓';color:#215c37}
+@media(max-width:650px){.abacus-style{gap:4px}.abacus-style>strong{display:none}.style-pictures{width:100%;gap:5px}.style-picture-button{flex:1;min-width:0;padding:3px;gap:3px;justify-content:center;font-size:12px;min-height:46px}.style-picture{width:44px;height:35px}.abacus-style small{font-size:10px}}
+@media(max-height:480px) and (orientation:landscape){.style-pictures{flex-direction:column;width:100%}.style-picture-button{font-size:11px;min-height:40px}.style-picture{width:40px;height:30px}.abacus-style>strong{display:none}}
+.ab-dot{width:7px;height:7px;left:calc(50% - 3.5px);background:#302010;border:1px solid #ffe8a6;box-shadow:0 0 0 1px #634724}
+.ab-dot.unit-marker{width:9px;height:9px;left:calc(50% - 4.5px);background:#fff1b8;border:2px solid #523711;box-shadow:0 0 0 1px #f2cf81}
+.decimal-boundary:after{font-size:23px;color:#fff8dc}
