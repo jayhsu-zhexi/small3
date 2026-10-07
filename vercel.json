@@ -5,9 +5,30 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
-    {"source":"/abacus","destination":"/abacus.html"},
-    {"source":"/abacus/","destination":"/abacus.html"},
-    {"source":"/abacus.html","destination":"/abacus.html"},
+    {
+      "source": "/vocabulary",
+      "destination": "/vocabulary.html"
+    },
+    {
+      "source": "/vocabulary/",
+      "destination": "/vocabulary.html"
+    },
+    {
+      "source": "/vocabulary.html",
+      "destination": "/vocabulary.html"
+    },
+    {
+      "source": "/abacus",
+      "destination": "/abacus.html"
+    },
+    {
+      "source": "/abacus/",
+      "destination": "/abacus.html"
+    },
+    {
+      "source": "/abacus.html",
+      "destination": "/abacus.html"
+    },
     {
       "source": "/pinball-night-market.html",
       "destination": "/pinball-night-market.html"
@@ -93,7 +114,7 @@
       "destination": "/board.html"
     },
     {
-      "source": "/((?!assets/|(?:board|detective|parcels|crossing|memory|pinball|vault|survival|kart)(?:/|$|\\.html$)).*)",
+      "source": "/((?!assets/|(?:vocabulary|abacus|board|detective|parcels|crossing|memory|pinball|vault|survival|kart)(?:/|$|\\.html$)).*)",
       "destination": "/index.html"
     }
   ]

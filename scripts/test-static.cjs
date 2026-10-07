@@ -17,6 +17,7 @@ const { createServer } = require('./serve.cjs');
     const html = await page.text(); assert.match(html, /id="backupTools"/);
     const script = await fetch(origin + '/assets/backup.js'); assert.match(script.headers.get('content-type'), /javascript/);
     assert.match(await script.text(), /learning-planet-backup/);
+    for(const route of ['/vocabulary','/vocabulary/','/vocabulary.html']){const response=await fetch(origin+route);assert.equal(response.status,200);assert.match(await response.text(),/單字探險樂園/);}
     for(const route of ['/board','/board/','/board.html']){
       const board=await fetch(origin+route);assert.equal(board.status,200);assert.match(await board.text(),/id="board"/);
     }
