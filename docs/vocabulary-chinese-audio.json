@@ -118,5 +118,125 @@
   {
     "id": "colors-white",
     "text": "白色"
+  },
+  {
+    "id": "body-eye",
+    "text": "眼睛"
+  },
+  {
+    "id": "body-ear",
+    "text": "耳朵"
+  },
+  {
+    "id": "body-nose",
+    "text": "鼻子"
+  },
+  {
+    "id": "body-mouth",
+    "text": "嘴巴"
+  },
+  {
+    "id": "body-hand",
+    "text": "手"
+  },
+  {
+    "id": "body-foot",
+    "text": "腳"
+  },
+  {
+    "id": "body-arm",
+    "text": "手臂"
+  },
+  {
+    "id": "body-leg",
+    "text": "腿"
+  },
+  {
+    "id": "body-hair",
+    "text": "頭髮"
+  },
+  {
+    "id": "body-teeth",
+    "text": "牙齒"
+  },
+  {
+    "id": "everyday-book",
+    "text": "書"
+  },
+  {
+    "id": "everyday-pencil",
+    "text": "鉛筆"
+  },
+  {
+    "id": "everyday-backpack",
+    "text": "書包"
+  },
+  {
+    "id": "everyday-cup",
+    "text": "杯子"
+  },
+  {
+    "id": "everyday-chair",
+    "text": "椅子"
+  },
+  {
+    "id": "everyday-table",
+    "text": "桌子"
+  },
+  {
+    "id": "everyday-bed",
+    "text": "床"
+  },
+  {
+    "id": "everyday-clock",
+    "text": "時鐘"
+  },
+  {
+    "id": "everyday-key",
+    "text": "鑰匙"
+  },
+  {
+    "id": "everyday-umbrella",
+    "text": "雨傘"
+  },
+  {
+    "id": "transport-car",
+    "text": "汽車"
+  },
+  {
+    "id": "transport-bus",
+    "text": "公車"
+  },
+  {
+    "id": "transport-train",
+    "text": "火車"
+  },
+  {
+    "id": "transport-airplane",
+    "text": "飛機"
+  },
+  {
+    "id": "transport-boat",
+    "text": "船"
+  },
+  {
+    "id": "transport-bicycle",
+    "text": "腳踏車"
+  },
+  {
+    "id": "transport-truck",
+    "text": "卡車"
+  },
+  {
+    "id": "transport-taxi",
+    "text": "計程車"
+  },
+  {
+    "id": "transport-helicopter",
+    "text": "直升機"
+  },
+  {
+    "id": "transport-motorcycle",
+    "text": "機車"
   }
 ]

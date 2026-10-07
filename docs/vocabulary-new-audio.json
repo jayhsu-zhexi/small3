@@ -1,0 +1,152 @@
+[
+  {
+    "id": "body-eye",
+    "text": "眼睛",
+    "word": "eye"
+  },
+  {
+    "id": "body-ear",
+    "text": "耳朵",
+    "word": "ear"
+  },
+  {
+    "id": "body-nose",
+    "text": "鼻子",
+    "word": "nose"
+  },
+  {
+    "id": "body-mouth",
+    "text": "嘴巴",
+    "word": "mouth"
+  },
+  {
+    "id": "body-hand",
+    "text": "手",
+    "word": "hand"
+  },
+  {
+    "id": "body-foot",
+    "text": "腳",
+    "word": "foot"
+  },
+  {
+    "id": "body-arm",
+    "text": "手臂",
+    "word": "arm"
+  },
+  {
+    "id": "body-leg",
+    "text": "腿",
+    "word": "leg"
+  },
+  {
+    "id": "body-hair",
+    "text": "頭髮",
+    "word": "hair"
+  },
+  {
+    "id": "body-teeth",
+    "text": "牙齒",
+    "word": "teeth"
+  },
+  {
+    "id": "everyday-book",
+    "text": "書",
+    "word": "book"
+  },
+  {
+    "id": "everyday-pencil",
+    "text": "鉛筆",
+    "word": "pencil"
+  },
+  {
+    "id": "everyday-backpack",
+    "text": "書包",
+    "word": "backpack"
+  },
+  {
+    "id": "everyday-cup",
+    "text": "杯子",
+    "word": "cup"
+  },
+  {
+    "id": "everyday-chair",
+    "text": "椅子",
+    "word": "chair"
+  },
+  {
+    "id": "everyday-table",
+    "text": "桌子",
+    "word": "table"
+  },
+  {
+    "id": "everyday-bed",
+    "text": "床",
+    "word": "bed"
+  },
+  {
+    "id": "everyday-clock",
+    "text": "時鐘",
+    "word": "clock"
+  },
+  {
+    "id": "everyday-key",
+    "text": "鑰匙",
+    "word": "key"
+  },
+  {
+    "id": "everyday-umbrella",
+    "text": "雨傘",
+    "word": "umbrella"
+  },
+  {
+    "id": "transport-car",
+    "text": "汽車",
+    "word": "car"
+  },
+  {
+    "id": "transport-bus",
+    "text": "公車",
+    "word": "bus"
+  },
+  {
+    "id": "transport-train",
+    "text": "火車",
+    "word": "train"
+  },
+  {
+    "id": "transport-airplane",
+    "text": "飛機",
+    "word": "airplane"
+  },
+  {
+    "id": "transport-boat",
+    "text": "船",
+    "word": "boat"
+  },
+  {
+    "id": "transport-bicycle",
+    "text": "腳踏車",
+    "word": "bicycle"
+  },
+  {
+    "id": "transport-truck",
+    "text": "卡車",
+    "word": "truck"
+  },
+  {
+    "id": "transport-taxi",
+    "text": "計程車",
+    "word": "taxi"
+  },
+  {
+    "id": "transport-helicopter",
+    "text": "直升機",
+    "word": "helicopter"
+  },
+  {
+    "id": "transport-motorcycle",
+    "text": "機車",
+    "word": "motorcycle"
+  }
+]
