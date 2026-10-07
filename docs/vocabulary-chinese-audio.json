@@ -1,0 +1,122 @@
+[
+  {
+    "id": "animals-cat",
+    "text": "貓"
+  },
+  {
+    "id": "animals-dog",
+    "text": "狗"
+  },
+  {
+    "id": "animals-rabbit",
+    "text": "兔子"
+  },
+  {
+    "id": "animals-bear",
+    "text": "熊"
+  },
+  {
+    "id": "animals-elephant",
+    "text": "大象"
+  },
+  {
+    "id": "animals-lion",
+    "text": "獅子"
+  },
+  {
+    "id": "animals-panda",
+    "text": "熊貓"
+  },
+  {
+    "id": "animals-duck",
+    "text": "鴨子"
+  },
+  {
+    "id": "animals-pig",
+    "text": "豬"
+  },
+  {
+    "id": "animals-monkey",
+    "text": "猴子"
+  },
+  {
+    "id": "fruit-apple",
+    "text": "蘋果"
+  },
+  {
+    "id": "fruit-banana",
+    "text": "香蕉"
+  },
+  {
+    "id": "fruit-orange",
+    "text": "柳橙"
+  },
+  {
+    "id": "fruit-grapes",
+    "text": "葡萄"
+  },
+  {
+    "id": "fruit-strawberry",
+    "text": "草莓"
+  },
+  {
+    "id": "fruit-watermelon",
+    "text": "西瓜"
+  },
+  {
+    "id": "fruit-pineapple",
+    "text": "鳳梨"
+  },
+  {
+    "id": "fruit-pear",
+    "text": "梨子"
+  },
+  {
+    "id": "fruit-peach",
+    "text": "桃子"
+  },
+  {
+    "id": "fruit-cherry",
+    "text": "櫻桃"
+  },
+  {
+    "id": "colors-red",
+    "text": "紅色"
+  },
+  {
+    "id": "colors-blue",
+    "text": "藍色"
+  },
+  {
+    "id": "colors-yellow",
+    "text": "黃色"
+  },
+  {
+    "id": "colors-green",
+    "text": "綠色"
+  },
+  {
+    "id": "colors-orange",
+    "text": "橘色"
+  },
+  {
+    "id": "colors-pink",
+    "text": "粉紅色"
+  },
+  {
+    "id": "colors-purple",
+    "text": "紫色"
+  },
+  {
+    "id": "colors-brown",
+    "text": "棕色"
+  },
+  {
+    "id": "colors-black",
+    "text": "黑色"
+  },
+  {
+    "id": "colors-white",
+    "text": "白色"
+  }
+]
