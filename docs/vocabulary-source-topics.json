@@ -1,0 +1,22 @@
+[
+{"id":"numbers","label":"數字","items":"one:一|two:二|three:三|four:四|five:五|six:六|seven:七|eight:八|nine:九|ten:十"},
+{"id":"people","label":"人物","items":"mother:媽媽|father:爸爸|sister:姊妹|brother:兄弟|friend:朋友|teacher:老師|student:學生|baby:嬰兒|boy:男孩|girl:女孩"},
+{"id":"body","label":"身體部位","items":"head:頭|eye:眼睛|nose:鼻子|mouth:嘴巴|ear:耳朵|hand:手|foot:腳|arm:手臂|leg:腿|finger:手指"},
+{"id":"clothing","label":"服飾","items":"shirt:襯衫|pants:褲子|dress:洋裝|shoes:鞋子|socks:襪子|hat:帽子|coat:外套|skirt:裙子|jacket:夾克|tie:領帶"},
+{"id":"animals","label":"動物","items":"cat:貓|dog:狗|bird:鳥|fish:魚|cow:牛|pig:豬|horse:馬|rabbit:兔子|duck:鴨子|chicken:雞"},
+{"id":"everyday","label":"家庭用品","items":"table:桌子|chair:椅子|bed:床|door:門|window:窗戶|lamp:燈|clock:時鐘|TV:電視|phone:電話|computer:電腦"},
+{"id":"food","label":"食物與飲品","items":"apple:蘋果|banana:香蕉|orange:柳橙|bread:麵包|milk:牛奶|water:水|rice:米飯|egg:蛋|cake:蛋糕|juice:果汁"},
+{"id":"places","label":"地方","items":"school:學校|home:家|park:公園|library:圖書館|hospital:醫院|store:商店|restaurant:餐廳|zoo:動物園|beach:海灘|city:城市"},
+{"id":"time","label":"時間與日期","items":"today:今天|yesterday:昨天|tomorrow:明天|morning:早晨|afternoon:下午|night:夜晚|week:一週|month:一個月|year:一年|birthday:生日"},
+{"id":"verbs","label":"動作","items":"eat:吃|drink:喝|sleep:睡覺|run:跑步|walk:走路|read:閱讀|write:寫字|play:玩耍|sing:唱歌|dance:跳舞"},
+{"id":"adjectives","label":"描述詞","items":"big:大的|small:小的|good:好的|bad:不好的|happy:開心的|sad:難過的|hot:熱的|cold:冷的|new:新的|old:舊的"},
+{"id":"positions","label":"位置","items":"in:在裡面|on:在上面|under:在下面|behind:在後面|next to:在旁邊|between:在中間|near:靠近|far:遠離|above:在上方|below:在下方"},
+{"id":"nature","label":"自然與天氣","items":"sun:太陽|moon:月亮|star:星星|rain:雨|snow:雪|wind:風|cloud:雲|tree:樹|flower:花|grass:草"},
+{"id":"school","label":"學校與學習","items":"book:書|pencil:鉛筆|pen:原子筆|paper:紙|desk:書桌|classroom:教室|homework:功課|test:考試|lesson:課程|backpack:書包"},
+{"id":"hobbies","label":"運動與嗜好","items":"football:足球|basketball:籃球|swimming:游泳|music:音樂|painting:繪畫|game:遊戲|toy:玩具|bike:腳踏車|ball:球|puzzle:拼圖"},
+{"id":"jobs","label":"職業","items":"doctor:醫師|nurse:護理師|police:警察|farmer:農夫|cook:廚師|driver:司機|pilot:飛行員|singer:歌手|artist:藝術家|worker:工人"},
+{"id":"measurement","label":"尺寸與數量","items":"long:長的|short:短的|tall:高的|wide:寬的|thick:厚的|thin:薄的|heavy:重的|light:輕的|many:很多|few:很少"},
+{"id":"festivals","label":"節慶","items":"Christmas:聖誕節|Halloween:萬聖節|birthday:生日|party:派對|gift:禮物|cake:蛋糕|card:卡片|celebration:慶祝|festival:節日|holiday:假日"},
+{"id":"emotions","label":"情感與想法","items":"love:愛|like:喜歡|hate:討厭|angry:生氣的|scared:害怕的|excited:興奮的|tired:疲倦的|surprised:驚訝的|worried:擔心的|proud:自豪的"},
+{"id":"family","label":"家庭","items":"family:一家人|parents:父母|grandma:奶奶或外婆|grandpa:爺爺或外公|uncle:叔叔或舅舅|aunt:阿姨或姑姑|cousin:堂表兄弟姊妹|pet:寵物|house:房子|room:房間"}
+]

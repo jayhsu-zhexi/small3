@@ -1,0 +1,877 @@
+[
+  {
+    "id": "numbers-one",
+    "word": "one",
+    "text": "一"
+  },
+  {
+    "id": "numbers-two",
+    "word": "two",
+    "text": "二"
+  },
+  {
+    "id": "numbers-three",
+    "word": "three",
+    "text": "三"
+  },
+  {
+    "id": "numbers-four",
+    "word": "four",
+    "text": "四"
+  },
+  {
+    "id": "numbers-five",
+    "word": "five",
+    "text": "五"
+  },
+  {
+    "id": "numbers-six",
+    "word": "six",
+    "text": "六"
+  },
+  {
+    "id": "numbers-seven",
+    "word": "seven",
+    "text": "七"
+  },
+  {
+    "id": "numbers-eight",
+    "word": "eight",
+    "text": "八"
+  },
+  {
+    "id": "numbers-nine",
+    "word": "nine",
+    "text": "九"
+  },
+  {
+    "id": "numbers-ten",
+    "word": "ten",
+    "text": "十"
+  },
+  {
+    "id": "people-mother",
+    "word": "mother",
+    "text": "媽媽"
+  },
+  {
+    "id": "people-father",
+    "word": "father",
+    "text": "爸爸"
+  },
+  {
+    "id": "people-sister",
+    "word": "sister",
+    "text": "姊妹"
+  },
+  {
+    "id": "people-brother",
+    "word": "brother",
+    "text": "兄弟"
+  },
+  {
+    "id": "people-friend",
+    "word": "friend",
+    "text": "朋友"
+  },
+  {
+    "id": "people-teacher",
+    "word": "teacher",
+    "text": "老師"
+  },
+  {
+    "id": "people-student",
+    "word": "student",
+    "text": "學生"
+  },
+  {
+    "id": "people-baby",
+    "word": "baby",
+    "text": "嬰兒"
+  },
+  {
+    "id": "people-boy",
+    "word": "boy",
+    "text": "男孩"
+  },
+  {
+    "id": "people-girl",
+    "word": "girl",
+    "text": "女孩"
+  },
+  {
+    "id": "body-head",
+    "word": "head",
+    "text": "頭"
+  },
+  {
+    "id": "body-finger",
+    "word": "finger",
+    "text": "手指"
+  },
+  {
+    "id": "clothing-shirt",
+    "word": "shirt",
+    "text": "襯衫"
+  },
+  {
+    "id": "clothing-pants",
+    "word": "pants",
+    "text": "褲子"
+  },
+  {
+    "id": "clothing-dress",
+    "word": "dress",
+    "text": "洋裝"
+  },
+  {
+    "id": "clothing-shoes",
+    "word": "shoes",
+    "text": "鞋子"
+  },
+  {
+    "id": "clothing-socks",
+    "word": "socks",
+    "text": "襪子"
+  },
+  {
+    "id": "clothing-hat",
+    "word": "hat",
+    "text": "帽子"
+  },
+  {
+    "id": "clothing-coat",
+    "word": "coat",
+    "text": "外套"
+  },
+  {
+    "id": "clothing-skirt",
+    "word": "skirt",
+    "text": "裙子"
+  },
+  {
+    "id": "clothing-jacket",
+    "word": "jacket",
+    "text": "夾克"
+  },
+  {
+    "id": "clothing-tie",
+    "word": "tie",
+    "text": "領帶"
+  },
+  {
+    "id": "animals-bird",
+    "word": "bird",
+    "text": "鳥"
+  },
+  {
+    "id": "animals-fish",
+    "word": "fish",
+    "text": "魚"
+  },
+  {
+    "id": "animals-cow",
+    "word": "cow",
+    "text": "牛"
+  },
+  {
+    "id": "animals-horse",
+    "word": "horse",
+    "text": "馬"
+  },
+  {
+    "id": "animals-chicken",
+    "word": "chicken",
+    "text": "雞"
+  },
+  {
+    "id": "everyday-door",
+    "word": "door",
+    "text": "門"
+  },
+  {
+    "id": "everyday-window",
+    "word": "window",
+    "text": "窗戶"
+  },
+  {
+    "id": "everyday-lamp",
+    "word": "lamp",
+    "text": "燈"
+  },
+  {
+    "id": "everyday-tv",
+    "word": "TV",
+    "text": "電視"
+  },
+  {
+    "id": "everyday-phone",
+    "word": "phone",
+    "text": "電話"
+  },
+  {
+    "id": "everyday-computer",
+    "word": "computer",
+    "text": "電腦"
+  },
+  {
+    "id": "food-bread",
+    "word": "bread",
+    "text": "麵包"
+  },
+  {
+    "id": "food-milk",
+    "word": "milk",
+    "text": "牛奶"
+  },
+  {
+    "id": "food-water",
+    "word": "water",
+    "text": "水"
+  },
+  {
+    "id": "food-rice",
+    "word": "rice",
+    "text": "米飯"
+  },
+  {
+    "id": "food-egg",
+    "word": "egg",
+    "text": "蛋"
+  },
+  {
+    "id": "food-cake",
+    "word": "cake",
+    "text": "蛋糕"
+  },
+  {
+    "id": "food-juice",
+    "word": "juice",
+    "text": "果汁"
+  },
+  {
+    "id": "places-school",
+    "word": "school",
+    "text": "學校"
+  },
+  {
+    "id": "places-home",
+    "word": "home",
+    "text": "家"
+  },
+  {
+    "id": "places-park",
+    "word": "park",
+    "text": "公園"
+  },
+  {
+    "id": "places-library",
+    "word": "library",
+    "text": "圖書館"
+  },
+  {
+    "id": "places-hospital",
+    "word": "hospital",
+    "text": "醫院"
+  },
+  {
+    "id": "places-store",
+    "word": "store",
+    "text": "商店"
+  },
+  {
+    "id": "places-restaurant",
+    "word": "restaurant",
+    "text": "餐廳"
+  },
+  {
+    "id": "places-zoo",
+    "word": "zoo",
+    "text": "動物園"
+  },
+  {
+    "id": "places-beach",
+    "word": "beach",
+    "text": "海灘"
+  },
+  {
+    "id": "places-city",
+    "word": "city",
+    "text": "城市"
+  },
+  {
+    "id": "time-today",
+    "word": "today",
+    "text": "今天"
+  },
+  {
+    "id": "time-yesterday",
+    "word": "yesterday",
+    "text": "昨天"
+  },
+  {
+    "id": "time-tomorrow",
+    "word": "tomorrow",
+    "text": "明天"
+  },
+  {
+    "id": "time-morning",
+    "word": "morning",
+    "text": "早晨"
+  },
+  {
+    "id": "time-afternoon",
+    "word": "afternoon",
+    "text": "下午"
+  },
+  {
+    "id": "time-night",
+    "word": "night",
+    "text": "夜晚"
+  },
+  {
+    "id": "time-week",
+    "word": "week",
+    "text": "一週"
+  },
+  {
+    "id": "time-month",
+    "word": "month",
+    "text": "一個月"
+  },
+  {
+    "id": "time-year",
+    "word": "year",
+    "text": "一年"
+  },
+  {
+    "id": "time-birthday",
+    "word": "birthday",
+    "text": "生日"
+  },
+  {
+    "id": "verbs-eat",
+    "word": "eat",
+    "text": "吃"
+  },
+  {
+    "id": "verbs-drink",
+    "word": "drink",
+    "text": "喝"
+  },
+  {
+    "id": "verbs-sleep",
+    "word": "sleep",
+    "text": "睡覺"
+  },
+  {
+    "id": "verbs-run",
+    "word": "run",
+    "text": "跑步"
+  },
+  {
+    "id": "verbs-walk",
+    "word": "walk",
+    "text": "走路"
+  },
+  {
+    "id": "verbs-read",
+    "word": "read",
+    "text": "閱讀"
+  },
+  {
+    "id": "verbs-write",
+    "word": "write",
+    "text": "寫字"
+  },
+  {
+    "id": "verbs-play",
+    "word": "play",
+    "text": "玩耍"
+  },
+  {
+    "id": "verbs-sing",
+    "word": "sing",
+    "text": "唱歌"
+  },
+  {
+    "id": "verbs-dance",
+    "word": "dance",
+    "text": "跳舞"
+  },
+  {
+    "id": "adjectives-big",
+    "word": "big",
+    "text": "大的"
+  },
+  {
+    "id": "adjectives-small",
+    "word": "small",
+    "text": "小的"
+  },
+  {
+    "id": "adjectives-good",
+    "word": "good",
+    "text": "好的"
+  },
+  {
+    "id": "adjectives-bad",
+    "word": "bad",
+    "text": "不好的"
+  },
+  {
+    "id": "adjectives-happy",
+    "word": "happy",
+    "text": "開心的"
+  },
+  {
+    "id": "adjectives-sad",
+    "word": "sad",
+    "text": "難過的"
+  },
+  {
+    "id": "adjectives-hot",
+    "word": "hot",
+    "text": "熱的"
+  },
+  {
+    "id": "adjectives-cold",
+    "word": "cold",
+    "text": "冷的"
+  },
+  {
+    "id": "adjectives-new",
+    "word": "new",
+    "text": "新的"
+  },
+  {
+    "id": "adjectives-old",
+    "word": "old",
+    "text": "舊的"
+  },
+  {
+    "id": "positions-in",
+    "word": "in",
+    "text": "在裡面"
+  },
+  {
+    "id": "positions-on",
+    "word": "on",
+    "text": "在上面"
+  },
+  {
+    "id": "positions-under",
+    "word": "under",
+    "text": "在下面"
+  },
+  {
+    "id": "positions-behind",
+    "word": "behind",
+    "text": "在後面"
+  },
+  {
+    "id": "positions-beside",
+    "word": "beside",
+    "text": "在旁邊"
+  },
+  {
+    "id": "positions-between",
+    "word": "between",
+    "text": "在中間"
+  },
+  {
+    "id": "positions-near",
+    "word": "near",
+    "text": "靠近"
+  },
+  {
+    "id": "positions-far",
+    "word": "far",
+    "text": "遠離"
+  },
+  {
+    "id": "positions-above",
+    "word": "above",
+    "text": "在上方"
+  },
+  {
+    "id": "positions-below",
+    "word": "below",
+    "text": "在下方"
+  },
+  {
+    "id": "nature-sun",
+    "word": "sun",
+    "text": "太陽"
+  },
+  {
+    "id": "nature-moon",
+    "word": "moon",
+    "text": "月亮"
+  },
+  {
+    "id": "nature-star",
+    "word": "star",
+    "text": "星星"
+  },
+  {
+    "id": "nature-rain",
+    "word": "rain",
+    "text": "雨"
+  },
+  {
+    "id": "nature-snow",
+    "word": "snow",
+    "text": "雪"
+  },
+  {
+    "id": "nature-wind",
+    "word": "wind",
+    "text": "風"
+  },
+  {
+    "id": "nature-cloud",
+    "word": "cloud",
+    "text": "雲"
+  },
+  {
+    "id": "nature-tree",
+    "word": "tree",
+    "text": "樹"
+  },
+  {
+    "id": "nature-flower",
+    "word": "flower",
+    "text": "花"
+  },
+  {
+    "id": "nature-grass",
+    "word": "grass",
+    "text": "草"
+  },
+  {
+    "id": "school-pen",
+    "word": "pen",
+    "text": "原子筆"
+  },
+  {
+    "id": "school-paper",
+    "word": "paper",
+    "text": "紙"
+  },
+  {
+    "id": "school-desk",
+    "word": "desk",
+    "text": "書桌"
+  },
+  {
+    "id": "school-classroom",
+    "word": "classroom",
+    "text": "教室"
+  },
+  {
+    "id": "school-homework",
+    "word": "homework",
+    "text": "功課"
+  },
+  {
+    "id": "school-test",
+    "word": "test",
+    "text": "考試"
+  },
+  {
+    "id": "school-lesson",
+    "word": "lesson",
+    "text": "課程"
+  },
+  {
+    "id": "hobbies-football",
+    "word": "football",
+    "text": "足球"
+  },
+  {
+    "id": "hobbies-basketball",
+    "word": "basketball",
+    "text": "籃球"
+  },
+  {
+    "id": "hobbies-swimming",
+    "word": "swimming",
+    "text": "游泳"
+  },
+  {
+    "id": "hobbies-music",
+    "word": "music",
+    "text": "音樂"
+  },
+  {
+    "id": "hobbies-painting",
+    "word": "painting",
+    "text": "繪畫"
+  },
+  {
+    "id": "hobbies-game",
+    "word": "game",
+    "text": "遊戲"
+  },
+  {
+    "id": "hobbies-toy",
+    "word": "toy",
+    "text": "玩具"
+  },
+  {
+    "id": "hobbies-bike",
+    "word": "bike",
+    "text": "腳踏車"
+  },
+  {
+    "id": "hobbies-ball",
+    "word": "ball",
+    "text": "球"
+  },
+  {
+    "id": "hobbies-puzzle",
+    "word": "puzzle",
+    "text": "拼圖"
+  },
+  {
+    "id": "jobs-doctor",
+    "word": "doctor",
+    "text": "醫師"
+  },
+  {
+    "id": "jobs-nurse",
+    "word": "nurse",
+    "text": "護理師"
+  },
+  {
+    "id": "jobs-police",
+    "word": "police",
+    "text": "警察"
+  },
+  {
+    "id": "jobs-farmer",
+    "word": "farmer",
+    "text": "農夫"
+  },
+  {
+    "id": "jobs-cook",
+    "word": "cook",
+    "text": "廚師"
+  },
+  {
+    "id": "jobs-driver",
+    "word": "driver",
+    "text": "司機"
+  },
+  {
+    "id": "jobs-pilot",
+    "word": "pilot",
+    "text": "飛行員"
+  },
+  {
+    "id": "jobs-singer",
+    "word": "singer",
+    "text": "歌手"
+  },
+  {
+    "id": "jobs-artist",
+    "word": "artist",
+    "text": "藝術家"
+  },
+  {
+    "id": "jobs-worker",
+    "word": "worker",
+    "text": "工人"
+  },
+  {
+    "id": "measurement-long",
+    "word": "long",
+    "text": "長的"
+  },
+  {
+    "id": "measurement-short",
+    "word": "short",
+    "text": "短的"
+  },
+  {
+    "id": "measurement-tall",
+    "word": "tall",
+    "text": "高的"
+  },
+  {
+    "id": "measurement-wide",
+    "word": "wide",
+    "text": "寬的"
+  },
+  {
+    "id": "measurement-thick",
+    "word": "thick",
+    "text": "厚的"
+  },
+  {
+    "id": "measurement-thin",
+    "word": "thin",
+    "text": "薄的"
+  },
+  {
+    "id": "measurement-heavy",
+    "word": "heavy",
+    "text": "重的"
+  },
+  {
+    "id": "measurement-light",
+    "word": "light",
+    "text": "輕的"
+  },
+  {
+    "id": "measurement-many",
+    "word": "many",
+    "text": "很多"
+  },
+  {
+    "id": "measurement-few",
+    "word": "few",
+    "text": "很少"
+  },
+  {
+    "id": "festivals-christmas",
+    "word": "Christmas",
+    "text": "聖誕節"
+  },
+  {
+    "id": "festivals-halloween",
+    "word": "Halloween",
+    "text": "萬聖節"
+  },
+  {
+    "id": "festivals-party",
+    "word": "party",
+    "text": "派對"
+  },
+  {
+    "id": "festivals-gift",
+    "word": "gift",
+    "text": "禮物"
+  },
+  {
+    "id": "festivals-card",
+    "word": "card",
+    "text": "卡片"
+  },
+  {
+    "id": "festivals-celebration",
+    "word": "celebration",
+    "text": "慶祝"
+  },
+  {
+    "id": "festivals-festival",
+    "word": "festival",
+    "text": "節日"
+  },
+  {
+    "id": "festivals-holiday",
+    "word": "holiday",
+    "text": "假日"
+  },
+  {
+    "id": "emotions-love",
+    "word": "love",
+    "text": "愛"
+  },
+  {
+    "id": "emotions-like",
+    "word": "like",
+    "text": "喜歡"
+  },
+  {
+    "id": "emotions-hate",
+    "word": "hate",
+    "text": "討厭"
+  },
+  {
+    "id": "emotions-angry",
+    "word": "angry",
+    "text": "生氣的"
+  },
+  {
+    "id": "emotions-scared",
+    "word": "scared",
+    "text": "害怕的"
+  },
+  {
+    "id": "emotions-excited",
+    "word": "excited",
+    "text": "興奮的"
+  },
+  {
+    "id": "emotions-tired",
+    "word": "tired",
+    "text": "疲倦的"
+  },
+  {
+    "id": "emotions-surprised",
+    "word": "surprised",
+    "text": "驚訝的"
+  },
+  {
+    "id": "emotions-worried",
+    "word": "worried",
+    "text": "擔心的"
+  },
+  {
+    "id": "emotions-proud",
+    "word": "proud",
+    "text": "自豪的"
+  },
+  {
+    "id": "family-family",
+    "word": "family",
+    "text": "一家人"
+  },
+  {
+    "id": "family-parents",
+    "word": "parents",
+    "text": "父母"
+  },
+  {
+    "id": "family-grandma",
+    "word": "grandma",
+    "text": "奶奶或外婆"
+  },
+  {
+    "id": "family-grandpa",
+    "word": "grandpa",
+    "text": "爺爺或外公"
+  },
+  {
+    "id": "family-uncle",
+    "word": "uncle",
+    "text": "叔叔或舅舅"
+  },
+  {
+    "id": "family-aunt",
+    "word": "aunt",
+    "text": "阿姨或姑姑"
+  },
+  {
+    "id": "family-cousin",
+    "word": "cousin",
+    "text": "堂表兄弟姊妹"
+  },
+  {
+    "id": "family-pet",
+    "word": "pet",
+    "text": "寵物"
+  },
+  {
+    "id": "family-house",
+    "word": "house",
+    "text": "房子"
+  },
+  {
+    "id": "family-room",
+    "word": "room",
+    "text": "房間"
+  }
+]

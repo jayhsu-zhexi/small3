@@ -238,5 +238,705 @@
   {
     "id": "transport-motorcycle",
     "text": "機車"
+  },
+  {
+    "id": "numbers-one",
+    "text": "一"
+  },
+  {
+    "id": "numbers-two",
+    "text": "二"
+  },
+  {
+    "id": "numbers-three",
+    "text": "三"
+  },
+  {
+    "id": "numbers-four",
+    "text": "四"
+  },
+  {
+    "id": "numbers-five",
+    "text": "五"
+  },
+  {
+    "id": "numbers-six",
+    "text": "六"
+  },
+  {
+    "id": "numbers-seven",
+    "text": "七"
+  },
+  {
+    "id": "numbers-eight",
+    "text": "八"
+  },
+  {
+    "id": "numbers-nine",
+    "text": "九"
+  },
+  {
+    "id": "numbers-ten",
+    "text": "十"
+  },
+  {
+    "id": "people-mother",
+    "text": "媽媽"
+  },
+  {
+    "id": "people-father",
+    "text": "爸爸"
+  },
+  {
+    "id": "people-sister",
+    "text": "姊妹"
+  },
+  {
+    "id": "people-brother",
+    "text": "兄弟"
+  },
+  {
+    "id": "people-friend",
+    "text": "朋友"
+  },
+  {
+    "id": "people-teacher",
+    "text": "老師"
+  },
+  {
+    "id": "people-student",
+    "text": "學生"
+  },
+  {
+    "id": "people-baby",
+    "text": "嬰兒"
+  },
+  {
+    "id": "people-boy",
+    "text": "男孩"
+  },
+  {
+    "id": "people-girl",
+    "text": "女孩"
+  },
+  {
+    "id": "body-head",
+    "text": "頭"
+  },
+  {
+    "id": "body-finger",
+    "text": "手指"
+  },
+  {
+    "id": "clothing-shirt",
+    "text": "襯衫"
+  },
+  {
+    "id": "clothing-pants",
+    "text": "褲子"
+  },
+  {
+    "id": "clothing-dress",
+    "text": "洋裝"
+  },
+  {
+    "id": "clothing-shoes",
+    "text": "鞋子"
+  },
+  {
+    "id": "clothing-socks",
+    "text": "襪子"
+  },
+  {
+    "id": "clothing-hat",
+    "text": "帽子"
+  },
+  {
+    "id": "clothing-coat",
+    "text": "外套"
+  },
+  {
+    "id": "clothing-skirt",
+    "text": "裙子"
+  },
+  {
+    "id": "clothing-jacket",
+    "text": "夾克"
+  },
+  {
+    "id": "clothing-tie",
+    "text": "領帶"
+  },
+  {
+    "id": "animals-bird",
+    "text": "鳥"
+  },
+  {
+    "id": "animals-fish",
+    "text": "魚"
+  },
+  {
+    "id": "animals-cow",
+    "text": "牛"
+  },
+  {
+    "id": "animals-horse",
+    "text": "馬"
+  },
+  {
+    "id": "animals-chicken",
+    "text": "雞"
+  },
+  {
+    "id": "everyday-door",
+    "text": "門"
+  },
+  {
+    "id": "everyday-window",
+    "text": "窗戶"
+  },
+  {
+    "id": "everyday-lamp",
+    "text": "燈"
+  },
+  {
+    "id": "everyday-tv",
+    "text": "電視"
+  },
+  {
+    "id": "everyday-phone",
+    "text": "電話"
+  },
+  {
+    "id": "everyday-computer",
+    "text": "電腦"
+  },
+  {
+    "id": "food-bread",
+    "text": "麵包"
+  },
+  {
+    "id": "food-milk",
+    "text": "牛奶"
+  },
+  {
+    "id": "food-water",
+    "text": "水"
+  },
+  {
+    "id": "food-rice",
+    "text": "米飯"
+  },
+  {
+    "id": "food-egg",
+    "text": "蛋"
+  },
+  {
+    "id": "food-cake",
+    "text": "蛋糕"
+  },
+  {
+    "id": "food-juice",
+    "text": "果汁"
+  },
+  {
+    "id": "places-school",
+    "text": "學校"
+  },
+  {
+    "id": "places-home",
+    "text": "家"
+  },
+  {
+    "id": "places-park",
+    "text": "公園"
+  },
+  {
+    "id": "places-library",
+    "text": "圖書館"
+  },
+  {
+    "id": "places-hospital",
+    "text": "醫院"
+  },
+  {
+    "id": "places-store",
+    "text": "商店"
+  },
+  {
+    "id": "places-restaurant",
+    "text": "餐廳"
+  },
+  {
+    "id": "places-zoo",
+    "text": "動物園"
+  },
+  {
+    "id": "places-beach",
+    "text": "海灘"
+  },
+  {
+    "id": "places-city",
+    "text": "城市"
+  },
+  {
+    "id": "time-today",
+    "text": "今天"
+  },
+  {
+    "id": "time-yesterday",
+    "text": "昨天"
+  },
+  {
+    "id": "time-tomorrow",
+    "text": "明天"
+  },
+  {
+    "id": "time-morning",
+    "text": "早晨"
+  },
+  {
+    "id": "time-afternoon",
+    "text": "下午"
+  },
+  {
+    "id": "time-night",
+    "text": "夜晚"
+  },
+  {
+    "id": "time-week",
+    "text": "一週"
+  },
+  {
+    "id": "time-month",
+    "text": "一個月"
+  },
+  {
+    "id": "time-year",
+    "text": "一年"
+  },
+  {
+    "id": "time-birthday",
+    "text": "生日"
+  },
+  {
+    "id": "verbs-eat",
+    "text": "吃"
+  },
+  {
+    "id": "verbs-drink",
+    "text": "喝"
+  },
+  {
+    "id": "verbs-sleep",
+    "text": "睡覺"
+  },
+  {
+    "id": "verbs-run",
+    "text": "跑步"
+  },
+  {
+    "id": "verbs-walk",
+    "text": "走路"
+  },
+  {
+    "id": "verbs-read",
+    "text": "閱讀"
+  },
+  {
+    "id": "verbs-write",
+    "text": "寫字"
+  },
+  {
+    "id": "verbs-play",
+    "text": "玩耍"
+  },
+  {
+    "id": "verbs-sing",
+    "text": "唱歌"
+  },
+  {
+    "id": "verbs-dance",
+    "text": "跳舞"
+  },
+  {
+    "id": "adjectives-big",
+    "text": "大的"
+  },
+  {
+    "id": "adjectives-small",
+    "text": "小的"
+  },
+  {
+    "id": "adjectives-good",
+    "text": "好的"
+  },
+  {
+    "id": "adjectives-bad",
+    "text": "不好的"
+  },
+  {
+    "id": "adjectives-happy",
+    "text": "開心的"
+  },
+  {
+    "id": "adjectives-sad",
+    "text": "難過的"
+  },
+  {
+    "id": "adjectives-hot",
+    "text": "熱的"
+  },
+  {
+    "id": "adjectives-cold",
+    "text": "冷的"
+  },
+  {
+    "id": "adjectives-new",
+    "text": "新的"
+  },
+  {
+    "id": "adjectives-old",
+    "text": "舊的"
+  },
+  {
+    "id": "positions-in",
+    "text": "在裡面"
+  },
+  {
+    "id": "positions-on",
+    "text": "在上面"
+  },
+  {
+    "id": "positions-under",
+    "text": "在下面"
+  },
+  {
+    "id": "positions-behind",
+    "text": "在後面"
+  },
+  {
+    "id": "positions-beside",
+    "text": "在旁邊"
+  },
+  {
+    "id": "positions-between",
+    "text": "在中間"
+  },
+  {
+    "id": "positions-near",
+    "text": "靠近"
+  },
+  {
+    "id": "positions-far",
+    "text": "遠離"
+  },
+  {
+    "id": "positions-above",
+    "text": "在上方"
+  },
+  {
+    "id": "positions-below",
+    "text": "在下方"
+  },
+  {
+    "id": "nature-sun",
+    "text": "太陽"
+  },
+  {
+    "id": "nature-moon",
+    "text": "月亮"
+  },
+  {
+    "id": "nature-star",
+    "text": "星星"
+  },
+  {
+    "id": "nature-rain",
+    "text": "雨"
+  },
+  {
+    "id": "nature-snow",
+    "text": "雪"
+  },
+  {
+    "id": "nature-wind",
+    "text": "風"
+  },
+  {
+    "id": "nature-cloud",
+    "text": "雲"
+  },
+  {
+    "id": "nature-tree",
+    "text": "樹"
+  },
+  {
+    "id": "nature-flower",
+    "text": "花"
+  },
+  {
+    "id": "nature-grass",
+    "text": "草"
+  },
+  {
+    "id": "school-pen",
+    "text": "原子筆"
+  },
+  {
+    "id": "school-paper",
+    "text": "紙"
+  },
+  {
+    "id": "school-desk",
+    "text": "書桌"
+  },
+  {
+    "id": "school-classroom",
+    "text": "教室"
+  },
+  {
+    "id": "school-homework",
+    "text": "功課"
+  },
+  {
+    "id": "school-test",
+    "text": "考試"
+  },
+  {
+    "id": "school-lesson",
+    "text": "課程"
+  },
+  {
+    "id": "hobbies-football",
+    "text": "足球"
+  },
+  {
+    "id": "hobbies-basketball",
+    "text": "籃球"
+  },
+  {
+    "id": "hobbies-swimming",
+    "text": "游泳"
+  },
+  {
+    "id": "hobbies-music",
+    "text": "音樂"
+  },
+  {
+    "id": "hobbies-painting",
+    "text": "繪畫"
+  },
+  {
+    "id": "hobbies-game",
+    "text": "遊戲"
+  },
+  {
+    "id": "hobbies-toy",
+    "text": "玩具"
+  },
+  {
+    "id": "hobbies-bike",
+    "text": "腳踏車"
+  },
+  {
+    "id": "hobbies-ball",
+    "text": "球"
+  },
+  {
+    "id": "hobbies-puzzle",
+    "text": "拼圖"
+  },
+  {
+    "id": "jobs-doctor",
+    "text": "醫師"
+  },
+  {
+    "id": "jobs-nurse",
+    "text": "護理師"
+  },
+  {
+    "id": "jobs-police",
+    "text": "警察"
+  },
+  {
+    "id": "jobs-farmer",
+    "text": "農夫"
+  },
+  {
+    "id": "jobs-cook",
+    "text": "廚師"
+  },
+  {
+    "id": "jobs-driver",
+    "text": "司機"
+  },
+  {
+    "id": "jobs-pilot",
+    "text": "飛行員"
+  },
+  {
+    "id": "jobs-singer",
+    "text": "歌手"
+  },
+  {
+    "id": "jobs-artist",
+    "text": "藝術家"
+  },
+  {
+    "id": "jobs-worker",
+    "text": "工人"
+  },
+  {
+    "id": "measurement-long",
+    "text": "長的"
+  },
+  {
+    "id": "measurement-short",
+    "text": "短的"
+  },
+  {
+    "id": "measurement-tall",
+    "text": "高的"
+  },
+  {
+    "id": "measurement-wide",
+    "text": "寬的"
+  },
+  {
+    "id": "measurement-thick",
+    "text": "厚的"
+  },
+  {
+    "id": "measurement-thin",
+    "text": "薄的"
+  },
+  {
+    "id": "measurement-heavy",
+    "text": "重的"
+  },
+  {
+    "id": "measurement-light",
+    "text": "輕的"
+  },
+  {
+    "id": "measurement-many",
+    "text": "很多"
+  },
+  {
+    "id": "measurement-few",
+    "text": "很少"
+  },
+  {
+    "id": "festivals-christmas",
+    "text": "聖誕節"
+  },
+  {
+    "id": "festivals-halloween",
+    "text": "萬聖節"
+  },
+  {
+    "id": "festivals-party",
+    "text": "派對"
+  },
+  {
+    "id": "festivals-gift",
+    "text": "禮物"
+  },
+  {
+    "id": "festivals-card",
+    "text": "卡片"
+  },
+  {
+    "id": "festivals-celebration",
+    "text": "慶祝"
+  },
+  {
+    "id": "festivals-festival",
+    "text": "節日"
+  },
+  {
+    "id": "festivals-holiday",
+    "text": "假日"
+  },
+  {
+    "id": "emotions-love",
+    "text": "愛"
+  },
+  {
+    "id": "emotions-like",
+    "text": "喜歡"
+  },
+  {
+    "id": "emotions-hate",
+    "text": "討厭"
+  },
+  {
+    "id": "emotions-angry",
+    "text": "生氣的"
+  },
+  {
+    "id": "emotions-scared",
+    "text": "害怕的"
+  },
+  {
+    "id": "emotions-excited",
+    "text": "興奮的"
+  },
+  {
+    "id": "emotions-tired",
+    "text": "疲倦的"
+  },
+  {
+    "id": "emotions-surprised",
+    "text": "驚訝的"
+  },
+  {
+    "id": "emotions-worried",
+    "text": "擔心的"
+  },
+  {
+    "id": "emotions-proud",
+    "text": "自豪的"
+  },
+  {
+    "id": "family-family",
+    "text": "一家人"
+  },
+  {
+    "id": "family-parents",
+    "text": "父母"
+  },
+  {
+    "id": "family-grandma",
+    "text": "奶奶或外婆"
+  },
+  {
+    "id": "family-grandpa",
+    "text": "爺爺或外公"
+  },
+  {
+    "id": "family-uncle",
+    "text": "叔叔或舅舅"
+  },
+  {
+    "id": "family-aunt",
+    "text": "阿姨或姑姑"
+  },
+  {
+    "id": "family-cousin",
+    "text": "堂表兄弟姊妹"
+  },
+  {
+    "id": "family-pet",
+    "text": "寵物"
+  },
+  {
+    "id": "family-house",
+    "text": "房子"
+  },
+  {
+    "id": "family-room",
+    "text": "房間"
   }
 ]
