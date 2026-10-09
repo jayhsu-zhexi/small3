@@ -1,0 +1,9 @@
+const assert=require('node:assert/strict');
+const vm=require('node:vm'),fs=require('node:fs');const context={};vm.createContext(context);vm.runInContext(fs.readFileSync('assets/geography-engine.js','utf8'),context);const G=context.Geography;
+assert.equal(G.bank.length,24);
+for(let r=0;r<3;r++)assert.equal(G.bank.filter(q=>q.route===r).length,8);
+for(const q of G.bank){assert.equal(new Set(q.choices).size,4);assert(q.choices.includes(q.answer));assert(q.hint&&q.explanation);if(q.kind==='coordinate'){const p=G.points.find(p=>p.label===q.answer);assert(q.prompt.includes(p.lat===0?"緯度 0°（赤道）":`北緯 ${p.lat}°`));assert(q.prompt.includes(`東經 ${p.lon}°`));}if(q.kind==='scale')assert.equal(q.answer,`${q.scale*q.cm/100000} 公里`);}
+assert(G.valid(G.fresh()));assert(!G.valid({...G.fresh(),index:24}));assert(!G.valid({...G.fresh(),answers:{99:true}}));assert(!G.valid({...G.fresh(),hinted:[-1]}));
+const {build,files}=require('./build.cjs');assert(files.includes('geography.html'));assert(files.includes('assets/geography-backdrop.webp'));
+const {createServer}=require('./serve.cjs');const {once}=require('node:events');
+(async()=>{const server=createServer();try{server.listen(0,'127.0.0.1');await once(server,'listening');const origin='http://127.0.0.1:'+server.address().port;for(const route of ['/geography','/geography/','/geography.html']){const res=await fetch(origin+route);assert.equal(res.status,200);assert.match(await res.text(),/id="missionTitle"/);}for(const asset of ['geography.css','geography-ui.js','geography-engine.js','geography-backdrop.webp'])assert.equal((await fetch(origin+'/assets/'+asset)).status,200);console.log('PASS: geography questions, coordinates, scale conversions, save validation and preview routes');}finally{server.closeAllConnections();server.close();}})().catch(e=>{console.error(e);process.exitCode=1});
