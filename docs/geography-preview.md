@@ -8,6 +8,8 @@
 
 進度獨立存在 `small3-temporary-geography-v1`，包含完成題目、首次獨立答對、提示與重試紀錄，不併入原學科、樂園或備份。
 
+2026-10-09 重複題修正：經緯度站保留四道座標定位，另四道改為讀取緯線、經線、赤道與比較距離赤道，不再重問相同座標。重新載入、切換任務與下一題只接續未完成的題目；完成的站顯示成果，全程完成後需確認重新開始才會清除進度並重玩。舊存檔保留其餘 20 題的完成紀錄，只重新開放已替換的四題（索引 12–15）。題庫保持三站各八題。
+
 日後移除：刪除 `geography.html`、六個 `assets/geography-*` 檔案；移除 `index.html` 中 `/geography` 卡片、`scripts/build.cjs` 的 geography files.push、`scripts/serve.cjs` 的 geography 路由、`vercel.json` 的兩條路由及排除項、`package.json` 的地理測試及 `scripts/test-geography.cjs`。最後執行 `npm run build`。本機遺留的獨立進度不影響其他遊戲。
 
 ## 驗證
