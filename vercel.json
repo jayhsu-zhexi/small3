@@ -5,6 +5,8 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
+    { "source": "/blocks", "destination": "/blocks.html" },
+    { "source": "/blocks/", "destination": "/blocks.html" },
     { "source": "/geography", "destination": "/geography.html" },
     { "source": "/geography/", "destination": "/geography.html" },
     {
@@ -116,7 +118,7 @@
       "destination": "/board.html"
     },
     {
-      "source": "/((?!assets/|(?:geography|vocabulary|abacus|board|detective|parcels|crossing|memory|pinball|vault|survival|kart)(?:/|$|\\.html$)).*)",
+      "source": "/((?!assets/|(?:blocks|geography|vocabulary|abacus|board|detective|parcels|crossing|memory|pinball|vault|survival|kart)(?:/|$|\\.html$)).*)",
       "destination": "/index.html"
     }
   ]
