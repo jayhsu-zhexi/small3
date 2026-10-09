@@ -16,11 +16,12 @@
 .route:not(.active){background:#071f2bdb}.map svg[aria-label^="東亞"] g[fill="#fff3ce"] text{paint-order:stroke;stroke:#244553;stroke-width:2px;stroke-linejoin:round}
 
 /* Compact phone navigation leaves space for the question and controls. */
+.top-home{display:inline-flex;align-items:center;min-height:44px;padding:6px 12px;margin-bottom:4px;border:1px solid #b7986280;border-radius:9px;background:#092b38ed;color:#f4deba;text-decoration:none;font-size:14px}
 .mobile-route-bar{display:none}
 select:focus-visible{outline:3px solid #ffcc75;outline-offset:3px}
 @media(max-width:720px){
   .expedition{padding:10px 12px 18px}
-  .masthead{height:76px;padding-bottom:10px;gap:8px}
+  .masthead{height:76px;padding:8px;margin-bottom:8px;gap:8px;border-radius:12px;background:#092b38db}
   .brand{min-width:0;gap:7px}
   .brand h1{font-size:22px;letter-spacing:1px;white-space:nowrap}
   .brand p{font-size:11px;letter-spacing:1px;margin-top:5px}
@@ -32,7 +33,6 @@ select:focus-visible{outline:3px solid #ffcc75;outline-offset:3px}
   .mobile-route-bar{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:7px 10px;border:1px solid #b79862;border-radius:12px;background:#092b38ed}
   .mobile-route-bar label{display:flex;align-items:center;gap:8px;flex:1;min-width:0;font-size:11px;white-space:nowrap;color:#d9c49d}
   .mobile-route-bar select{flex:1;min-width:0;width:0;min-height:44px;padding:8px 5px;border:0;border-radius:6px;background:#123745;color:#ffe2ad;font:600 14px 'Microsoft JhengHei',system-ui,sans-serif;cursor:pointer}
-  .mobile-route-bar a{display:flex;align-items:center;min-height:44px;font-size:12px;color:#f4deba;text-decoration:none;white-space:nowrap}
   .paper{padding:14px 13px;border-radius:15px}
   .mission-head{display:block;padding-bottom:10px}
   .mission-head h2{font-size:20px;line-height:1.4}
