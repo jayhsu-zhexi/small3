@@ -100,7 +100,65 @@
     {title:'評估航線與棲地的取捨',diagram:'wetlands',prompt:'新港口計畫可提升交通便利，但預計占用候鳥停棲濕地。評估時哪項做法較完整？',answer:'比較交通效益與棲地影響，尋找減害方案',choices:['比較交通效益與棲地影響，尋找減害方案','有交通利益就不必查生態資料','只要有候鳥就不需了解交通需求','把兩項影響都假設為零'],hint:'位置同時影響交通與生態；決策要看兩方面的具體證據。',explanation:'應比較交通需求、效益與生態影響，並研究替代位置或減害措施；只看單一面向，容易忽略另一面的影響。'}
   ];
   extraImpactTasks.forEach(q=>bank.push({route:4,kind:'taiwan-impact',...q}));
-  function fresh(){return {version:1,bankRevision:BANK_REVISION,lesson2Revision:2,lesson2Notice:false,index:0,answers:{},hinted:[],mistakes:[],previousRounds:[],upgradeNotice:false,selected:null,revealed:false}}
+  // Append new questions so every previously saved answer keeps its original ID.
+  const extraDirectionTasks=[
+    {title:'反向觀察',prompt:'指北標朝上。瞭望塔在港口的東北方，改以瞭望塔為起點，港口在哪個方向？',answer:'西南方',choices:directions,from:'瞭望塔',to:'港口',hint:'交換起點與終點後，東西與南北都要反轉。',explanation:'東北方的相反方向是西南方；港口在瞭望塔的左下方。'},
+    {title:'向右轉後的方位',prompt:'隊員原本面向西方，向右轉 90°，再向左轉 180°。最後面向哪個方向？',answer:'南方',choices:cardinals,hint:'每次轉彎都以當時面向的方向為基準。',explanation:'面向西向右轉後朝北；再左轉 180°，就朝南。'},
+    {title:'三次轉彎',prompt:'隊員面向北方，依序右轉 90°、左轉 90°、左轉 90°。最後面向哪個方向？',answer:'西方',choices:cardinals,hint:'依序寫出每次轉彎後的方向，別把左、右當成固定東、西。',explanation:'北 → 東 → 北 → 西，因此最後朝西。'},
+    {title:'倒置後的兩地關係',prompt:'指北標朝下。以港口為起點，補給站位於港口的哪個方向？',answer:'西方',choices:cardinals,northAngle:180,from:'港口',to:'補給站',hint:'北朝下時，圖面右方不是東方。',explanation:'北朝下、西朝右；補給站在港口右方，所以是西方。'},
+    {title:'旋轉後重新定位',prompt:'指北標朝右。港口位於森林的哪個方向？',answer:'西南方',choices:directions,northAngle:90,from:'森林',to:'港口',hint:'先決定圖面上方與左方各代表什麼方向。',explanation:'北朝右時，西朝上、南朝左。港口在森林左上方，因此是西南方。'},
+    {title:'逆向旋轉地圖',prompt:'指北標朝左。瞭望塔位於補給站的哪個方向？',answer:'東北方',choices:directions,northAngle:270,from:'補給站',to:'瞭望塔',hint:'用補給站作中心；圖面左是北、上是東。',explanation:'瞭望塔在補給站左上方；北加東，就是東北方。'},
+    {title:'倒置後的斜向移動',prompt:'指北標朝下。森林位於港口的哪個方向？',answer:'西北方',choices:directions,northAngle:180,from:'港口',to:'森林',hint:'森林在港口的圖面右下方，但需要依指北標轉換方位。',explanation:'北朝下時，圖面右是西、下是北；森林位於港口西北方。'},
+    {title:'返回原地的最後一段',prompt:'探險隊從起點向東走 500 公尺，再向北走 300 公尺，接著向西走 500 公尺。要沿直線回到起點，還需向哪個方向走？',answer:'南方',choices:cardinals,hint:'先抵銷東西移動，再想剩下的位移如何消除。',explanation:'東西各 500 公尺互相抵銷，終點在起點北方 300 公尺；要回去需向南走。'},
+    {title:'剩餘位移的方向',prompt:'由營地向北走 600 公尺、向東走 200 公尺、向南走 400 公尺、向西走 500 公尺。終點在營地哪個方向？',answer:'西北方',choices:directions,hint:'南北和東西分開計算，不能只看最後一段。',explanation:'最後剩向北 200 公尺、向西 300 公尺，所以終點在西北方。'},
+    {title:'起點與終點互換',prompt:'甲隊從營地向南走 200 公尺、向東走 300 公尺抵達終點。從終點看，營地位於哪個方向？',answer:'西北方',choices:directions,hint:'題目問營地相對於終點的位置，方向與去程相反。',explanation:'終點在營地東南方，因此營地在終點西北方。'},
+    {title:'兩隊的相對位置',prompt:'甲、乙由同一營地出發。甲向北走 400 公尺，乙向東走 300 公尺。甲位於乙的哪個方向？',answer:'西北方',choices:directions,hint:'由乙的位置往甲看，不是由營地往甲看。',explanation:'甲在乙西方 300 公尺、北方 400 公尺，因此位於乙的西北方。'},
+    {title:'右轉與路線抵銷',prompt:'隊員由起點面向北走 200 公尺，右轉走 300 公尺，再右轉走 200 公尺。終點位於起點哪個方向？',answer:'東方',choices:cardinals,hint:'兩次右轉後，三段路線分別朝北、東、南。',explanation:'北、南各 200 公尺抵銷，只剩向東 300 公尺。'},
+    {title:'分辨路程與位移',prompt:'隊員向北走 300 公尺後，再沿原路向南走 300 公尺。下列對路程和終點的描述何者正確？',answer:'路程 600 公尺，回到起點',choices:['路程 0 公尺，回到起點','路程 600 公尺，回到起點','路程 300 公尺，終點在南方','路程 600 公尺，終點在北方'],hint:'路程是實際走過的總長，回到起點不代表沒有走路。',explanation:'共走 300＋300＝600 公尺；南北位移抵銷，終點就是起點。'},
+    {title:'共同移動後的方位',prompt:'甲原在乙的東方 200 公尺。兩人各向北走 300 公尺後，甲位於乙的哪個方向？',answer:'東方',choices:cardinals,hint:'兩人沿相同方向移動相同距離，相對位置如何改變？',explanation:'兩人的南北位移相同，原有東西差距不變；甲仍在乙東方。'},
+    {title:'正面與左右方位',prompt:'隊員面向南方，目標在他的左前方。目標位於隊員的哪個方向？',answer:'東南方',choices:directions,hint:'面向南時，左邊是東，不是西。',explanation:'前方是南、左方是東，因此左前方是東南方。'},
+    {title:'補足回營路線',prompt:'隊員先向西走 400 公尺，再向南走 600 公尺，最後向東走 100 公尺。要直接回營，應往哪個方向？',answer:'東北方',choices:directions,hint:'先找終點相對於營地的位置，再反向判斷。',explanation:'終點在營地西方 300 公尺、南方 600 公尺；回營要向東北方。'}
+  ];
+  extraDirectionTasks.forEach(q=>bank.push({route:0,kind:'direction',northAngle:0,...q}));
+  const extraCoordinateTasks=[
+    {title:'兩項條件交叉篩選',prompt:'哪個標記同時位於北半球，且經度比 A 點更偏東？',answer:'B',choices:['A','B','C','D'],hint:'先排除不在北半球的點，再比較東經度數。',explanation:'A、B 在北半球；B 是東經 120°，比 A 的東經 60°更東。'},
+    {title:'基準線上的位置',prompt:'D 點位於緯度 0°、西經 120°。哪項描述正確？',answer:'在赤道上，位於西半球',choices:['在赤道上，位於西半球','在本初子午線上，位於北半球','在南緯 120°，位於南半球','在赤道上，位於東半球'],hint:'緯度 0°是哪一條線？經度的 W 又代表什麼？',explanation:'緯度 0°是赤道，不屬於南、北半球；西經 120°位於西半球。'},
+    {title:'距赤道的遠近',prompt:'依圖上的緯度，A、B、C 三點中，哪組距赤道的緯度差相同？',answer:'B 與 C',choices:['A 與 B','A 與 C','B 與 C','三點都相同'],hint:'比較緯度的絕對值；南緯和北緯都可以離赤道 20°。',explanation:'B 北緯 20°、C 南緯 20°，距赤道都是 20°；A 距赤道 40°。'},
+    {title:'相同緯度不等於同地點',prompt:'B 在北緯 20°、東經 120°。另一點在北緯 20°、西經 120°。下列何者正確？',answer:'同在一條緯線，經度不同',choices:['同在一條緯線，經度不同','同在一條經線，緯度不同','經緯度都相同','兩點一定分居南北半球'],hint:'緯度相同代表同一條緯線，經度還需看 E／W。',explanation:'兩點都是北緯 20°，在同一條緯線；東經與西經 120°是不同經線。'},
+    {title:'跨赤道後的新座標',prompt:'由 C 點沿西經 60°經線向北移動 50°緯度。抵達哪組座標？',answer:'北緯 30°、西經 60°',choices:['北緯 30°、西經 60°','南緯 70°、西經 60°','北緯 50°、東經 60°','南緯 30°、東經 60°'],hint:'從南緯 20°向北先走 20°到赤道，再繼續走。',explanation:'先向北 20°到赤道，再向北 30°；沿同一經線移動，西經 60°不變。'},
+    {title:'越過本初子午線',prompt:'從 C 點沿南緯 20°緯線向東移動 90°經度，尚未經過 180°經線。終點在哪裡？',answer:'南緯 20°、東經 30°',choices:['南緯 20°、東經 30°','南緯 20°、西經 150°','北緯 20°、東經 30°','南緯 70°、西經 60°'],hint:'由西經 60°往東，先走 60°到經度 0°。',explanation:'西經 60°往東移動 60°到本初子午線，再移動 30°到東經 30°；緯度不變。'},
+    {title:'抵達赤道的條件',prompt:'從 A 點出發，哪種移動能抵達赤道而不改變經度？',answer:'沿經線向南移動 40°',choices:['沿經線向南移動 40°','沿緯線向西移動 40°','沿經線向北移動 40°','沿緯線向東移動 60°'],hint:'赤道是緯度 0°；沿經線才會改變緯度。',explanation:'A 是北緯 40°、東經 60°，沿經線向南 40°便到赤道，經度仍是東經 60°。'},
+    {title:'南北範圍的中心',prompt:'某調查區的南界為南緯 10°，北界為北緯 30°。只以緯度計算，中間位置在哪條緯線？',answer:'北緯 10°',choices:['北緯 10°','北緯 20°','南緯 20°','赤道'],hint:'把南緯看成負值、北緯看成正值，求兩端平均。',explanation:'（−10＋30）÷2＝10，所以中間位置是北緯 10°。'},
+    {title:'東西範圍的中心',prompt:'區域由西經 40°延伸到東經 20°，且不跨 180°經線。中間位置是哪條經線？',answer:'西經 10°',choices:['西經 10°','東經 10°','西經 30°','本初子午線'],hint:'把西經看成負值、東經看成正值；不要把度數直接相加後不看方向。',explanation:'（−40＋20）÷2＝−10，所以中間經線是西經 10°。'},
+    {title:'兩半球的移動比較',prompt:'A 點向南移動 20°緯度，C 點向北移動 40°緯度，且都沿原經線移動。兩隊最後的關係為何？',answer:'同在北緯 20°，經度不同',choices:['同在北緯 20°，經度不同','同在南緯 20°，經度不同','經緯度完全相同','一隊在北半球，一隊在南半球'],hint:'C 必須先跨過赤道，再繼續向北。',explanation:'A 從北緯 40°到北緯 20°；C 從南緯 20°向北 40°到北緯 20°。兩隊經度仍分別為東經 60°與西經 60°。'},
+    {title:'經線與緯線的判別',prompt:'甲路段沿北緯 20°前進，乙路段沿東經 60°前進。哪項判斷正確？',answer:'甲緯度不變，乙經度不變',choices:['甲緯度不變，乙經度不變','甲經度不變，乙緯度不變','兩路段經緯度都不變','甲只能南北移動，乙只能東西移動'],hint:'沿哪一條線移動，就保持那條線所代表的度數。',explanation:'沿緯線行走維持緯度、改變經度；沿經線行走維持經度、改變緯度。'},
+    {title:'合理座標的檢查',prompt:'四張定位卡中，哪一組經緯度在合法範圍內？',answer:'南緯 45°、西經 170°',choices:['北緯 100°、東經 60°','南緯 45°、西經 170°','北緯 20°、東經 200°','南緯 120°、西經 30°'],hint:'緯度最大 90°，經度最大 180°，分別檢查。',explanation:'南緯 45°、西經 170°都在範圍內；其他選項的緯度超過 90°或經度超過 180°。'},
+    {title:'跨一百八十度的短弧',prompt:'甲點在東經 170°，乙點在西經 160°。兩條經線之間較小的經度夾角是多少？',answer:'30°',choices:['10°','30°','170°','330°'],hint:'先計算經過 0°的跨度，再用整圈 360°扣掉它。',explanation:'經過 0°的跨度是 170＋160＝330°；跨 180°的短弧是 360−330＝30°。'},
+    {title:'不同方向到同一經線',prompt:'從東經 120°向東沿緯線移動 120°經度，跨過 180°經線後，會抵達哪條經線？',answer:'西經 120°',choices:['東經 0°','東經 180°','西經 120°','西經 60°'],hint:'先向東走 60°到 180°，其餘路程進入西經區。',explanation:'從東經 120°到 180°用 60°，再往東 60°，西經度數由 180°減為 120°。'},
+    {title:'比較到北極的緯度差',prompt:'只比較沿經線到北極（北緯 90°）的緯度差，A 與 B 哪個較小，相差多少？',answer:'A 較小，相差 20°',choices:['A 較小，相差 20°','B 較小，相差 20°','A 較小，相差 60°','兩點完全相同'],hint:'分別用 90°減去兩點的北緯度數。',explanation:'A 到北極的緯度差是 90−40＝50°；B 是 90−20＝70°，A 較小 20°。'},
+    {title:'同經線的南北排序',prompt:'甲、乙、丙同在東經 60°，緯度分別為南緯 30°、北緯 10°、南緯 5°。由北到南如何排序？',answer:'乙 → 丙 → 甲',choices:['乙 → 丙 → 甲','甲 → 丙 → 乙','丙 → 乙 → 甲','乙 → 甲 → 丙'],hint:'北緯在赤道北側；南緯度數越大，位置越南。',explanation:'北緯 10°最北，接著南緯 5°，最後南緯 30°；所以乙、丙、甲。'}
+  ];
+  extraCoordinateTasks.forEach(q=>bank.push({route:1,kind:'coordinate-reading',...q}));
+  const extraScaleTasks=[
+    {title:'毫米也能換算',scale:40000,cm:15,unit:'毫米',prompt:'比例尺 1：40,000，圖上兩地相距 15 毫米。實際直線距離是多少？',answer:'600 公尺',choices:['60 公尺','600 公尺','6 公里','60 公里'],hint:'10 毫米＝1 公分，先統一圖距單位。',explanation:'15 毫米＝1.5 公分；1.5×40,000＝60,000 公分＝600 公尺。'},
+    {title:'繞行路線多走多少',scale:50000,cm:3,segments:[2,3],prompt:'比例尺 1：50,000。直線圖距為 3 公分，實際可走的道路分成 2、3 公分兩段。沿道路比直線距離多多少公里？',answer:'1 公里',choices:['0.5 公里','1 公里','2.5 公里','4 公里'],hint:'先算道路與直線的圖距差，再換算實距。',explanation:'道路圖距 2＋3＝5 公分，比直線多 2 公分；2×50,000＝100,000 公分＝1 公里。'},
+    {title:'往返的總路程',scale:80000,cm:2.5,prompt:'比例尺 1：80,000，營地到補給站的道路圖距為 2.5 公分。沿同一路線往返一次，總路程多少？',answer:'4 公里',choices:['2 公里','4 公里','20 公里','40 公里'],hint:'先算單程，往返是單程的兩倍。',explanation:'單程 2.5×80,000＝200,000 公分＝2 公里，往返 4 公里。'},
+    {title:'含休息的抵達時間',scale:100000,cm:4.5,prompt:'比例尺 1：100,000，路線圖距 4.5 公分，步速每小時 3 公里，中途休息 15 分鐘。從出發到抵達共需多久？',answer:'105 分鐘',choices:['75 分鐘','90 分鐘','105 分鐘','150 分鐘'],hint:'步行時間和休息時間要分開算，再相加。',explanation:'路程 4.5 公里；步行 4.5÷3×60＝90 分鐘，加休息 15 分鐘，共 105 分鐘。'},
+    {title:'反推需要的速度',scale:75000,cm:8,prompt:'比例尺 1：75,000，路線圖距 8 公分。若要在 90 分鐘內走完且不休息，平均時速至少應是多少？',answer:'每小時 4 公里',choices:['每小時 2 公里','每小時 4 公里','每小時 6 公里','每小時 8 公里'],hint:'把路程換公里、90 分鐘換小時，再用距離除以時間。',explanation:'路程 8×75,000＝6 公里；90 分鐘＝1.5 小時，6÷1.5＝每小時 4 公里。'},
+    {title:'縮小後的數字比例尺',scale:60000,cm:4,prompt:'原圖比例尺 1：60,000，將長、寬都縮成原來的 50%。縮圖應標示哪個數字比例尺？（圖示為原圖）',answer:'1：120,000',choices:['1：15,000','1：30,000','1：60,000','1：120,000'],hint:'同一實距在紙上變短，縮圖每公分代表的實距變大。',explanation:'圖距變為一半，分母變為兩倍：60,000÷0.5＝120,000。'},
+    {title:'放大百分比的判讀',scale:90000,cm:2,prompt:'原圖比例尺 1：90,000，把長、寬都放大成原來的 150%。新比例尺是哪個？（圖示為原圖）',answer:'1：60,000',choices:['1：45,000','1：60,000','1：135,000','1：180,000'],hint:'150% 是原長度的 1.5 倍，不是增加到 2.5 倍。',explanation:'放大倍數 1.5；新分母 90,000÷1.5＝60,000。'},
+    {title:'同一紙張的覆蓋範圍',scale:20000,cm:4,otherScale:60000,prompt:'甲、乙紙張長寬相同，比例尺分別為 1：20,000 和 1：60,000。忽略曲率，乙涵蓋的實際面積是甲的幾倍？',answer:'9 倍',choices:['3 倍','6 倍','9 倍','27 倍'],hint:'長度倍數為 3，面積要同時考慮長與寬。',explanation:'乙每邊實際長度是甲的 3 倍，面積是 3×3＝9 倍。'},
+    {title:'由公尺反推比例尺',scale:null,cm:3.2,prompt:'圖上 3.2 公分代表實際 800 公尺。這張地圖的比例尺是多少？',answer:'1：25,000',choices:['1：250','1：2,500','1：25,000','1：250,000'],hint:'800 公尺先乘 100 換為公分，再除以 3.2。',explanation:'800 公尺＝80,000 公分；80,000÷3.2＝25,000。'},
+    {title:'選擇更詳細的地圖',scale:10000,cm:2,prompt:'若四圖都使用相同製圖方式與紙張，想看校園附近的小巷，哪個比例尺通常最適合呈現細節？',answer:'1：10,000',choices:['1：10,000','1：50,000','1：100,000','1：500,000'],hint:'比較 1 公分代表的實距；實距越小，同一地點在圖上越大。',explanation:'1：10,000 的比例尺最大、涵蓋範圍較小，在相同製圖條件下通常可呈現較多局部細節。'},
+    {title:'兩張地圖的距離差',scale:40000,cm:6,otherScale:120000,prompt:'同一路段在甲圖（1：40,000）長 6 公分，在乙圖（1：120,000）會比甲圖短幾公分？',answer:'4 公分',choices:['2 公分','4 公分','6 公分','12 公分'],hint:'先算乙圖圖距，題目最後要的是兩圖的差。',explanation:'實距 6×40,000＝240,000 公分；乙圖長 2 公分，所以短 6−2＝4 公分。'},
+    {title:'圖面矩形的實際面積',scale:50000,cm:6,prompt:'比例尺 1：50,000，圖上一塊矩形長 6 公分、寬 4 公分。忽略曲率，實際面積是多少平方公里？',answer:'6 平方公里',choices:['3 平方公里','6 平方公里','12 平方公里','24 平方公里'],hint:'長、寬分別換算成公里後再相乘。',explanation:'實際長 3 公里、寬 2 公里，面積 3×2＝6 平方公里。'},
+    {title:'連續縮放的結果',scale:80000,cm:4,prompt:'原圖比例尺 1：80,000。先把長、寬各放大 2 倍，再把放大圖的長、寬各縮為 50%。最後比例尺是多少？（圖示為原圖）',answer:'1：80,000',choices:['1：20,000','1：40,000','1：80,000','1：160,000'],hint:'把兩次長度變化的倍數相乘。',explanation:'總倍數 2×0.5＝1，最後尺寸回到原圖，比例尺仍為 1：80,000。'},
+    {title:'放大後的距離測量',scale:100000,cm:3,prompt:'原圖比例尺 1：100,000，把長、寬各放大 2 倍後，某路段在放大圖上量得 6 公分。實際路程是多少？（圖示為放大前）',answer:'3 公里',choices:['1.5 公里','3 公里','6 公里','12 公里'],hint:'放大後先修正比例尺，不能直接沿用原分母。',explanation:'放大圖比例尺是 1：50,000；6×50,000＝300,000 公分＝3 公里。'},
+    {title:'直線距離與道路距離',scale:100000,cm:5,prompt:'比例尺 1：100,000，兩地直線圖距為 5 公分，但道路彎曲且尚未測量。哪項結論最合理？',answer:'直線距離 5 公里，道路距離仍需測量',choices:['直線距離 5 公里，道路距離仍需測量','道路距離一定剛好 5 公里','道路距離一定小於 5 公里','道路距離一定是 10 公里'],hint:'比例尺換算的是你實際量到的線段；直線不等於彎曲道路。',explanation:'圖距換算的直線距離是 5 公里；道路距離不能只憑這個數字決定，需沿道路測量。'},
+    {title:'兩段不同速度的旅行',scale:100000,cm:6,segments:[2,4],prompt:'比例尺 1：100,000。前段圖距 2 公分，時速 4 公里；後段 4 公分，時速 8 公里。全程不休息，共需幾分鐘？',answer:'60 分鐘',choices:['45 分鐘','60 分鐘','75 分鐘','90 分鐘'],hint:'各段距離除以各自速度，再相加；不能直接平均速度。',explanation:'前段 2÷4＝0.5 小時，後段 4÷8＝0.5 小時；合計 1 小時＝60 分鐘。'}
+  ];
+  extraScaleTasks.forEach(q=>bank.push({route:2,kind:'scale',...q}));
+  function fresh(){return {version:1,bankRevision:BANK_REVISION,lesson1Revision:1,lesson1Notice:false,lesson2Revision:2,lesson2Notice:false,index:0,answers:{},hinted:[],mistakes:[],previousRounds:[],upgradeNotice:false,selected:null,revealed:false}}
   function valid(s){return !!s&&s.version===1&&Number.isInteger(s.index)&&s.index>=0&&s.index<bank.length&&s.answers&&typeof s.answers==='object'&&!Array.isArray(s.answers)&&Object.entries(s.answers).every(([k,v])=>/^\d+$/.test(k)&&bank[+k]&&typeof v==='boolean')&&['hinted','mistakes'].every(k=>Array.isArray(s[k])&&s[k].every(n=>Number.isInteger(n)&&n>=0&&n<bank.length))}
   function pending(s,route){return bank.map((q,n)=>n).filter(n=>(route===undefined||bank[n].route===route)&&!Object.hasOwn(s.answers,n))}
   function nextPending(s){const indices=pending(s,bank[s.index].route);return indices.find(n=>n>s.index)??indices[0]??null}
@@ -109,7 +167,7 @@
     if(!valid(s))return fresh();
     const previousRounds=Array.isArray(s.previousRounds)?s.previousRounds.filter(r=>r&&[1,2].includes(r.bankRevision)&&r.answers&&typeof r.answers==='object'&&!Array.isArray(r.answers)&&Object.entries(r.answers).every(([k,v])=>/^\d+$/.test(k)&&+k<24&&typeof v==='boolean')).slice(-3):[];
     if(s.bankRevision!==BANK_REVISION){const result=fresh();result.previousRounds=[...previousRounds,{bankRevision:s.bankRevision===2?2:1,answers:{...s.answers},hinted:[...s.hinted],mistakes:[...s.mistakes]}].slice(-3);result.upgradeNotice=true;return result}
-    return {...s,lesson2Revision:2,lesson2Notice:s.lesson2Revision!==2||s.lesson2Notice===true,answers:{...s.answers},hinted:[...s.hinted],mistakes:[...s.mistakes],previousRounds,selected:null,revealed:false};
+    return {...s,lesson1Revision:1,lesson1Notice:s.lesson1Revision!==1||s.lesson1Notice===true,lesson2Revision:2,lesson2Notice:s.lesson2Revision!==2||s.lesson2Notice===true,answers:{...s.answers},hinted:[...s.hinted],mistakes:[...s.mistakes],previousRounds,selected:null,revealed:false};
   }
   const api={routes,points,longitudes,latitudes,bank,fresh,valid,pending,nextPending,restore,routeIndices,BANK_REVISION};if(typeof module!=='undefined')module.exports=api;else root.Geography=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
