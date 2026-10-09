@@ -46,6 +46,7 @@ function mount(saved){
 let ui=mount({...G.fresh(),index:8});ui.answer();assert.equal(ui.save().answers[8],true);
 ui=mount(ui.save());assert.equal(ui.save().index,9,'Reload after answering must continue with an unfinished question');
 ui.get('routes').children[1].onclick();assert.equal(ui.save().index,9,'Switching back does not replay answered questions');
+ui.get('mobileRoutes').value='4';ui.get('mobileRoutes').onchange();assert.equal(ui.save().index,32,'Mobile picker opens lesson 2');assert.equal(ui.get('mobileRoutes').value,'4');assert.equal(ui.get('mobileRoutes').children.length,5);ui.get('routes').children[1].onclick();assert.equal(ui.get('mobileRoutes').value,'1','Desktop and phone navigation stay in sync');
 const mixed={...G.fresh(),index:14,answers:{15:true}};ui=mount(mixed);ui.answer();ui.get('confirm').onclick();assert.equal(ui.save().index,8,'Next skips a completed last question and wraps to unfinished work');
 ui=mount(progress);assert.equal(ui.get('result').hidden,false,'A completed save loads the results');
 ui.get('routes').children[1].onclick();assert.equal(ui.get('result').hidden,false,'A completed route stays on results');

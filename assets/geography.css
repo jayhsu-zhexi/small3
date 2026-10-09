@@ -10,6 +10,56 @@
 .sidebar .home-link,.scope{background:#071e2bbf;border-radius:8px}.profile>span{width:45px;height:35px;font-size:0;border-radius:50% 50% 25% 25%;background:linear-gradient(175deg,#d3a86c,#765536);border-bottom:8px solid #ddbb82;transform:rotate(-12deg);box-shadow:0 4px 4px #0005}.profile>span:after{content:"";display:block;height:5px;background:#493c2c;margin-top:16px}@media(max-width:720px){.route{display:block;text-align:center;min-width:0;min-height:67px}.route.active{background:linear-gradient(130deg,#3e4035,#092b38);color:#ffe1a9}.route-symbol{display:none}.route-number{font-size:12px}.route-title{font-size:14px;white-space:nowrap}.map svg{min-height:0}.map svg text{font-size:28px}.sidebar .home-link{background:#072230b8}.sidebar{padding-bottom:12px}}
 
 @media(max-width:720px){.map svg text[text-anchor="end"]{font-size:22px}.footer{background:#071f2bea;border-radius:12px;padding:16px 12px;margin-top:16px}.journey strong{color:#f4deba}}
+.choice:disabled{opacity:1}
 .choice{max-width:100%;overflow-wrap:anywhere;line-height:1.5}.map .pin:not([data-answer]){cursor:default}@media(max-width:720px){.choice{flex:1 1 calc(50% - 7px);padding:8px 10px}}
 .lesson-tag{color:#f3cd82!important;margin-top:5px}.badges{flex-wrap:wrap;gap:18px}.badge{min-width:64px}@media(max-width:720px){#routes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.route{min-height:77px}.route .lesson-tag{display:block;font-size:10px;letter-spacing:0}.badges{gap:12px}.badge{min-width:60px}}
 .route:not(.active){background:#071f2bdb}.map svg[aria-label^="東亞"] g[fill="#fff3ce"] text{paint-order:stroke;stroke:#244553;stroke-width:2px;stroke-linejoin:round}
+
+/* Compact phone navigation leaves space for the question and controls. */
+.mobile-route-bar{display:none}
+select:focus-visible{outline:3px solid #ffcc75;outline-offset:3px}
+@media(max-width:720px){
+  .expedition{padding:10px 12px 18px}
+  .masthead{height:76px;padding-bottom:10px;gap:8px}
+  .brand{min-width:0;gap:7px}
+  .brand h1{font-size:22px;letter-spacing:1px;white-space:nowrap}
+  .brand p{font-size:11px;letter-spacing:1px;margin-top:5px}
+  .compass{width:34px;height:34px}
+  .profile{min-width:94px;padding:8px;border-radius:12px}
+  .profile strong{font-size:12px;white-space:nowrap}
+  .profile .track{margin-top:6px;height:6px}
+  .sidebar{display:none}
+  .mobile-route-bar{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:7px 10px;border:1px solid #b79862;border-radius:12px;background:#092b38ed}
+  .mobile-route-bar label{display:flex;align-items:center;gap:8px;flex:1;min-width:0;font-size:11px;white-space:nowrap;color:#d9c49d}
+  .mobile-route-bar select{flex:1;min-width:0;width:0;min-height:44px;padding:8px 5px;border:0;border-radius:6px;background:#123745;color:#ffe2ad;font:600 14px 'Microsoft JhengHei',system-ui,sans-serif;cursor:pointer}
+  .mobile-route-bar a{display:flex;align-items:center;min-height:44px;font-size:12px;color:#f4deba;text-decoration:none;white-space:nowrap}
+  .paper{padding:14px 13px;border-radius:15px}
+  .mission-head{display:block;padding-bottom:10px}
+  .mission-head h2{font-size:20px;line-height:1.4}
+  .mission-head>span{display:block;padding-top:4px;font-size:11px;color:#626354}
+  .prompt{min-height:0;margin:12px 0;font-size:16px;line-height:1.65}
+  .choices{margin:12px 0;gap:8px}
+  .choice{min-height:46px;box-shadow:0 2px 0 #ad8b5644}
+  .actions{margin-top:12px;padding:10px 0 12px;background:#f6e7c9;border-top:1px solid #cfb98e;gap:10px}
+  .hint-button{flex:0 0 auto;min-height:46px;font-size:15px;padding:8px 14px}
+  .actions .confirm-button{flex:1;min-height:46px;font-size:18px;letter-spacing:0;padding:8px 10px}
+  .feedback{margin-top:4px;font-size:14px}
+  .footer{gap:14px}
+  .badges{flex-basis:100%;justify-content:space-between;gap:8px}
+  .badge{flex:1;min-width:0;font-size:10px}
+  .badge .medal{width:34px;height:38px;margin-bottom:6px;font-size:20px}
+  .badge small{font-size:8px}
+  .restart{margin-left:auto}
+}
+@media(max-width:360px){
+  .expedition{padding-left:9px;padding-right:9px}
+  .brand h1{font-size:19px}
+  .brand p{font-size:10px}
+  .compass{width:27px;height:27px}
+  .profile{min-width:86px;padding:7px}
+  .profile strong{font-size:11px}
+  .mobile-route-bar{gap:7px;padding:5px 8px}
+  .mobile-route-bar label{gap:5px}
+  .mobile-route-bar select{font-size:13px}
+  .paper{padding:12px 11px}
+}
