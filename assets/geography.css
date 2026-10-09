@@ -18,37 +18,6 @@
 /* Compact phone navigation leaves space for the question and controls. */
 .top-home{display:inline-flex;align-items:center;min-height:44px;padding:6px 12px;margin-bottom:4px;border:1px solid #b7986280;border-radius:9px;background:#092b38ed;color:#f4deba;text-decoration:none;font-size:14px}
 .mobile-route-bar{display:none}
-.masthead{border-radius:12px;background:#092b38db;padding:12px;margin-bottom:12px}
-.topic-menu{max-width:1060px;margin:0 auto;min-height:0;background:#f6e7c9f5}
-.topic-menu h2{font:700 30px 'PMingLiU',serif;margin:0 0 12px}
-#topicTitle:focus,#missionTitle:focus{outline:none}
-.topic-intro{font-size:16px;line-height:1.7;margin:0 0 20px}
-.topic-menu #routes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-.topic-card{display:flex;align-items:center;gap:14px;width:100%;min-height:112px;padding:16px;text-align:left;border:1px solid #b99863;border-radius:13px;background:linear-gradient(130deg,#183b46,#092b38);color:#f4deba}
-.topic-card:hover{border-color:#e2ab51;background:#1b4551}
-.topic-card:last-child{grid-column:1/-1}
-.topic-symbol{flex-shrink:0;display:grid;place-items:center;width:46px;height:46px;border:1px solid #bc965b;border-radius:50%;font-size:28px;color:#e7b66d}
-.topic-copy{flex:1;min-width:0}
-.topic-card .route-number{font-size:12px;color:#d6bc90}
-.topic-card .route-title{font-size:23px;margin:3px 0 6px;letter-spacing:0}
-.topic-card small{display:block;font-size:12px;line-height:1.5;color:#bbcaca}
-.topic-status{flex-shrink:0;font-size:12px;color:#f3cd82}
-.topic-card.completed .topic-symbol{background:#326d53;color:#fff1c9}
-.topic-scope{font-size:12px;line-height:1.6;margin:18px 0 0;color:#66644f}
-#questionView{display:block;max-width:1060px;margin:0 auto;min-height:0}
-#questionView .paper{min-height:0;background:#f6e7c9f5}
-.actions:has(#confirm[hidden]){display:none}
-@media(max-width:720px){
-  .topic-menu h2{font-size:23px;margin-bottom:8px}
-  .topic-intro{font-size:14px;margin-bottom:14px}
-  .topic-menu #routes{grid-template-columns:1fr;gap:10px}
-  .topic-card{min-height:82px;padding:12px 10px;gap:10px}
-  .topic-symbol{width:34px;height:34px;font-size:22px}
-  .topic-card .route-title{font-size:18px;margin:2px 0 4px;white-space:normal}
-  .topic-card small{font-size:11px;letter-spacing:0}
-  .topic-status{font-size:10px}
-  .topic-scope{font-size:11px;margin-top:14px}
-}
 select:focus-visible{outline:3px solid #ffcc75;outline-offset:3px}
 @media(max-width:720px){
   .expedition{padding:10px 12px 18px}
