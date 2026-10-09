@@ -1,7 +1,7 @@
 (function(root){
   'use strict';
   const BANK_REVISION=3;
-  const routes=[{title:'位置與方向',note:'旋轉方位・路線推理',icon:'△'},{title:'經緯度定位',note:'跨半球比較・座標推理',icon:'✥'},{title:'地圖判讀',note:'比例尺反推・距離應用',icon:'▧'}];
+  const routes=[{title:'位置與方向',note:'旋轉方位・路線推理',icon:'△',badge:'初始旅人'},{title:'經緯度定位',note:'跨半球比較・座標推理',icon:'✥',badge:'座標探索者'},{title:'地圖判讀',note:'比例尺反推・距離應用',icon:'▧',badge:'地圖新手'},{title:'臺灣的位置',note:'區域定位・範圍與行政區',icon:'◎',badge:'臺灣定位者',lesson:'康軒第2課'},{title:'生態與交流',note:'島嶼生態・海空交通樞紐',icon:'♧',badge:'島嶼觀察家',lesson:'康軒第2課'}];
   const longitudes=[-120,-60,0,60,120],latitudes=[40,20,0,-20,-40];
   const points=[{label:'A',lon:60,lat:40},{label:'B',lon:120,lat:20},{label:'C',lon:-60,lat:-20},{label:'D',lon:-120,lat:0}];
   const bank=[];
@@ -39,15 +39,38 @@
     {title:'換算與旅行規劃',calculation:'time',scale:75000,cm:4,speed:5,prompt:'比例尺 1：75,000，路線在圖上長 4 公分。隊伍每小時走 5 公里、不休息，預計幾分鐘抵達？',answer:'36 分鐘',choices:['15 分鐘','24 分鐘','36 分鐘','60 分鐘'],hint:'100,000 公分才是 1 公里；算完距離後，用速度換算分鐘。',explanation:'路程＝4×75,000＝300,000 公分＝3 公里；時間＝3÷5×60＝36 分鐘。'}
   ];
   scaleTasks.forEach(q=>bank.push({route:2,kind:'scale',...q}));
-  function fresh(){return {version:1,bankRevision:BANK_REVISION,index:0,answers:{},hinted:[],mistakes:[],previousRounds:[],upgradeNotice:false,selected:null,revealed:false}}
+  const taiwanTasks=[
+    {title:'追蹤臺灣附近的風暴',prompt:'以臺灣中部約北緯 24°、東經 121°為參考。甲風暴在北緯 20°、東經 126°；若朝臺灣接近，主要應往哪個方向移動？',answer:'西北方',choices:directions,extraPoint:{label:'甲',lon:126,lat:20},hint:'比較兩地的經緯度：從甲到臺灣，緯度增加還是減少？經度增加還是減少？',explanation:'從北緯 20°到北緯 24°是向北，從東經 126°到東經 121°是向西，所以主要朝西北方移動。'},
+    {title:'核對航海座標',prompt:'臺灣本島大約在北緯 22°～25°、東經 120°～122°。下列哪組座標符合這個範圍？',answer:'北緯 24°、東經 121°',choices:['南緯 24°、東經 121°','北緯 24°、西經 121°','北緯 24°、東經 121°','北緯 30°、東經 121°'],hint:'除了比較度數是否落在範圍內，也要核對 N／S、E／W。',explanation:'北緯 24°介於北緯 22°與 25°，東經 121°介於東經 120°與 122°。其他選項用了錯誤半球或超出緯度範圍。'},
+    {title:'安排東亞航程',prompt:'依區域示意圖，飛機由日本飛往臺灣，再由臺灣飛往菲律賓。這兩段的主要移動方向依序為何？',answer:'先往西南，再主要往南',choices:['先往西南，再主要往南','先往東北，再主要往北','兩段都主要往北','先往西北，再主要往西'],hint:'分別以每一段的出發地為中心，不能把兩段當成同一個起點。',explanation:'臺灣在日本的西南側，菲律賓主要在臺灣南方。因此第一段往西南，第二段主要往南。圖為區域示意，航線不代表實際飛行路徑。'},
+    {title:'區分海峽與海洋',prompt:'船隻由臺灣西岸向西，穿越臺灣海峽後接近中國大陸。下列哪一項對這段航程的解讀正確？',answer:'臺灣位於中國大陸東南側',choices:['臺灣位於中國大陸東南側','臺灣位於太平洋東岸','船隻先穿越大西洋','中國大陸位於臺灣正東方'],hint:'從臺灣看中國大陸與從中國大陸看臺灣，觀察起點不同；也要核對海洋名稱。',explanation:'臺灣在中國大陸東南側，兩者之間隔著臺灣海峽；臺灣處於太平洋西側，不是太平洋東岸。'},
+    {title:'北回歸線兩側的位置',prompt:'北回歸線約在北緯 23.5°。甲城在北緯 25°、乙城在北緯 22.6°。哪一項判斷正確？',answer:'甲在回歸線北側，乙在南側',choices:['甲、乙都在回歸線北側','甲、乙都在回歸線南側','甲在回歸線南側，乙在北側','甲在回歸線北側，乙在南側'],hint:'北緯度數越大，位置越北；把兩個度數各自與 23.5°比較。',explanation:'25°大於 23.5°，甲在北側；22.6°小於 23.5°，乙在南側。兩城都仍在北半球，回歸線不是赤道。'},
+    {title:'分辨兩種位置說法',prompt:'研究員說「臺灣在東亞島弧與海空航線的重要位置」，航海員說「目標位於北緯 24°、東經 121°」。兩者分別側重哪一種位置？',answer:'前者相對位置，後者絕對位置',choices:['兩者都是相對位置','兩者都是絕對位置','前者相對位置，後者絕對位置','前者絕對位置，後者相對位置'],hint:'前者把臺灣放在周圍地區與交通網絡中比較，後者使用明確的全球座標。',explanation:'區域與航線關係呈現相對位置；經緯度呈現絕對位置。不同的位置描述適合回答不同的問題。'},
+    {title:'本島與離島的範圍',prompt:'同學安排到金門、澎湖、花蓮旅行。依教材所稱的臺灣地區範圍，哪一項分類正確？',answer:'三地皆在臺灣地區，花蓮在本島',choices:['只有花蓮屬臺灣地區','三地皆位於臺灣本島','三地皆在臺灣地區，花蓮在本島','澎湖與金門都位於臺灣東側'],hint:'「臺灣地區」與「臺灣本島」範圍不同；臺灣地區也包含金門、馬祖、澎湖等島嶼。',explanation:'金門與澎湖是離島，花蓮位於臺灣本島；三地都在教材所指的臺灣地區。「臺灣地區」不能直接等同「臺灣本島」。'},
+    {title:'讀懂行政區地址',prompt:'地址寫「新北市板橋區」。整理行政區資料時，哪一種層級關係正確？',answer:'板橋區是新北市的一部分',choices:['板橋區與新北市是同一層級','板橋區是新北市的一部分','新北市隸屬板橋區','板橋區是一個縣'],hint:'地址通常由較大的行政區寫到較小的行政區，注意「市」與「區」的關係。',explanation:'板橋區屬於新北市。整理資料時，不能把同一行政區的上下層級當成兩個互不包含的縣市。'}
+  ];
+  taiwanTasks.forEach(q=>bank.push({route:3,kind:'taiwan-region',...q}));
+  const impactTasks=[
+    {title:'同緯度的不同棲地',diagram:'habitats',prompt:'臺灣同一緯度附近的低地與高山，可能出現不同植物群。只用「緯度相近」就推論植物應相同，漏掉了哪個重要因素？',answer:'海拔差異會造成氣溫差異',choices:['海拔差異會造成氣溫差異','同緯度的氣溫必定完全相同','所有植物只受經度影響','島嶼上不可能有冷涼棲地'],hint:'同一座島嶼從海岸到高山，高度變化會影響氣溫與棲地條件。',explanation:'臺灣地勢高低差大；即使緯度相近，不同海拔仍可形成不同的氣溫與棲地，有助於生物多樣性。'},
+    {title:'還原冰河期的遷徙',diagram:'ice',prompt:'冰河期中，臺灣海峽部分海床露出，陸地動植物較容易從大陸移入臺灣。最合理的原因是哪一個？',answer:'海平面下降，陸地連結增加',choices:['海平面上升，陸地連結增加','海平面下降，陸地連結增加','臺灣的經度突然變成 0°','所有生物都改成遠洋游泳'],hint:'想想海水高度下降後，原本較淺的海床可能發生什麼變化。',explanation:'冰河期海平面下降，部分淺海海床露出，形成較容易遷徙的陸地連結；不是海平面上升讓海峽消失。'},
+    {title:'判讀候鳥的中繼站',diagram:'migration',prompt:'一群候鳥秋季從東北亞向較暖的南方遷徙，途中在臺灣濕地休息與覓食。這最能說明臺灣位置的哪項影響？',answer:'位在南北遷徙路線上的中繼位置',choices:['位在南北遷徙路線上的中繼位置','所有停留候鳥都是臺灣特有種','臺灣位在南極圈內','候鳥只能在臺灣繁殖'],hint:'把「途中休息」和「全球只有臺灣有」分開思考；遷徙不等於特有。',explanation:'臺灣位在東亞南北遷徙路線上，可提供候鳥停棲與覓食的環境。停留的候鳥也可能出現在其他地區，不能因此判定為特有種。'},
+    {title:'判定真正的特有種',diagram:'species',prompt:'調查紀錄顯示：甲物種自然分布於臺灣與日本；乙物種只自然分布於臺灣。哪項判斷正確？',answer:'乙符合臺灣特有種的條件',choices:['甲、乙都必定是臺灣特有種','甲符合臺灣特有種的條件','乙符合臺灣特有種的條件','只要在臺灣數量多就是特有種'],hint:'特有種的重點是自然分布範圍，而不是數量多寡或是否常見。',explanation:'臺灣特有種只自然分布於臺灣。甲也自然分布於日本，不符合；乙的自然分布限於臺灣，符合這個條件。甲、乙是教學用假設物種。'},
+    {title:'隔離後的長期變化',diagram:'ice',prompt:'冰河期結束後海平面回升，臺灣與大陸的部分生物族群長期分隔。哪項推論最合理？',answer:'交流減少，長期可能演化出特有種',choices:['交流減少，長期可能演化出特有種','分隔後隔天就全部變成特有種','海洋阻隔使所有生物立即滅絕','隔離保證所有物種完全不變'],hint:'演化需要長時間，地理隔離會影響族群交流，但不是立即或必然的結果。',explanation:'海洋阻隔使部分族群交流減少，經長期演化可能形成特有種。這不是一夜之間發生，也不是每個族群都必然形成新物種。'},
+    {title:'推論交通樞紐的條件',diagram:'trade',prompt:'航線由日本連往東南亞，臺灣可作為途中轉運據點。這種優勢主要來自哪一項相對位置？',answer:'聯繫東北亞與東南亞的海空通道',choices:['位於歐洲內陸的鐵路交會處','聯繫東北亞與東南亞的海空通道','位於大西洋中央','與所有鄰國使用相同經度'],hint:'先判斷日本與東南亞在臺灣哪一側，再把兩端的區域連起來。',explanation:'臺灣位在東亞海空交通的重要位置，可聯繫東北亞與東南亞。位置帶來轉運機會，但實際交通也需要港口、機場與相關設施。'},
+    {title:'國際航運中斷的影響',diagram:'trade',prompt:'某工廠需要進口原料，再把產品出口。若主要國際海運航線暫時中斷，哪項影響最合理？',answer:'原料供應與產品出口都可能延誤',choices:['只有出口可能受影響，進口不會','只有進口可能受影響，出口不會','原料供應與產品出口都可能延誤','臺灣是海島，所以貿易不受影響'],hint:'沿著「進口原料→生產→出口產品」的流程，分別檢查哪一步需要國際運輸。',explanation:'臺灣經濟與國際貿易關係密切；進口原料與出口產品都可能依賴海運，因此航線中斷可能同時影響兩端。'},
+    {title:'綜合判斷位置的影響',diagram:'habitats',prompt:'臺灣具有海洋、低地與高山等多種環境。下列哪項結論最合理？',answer:'多種棲地提供不同生物生存條件',choices:['多種棲地提供不同生物生存條件','棲地多表示完全不需要保育','棲地多保證每個物種數量都最多','棲地多表示所有物種都是特有種'],hint:'環境多樣、生物數量多、是否特有及是否需要保育，是不同的概念。',explanation:'多樣棲地能提供不同生物所需的條件，有利於生物多樣性；但不保證每種生物都很多、都是特有種，保育仍然重要。'}
+  ];
+  impactTasks.forEach(q=>bank.push({route:4,kind:'taiwan-impact',...q}));
+  function fresh(){return {version:1,bankRevision:BANK_REVISION,lesson2Revision:1,lesson2Notice:false,index:0,answers:{},hinted:[],mistakes:[],previousRounds:[],upgradeNotice:false,selected:null,revealed:false}}
   function valid(s){return !!s&&s.version===1&&Number.isInteger(s.index)&&s.index>=0&&s.index<bank.length&&s.answers&&typeof s.answers==='object'&&!Array.isArray(s.answers)&&Object.entries(s.answers).every(([k,v])=>/^\d+$/.test(k)&&bank[+k]&&typeof v==='boolean')&&['hinted','mistakes'].every(k=>Array.isArray(s[k])&&s[k].every(n=>Number.isInteger(n)&&n>=0&&n<bank.length))}
   function pending(s,route){return bank.map((q,n)=>n).filter(n=>(route===undefined||bank[n].route===route)&&!Object.hasOwn(s.answers,n))}
   function nextPending(s){const indices=pending(s,bank[s.index].route);return indices.find(n=>n>s.index)??indices[0]??null}
+  function routeIndices(route){return bank.map((q,n)=>n).filter(n=>bank[n].route===route)}
   function restore(s){
     if(!valid(s))return fresh();
     const previousRounds=Array.isArray(s.previousRounds)?s.previousRounds.filter(r=>r&&[1,2].includes(r.bankRevision)&&r.answers&&typeof r.answers==='object'&&!Array.isArray(r.answers)&&Object.entries(r.answers).every(([k,v])=>/^\d+$/.test(k)&&+k<24&&typeof v==='boolean')).slice(-3):[];
     if(s.bankRevision!==BANK_REVISION){const result=fresh();result.previousRounds=[...previousRounds,{bankRevision:s.bankRevision===2?2:1,answers:{...s.answers},hinted:[...s.hinted],mistakes:[...s.mistakes]}].slice(-3);result.upgradeNotice=true;return result}
-    return {...s,answers:{...s.answers},hinted:[...s.hinted],mistakes:[...s.mistakes],previousRounds,selected:null,revealed:false};
+    return {...s,lesson2Revision:1,lesson2Notice:s.lesson2Revision!==1||s.lesson2Notice===true,answers:{...s.answers},hinted:[...s.hinted],mistakes:[...s.mistakes],previousRounds,selected:null,revealed:false};
   }
-  const api={routes,points,longitudes,latitudes,bank,fresh,valid,pending,nextPending,restore,BANK_REVISION};if(typeof module!=='undefined')module.exports=api;else root.Geography=api;
+  const api={routes,points,longitudes,latitudes,bank,fresh,valid,pending,nextPending,restore,routeIndices,BANK_REVISION};if(typeof module!=='undefined')module.exports=api;else root.Geography=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

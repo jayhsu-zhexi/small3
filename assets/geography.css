@@ -11,3 +11,5 @@
 
 @media(max-width:720px){.map svg text[text-anchor="end"]{font-size:22px}.footer{background:#071f2bea;border-radius:12px;padding:16px 12px;margin-top:16px}.journey strong{color:#f4deba}}
 .choice{max-width:100%;overflow-wrap:anywhere;line-height:1.5}.map .pin:not([data-answer]){cursor:default}@media(max-width:720px){.choice{flex:1 1 calc(50% - 7px);padding:8px 10px}}
+.lesson-tag{color:#f3cd82!important;margin-top:5px}.badges{flex-wrap:wrap;gap:18px}.badge{min-width:64px}@media(max-width:720px){#routes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.route{min-height:77px}.route .lesson-tag{display:block;font-size:10px;letter-spacing:0}.badges{gap:12px}.badge{min-width:60px}}
+.route:not(.active){background:#071f2bdb}.map svg[aria-label^="東亞"] g[fill="#fff3ce"] text{paint-order:stroke;stroke:#244553;stroke-width:2px;stroke-linejoin:round}
