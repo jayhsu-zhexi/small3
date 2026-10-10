@@ -31,3 +31,5 @@
 @media(max-width:600px){.formula-layout{min-height:100px;column-gap:8px}.formula-cell{height:54px;font-size:1.8rem}}
 /* Keep the return link above the header's transparent hit area. */
 .home{z-index:2}
+.keypad-panel>.keypad-title{display:flex;align-items:center;justify-content:space-between;gap:8px}.sound-toggle{border:1px solid #8fcbe9;border-radius:10px;background:#f1faff;color:#2b5777;font-size:.75rem;padding:5px 7px;white-space:nowrap}.sound-toggle[aria-pressed=false]{background:#eee;color:#637181}
+@media(max-width:600px){.keypad-panel>.keypad-title{padding:3px 8px}.sound-toggle{font-size:.65rem;padding:2px 6px;line-height:1.4}}
