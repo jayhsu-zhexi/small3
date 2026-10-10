@@ -142,3 +142,5 @@ assert.equal(padded.document.body.classList.contains('measuring-mission'),false)
 console.log('PASS: bounded + levels fill rectangles, preview real settings, keep exact unique pairs and scoring, preserve manual/unlimited time, and freeze retry decks.');
 require('./test-memory-records.cjs');
 require('./test-memory-audio.cjs');
+
+for(const [w,h] of [[288,360],[350,480],[378,610]]){const dense=E.plan(108,w,h,4,true),old=E.rectangle(108,w,h,4,6);assert.equal(dense.size,108);assert.equal(dense.cols,9);assert.equal(dense.rows,12);assert.ok(dense.tile>old.tile*1.2,'108 phone deck should substantially improve card legibility');assert.ok(dense.cols*dense.tile+4*(dense.cols-1)<=w+.01);assert.ok(dense.rows*dense.tile*1.25+4*(dense.rows-1)<=h+.01)}console.log('PASS: 108-card phone mode uses 9 by 12 with larger cards and exact full-deck fit.');

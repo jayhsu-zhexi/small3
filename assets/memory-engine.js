@@ -3,7 +3,7 @@
   const COUNTS=[16,32,52,74,108],SECONDS={16:180,24:210,32:240,40:270,52:300,74:420,108:540};
   const SHIELDS={16:16,24:32,32:48,40:72,52:104,74:148,108:216};
   const EXTRA={16:2,24:4,32:4,40:6,52:8,74:10,108:12};
-  const PHONE_COLUMNS={16:4,24:4,32:6,40:6,52:6,74:6,108:6};
+  const PHONE_COLUMNS={16:4,24:4,32:6,40:6,52:6,74:6,108:9};
   function tier(size){return [...COUNTS,24,40].find(base=>Number.isInteger(size)&&size%2===0&&size>=base&&size<=base+EXTRA[base]);}
   function rules(size){const base=tier(size);if(!base)throw Error('不支援的卡牌數量');return {base,size,shields:Math.ceil(SHIELDS[base]*size/base),seconds:Math.ceil(SECONDS[base]*size/base/30)*30};}
   // Only full rectangles are candidates. Equal-size cards prefer fewer added pairs.

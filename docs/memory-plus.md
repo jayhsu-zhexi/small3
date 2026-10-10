@@ -25,3 +25,9 @@
 生成提示詞（內建工具，非 CLI）：
 
 > Use case: stylized-concept. Asset type: one square sprite atlas for a children's science-fiction memory game. Input image is STYLE REFERENCE ONLY: match its polished dimensional 3D toy-like equipment, crisp silhouettes, cobalt-blue and white ceramic with orange metal accents, luminous cyan highlights, studio reflections, and flat dark navy background. Generate FOUR NEW objects in a precise invisible 2 by 2 layout of equal square cells. Top left: astronaut helmet with a large shiny gold visor. Top right: oxygen twin-tank backpack, two parallel white and cobalt cylinders with orange straps and visible hose. Bottom left: friendly small hovering robot with two luminous round eyes, rounded body and small side arms. Bottom right: one chunky futuristic space boot with blue armored sole, white upper and orange fastening. Each object centered exactly in its own quadrant, full object visible with generous equal margin on all sides, no overlaps, no contact with center seams. Consistent size, camera angle and visual weight. Solid perfectly uniform dark navy #072644 background across entire square; no floor, no backdrop gradients, no drop shadow outside object. No grid lines, no borders, no cards, no UI, no text, no letters, no numbers, no logos, no watermark. Exactly four distinct objects.
+
+## 108 張手機直向排版
+
+108 張直向手機改為 9 欄 × 12 列，取代原本 6 欄 × 18 列，避免高度限制導致卡牌縮小且左右留白。維持完整 108 張／54 組配對、原本規則與卡牌順序。卡牌依可用寬高等比例縮放，瀏覽器工具列變動保留欄數，旋轉仍依原機制調整。
+
+新增三組小手機可用區域測試，卡牌寬度比原 6 欄方案增加超過 20%，矩形無空格且兩方向不溢出。既有所有張數、手機／平板橫直向、縮放、旋轉、暫停與記憶位置測試通過。390×700 瀏覽器預覽確為 108 張、9 欄，頁面高度 700，截圖 docs/previews/memory-108-phone.png。
