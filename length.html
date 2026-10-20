@@ -3,10 +3,11 @@
 <body><main class="workshop">
 <header class="top"><a class="home" href="/">← 返回</a><div><h1>公分毫米小工坊<span aria-hidden="true">✎</span></h1><p>小三數學・長度換算</p></div><img class="stationery" src="/assets/length-stationery.webp" alt=""></header>
 <label class="mode-bar" for="mode">練習題型<select id="mode"></select></label>
-<section class="question panel" aria-labelledby="questionTitle"><div class="panel-head"><h2 id="questionTitle">長度換算</h2><span id="progress">第 1 題 / 共 10 題</span></div>
+<section id="question" class="question panel" aria-labelledby="questionTitle"><div class="panel-head"><h2 id="questionTitle">長度換算</h2><span id="progress">第 1 題 / 共 10 題</span></div>
 <div class="question-body"><strong class="rule">1 公分＝10 毫米</strong><h3 id="prompt"></h3>
-<div class="measurement" id="measurement"><div class="scale" id="scale" role="img" aria-label="尺規與橡皮擦"><img id="eraser" src="/assets/length-eraser.webp" alt=""><svg id="ruler" viewBox="0 0 680 170" aria-hidden="true"></svg></div></div>
+<div class="measurement" id="measurement"><p id="rulerVerification" class="ruler-verification" hidden>用尺規驗證看看</p><div class="scale" id="scale" role="img" aria-label="尺規與橡皮擦"><img id="eraser" src="/assets/length-eraser.webp" alt=""><svg id="ruler" viewBox="0 0 680 170" aria-hidden="true"></svg></div></div>
 <div id="answers" class="answers" aria-label="長度換算答案"></div>
+<div id="answerFeedback" class="answer-feedback" role="status" aria-live="polite" aria-atomic="true" hidden><span id="feedbackIcon" class="feedback-icon" aria-hidden="true"></span><div><strong id="feedbackTitle"></strong><p id="feedbackDetail"></p></div></div>
 <div class="actions" id="actions"><button id="hint" class="hint">☼ 看提示</button><button id="check" class="check">✓ 確認答案</button></div>
 <div class="helper" id="helper"><img src="/assets/length-bear.webp" alt="閱讀小熊"><p id="feedback" role="status" aria-live="polite">先換成毫米，再加起來。</p></div>
 <p class="scale-note" id="scaleNote">尺規僅供讀刻度，非實際大小。</p><div id="result" hidden></div></div></section>
