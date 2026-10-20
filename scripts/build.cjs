@@ -5,6 +5,7 @@ const files = ["assets/vocabulary-source-numbers-v1.webp","assets/vocabulary-sou
 files.push("geography.html", "assets/geography.css", "assets/geography-engine.js", "assets/geography-ui.js", "assets/geography-backdrop.webp", "assets/geography-compass.svg", "assets/geography-map.webp");
 files.push('blocks.html','assets/blocks-engine.js','assets/blocks-ui.js','assets/blocks.css','assets/blocks-background.webp');
 files.push('multiply.html','assets/multiply-engine.js','assets/multiply-audio.js','assets/multiply-ui.js','assets/multiply.css','assets/multiply-background.webp','assets/multiply-bear.webp','assets/multiply-pencils.webp','assets/multiply-correct-voice-v2.mp3','assets/multiply-wrong-voice-v1.wav');
+files.push('length.html','assets/length-engine.js','assets/length-ui.js','assets/length.css','assets/length-bear.webp','assets/length-eraser.webp','assets/length-stationery.webp');
 function build(output = path.resolve(__dirname, '../dist')) {
   const root = path.resolve(__dirname, '..');
   for (const file of files) {

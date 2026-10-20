@@ -5,6 +5,8 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
+    { "source": "/length", "destination": "/length.html" },
+    { "source": "/length/", "destination": "/length.html" },
     { "source": "/multiply", "destination": "/multiply.html" },
     { "source": "/multiply/", "destination": "/multiply.html" },
     { "source": "/blocks", "destination": "/blocks.html" },
@@ -120,7 +122,7 @@
       "destination": "/board.html"
     },
     {
-      "source": "/((?!assets/|(?:multiply|blocks|geography|vocabulary|abacus|board|detective|parcels|crossing|memory|pinball|vault|survival|kart)(?:/|$|\\.html$)).*)",
+      "source": "/((?!assets/|(?:length|multiply|blocks|geography|vocabulary|abacus|board|detective|parcels|crossing|memory|pinball|vault|survival|kart)(?:/|$|\\.html$)).*)",
       "destination": "/index.html"
     }
   ]
