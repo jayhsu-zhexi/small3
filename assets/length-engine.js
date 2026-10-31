@@ -1,9 +1,9 @@
 (function(root){'use strict';
-const modes=[{id:'ruler',title:'認識刻度'},{id:'offset',title:'起點不是 0｜一步一步量'},{id:'convert',title:'公分毫米換算'},{id:'mixed',title:'公分與毫米合併'},{id:'story',title:'生活應用'}];
+const modes=[{id:'ruler',title:'認識刻度｜從 0 開始'},{id:'offset',title:'認識刻度｜不是從 0 開始'},{id:'convert',title:'公分毫米換算'},{id:'mixed',title:'公分與毫米合併'},{id:'story',title:'生活應用'}];
 function question(mode,n){
   let total,start=0,type,prompt,units,answers,hint;
   if(mode==='ruler'){
-    start=n<35?0:5+(n%15);total=11+n%69;type='read';units=['毫米'];answers=[total];
+    start=0;total=11+n%69;type='read';units=['毫米'];answers=[total];
     prompt=start?'橡皮擦沒有從 0 開始，長度是幾毫米？':'看尺上的橡皮擦，長度是幾毫米？';
     hint=start?'先讀出終點與起點的毫米數，再用終點減起點。':'先數完整的公分，每公分有 10 毫米，再加上剩下的小刻度。';
   }else if(mode==='offset'){
@@ -30,13 +30,13 @@ function create(mode='mixed',random=Math.random,sample=false){
   const count=mode==='convert'?18:mode==='ruler'?69:mode==='offset'?60:99,pool=Array.from({length:count},(_,i)=>i);
   for(let i=pool.length-1;i>0;i--){const j=Math.min(i,Math.max(0,Math.floor(random()*(i+1))));[pool[i],pool[j]]=[pool[j],pool[i]]}
   // The approved 3 cm 6 mm sample is a join question (n=134); use its canonical ID.
-  const chosen=mode==='ruler'?[...pool.filter(n=>n<35).slice(0,5),...pool.filter(n=>n>=35).slice(0,5)]:mode==='offset'?[...pool.filter(n=>n<30).slice(0,5),...pool.filter(n=>n>=30).slice(0,5)]:pool.slice(0,10);if(mode==='mixed'&&sample){const at=chosen.indexOf(35);if(at>=0)chosen.splice(at,1);else chosen.pop();chosen.unshift(134)}
+  const chosen=mode==='offset'?[...pool.filter(n=>n<30).slice(0,5),...pool.filter(n=>n>=30).slice(0,5)]:pool.slice(0,10);if(mode==='mixed'&&sample){const at=chosen.indexOf(35);if(at>=0)chosen.splice(at,1);else chosen.pop();chosen.unshift(134)}
   const state={version:1,mode,questions:chosen.map(n=>question(mode,n)),index:0,values:[],hinted:false,attempts:0,solved:false,finished:false,results:[]};if(mode==='offset')state.guide={step:0,counted:0};return state;
 }
 const current=s=>s.questions[s.index];
 const ready=s=>s.mode!=='offset'||s.guide.step===3;
-function pickMark(s,mm){if(s.mode!=='offset'||s.solved||s.finished||s.guide.step>1||!Number.isInteger(mm))return {status:'locked'};const q=current(s),expected=s.guide.step===0?q.start:q.end;if(mm!==expected){s.attempts++;return {status:'wrong'}}s.guide.step++;return {status:'correct'}}
-function countGap(s){if(s.mode!=='offset'||s.solved||s.finished||s.guide.step!==2)return false;const remaining=current(s).total-s.guide.counted;s.guide.counted+=remaining>=10?10:1;if(s.guide.counted===current(s).total)s.guide.step=3;return true}
+function pickMark(s,mm){if(s.mode!=='offset'||s.solved||s.finished||s.guide.step>1||!Number.isInteger(mm))return {status:'locked'};const q=current(s),expected=s.guide.step===0?q.start:q.end;if(mm!==expected){s.attempts++;return {status:'wrong'}}s.guide.step=s.guide.step===0?1:3;return {status:'correct'}}
+function countGap(s){if(s.mode!=='offset'||s.solved||s.finished||!s.hinted||!ready(s)||s.guide.counted>=current(s).total)return false;const remaining=current(s).total-s.guide.counted;s.guide.counted+=remaining>=10?10:1;return true}
 function markChoices(s){if(s.mode!=='offset'||s.guide.step>1)return [];const q=current(s),target=s.guide.step===0?q.start:q.end,unit=q.units[0]==='公分'?10:1,other=s.guide.step===0?q.end:q.start,choices=[target,other];for(const mm of [target-unit,target+unit,0,q.max])if(mm>=0&&mm<=q.max&&!choices.includes(mm)&&choices.length<4)choices.push(mm);const shift=(q.n+s.guide.step)%choices.length;return choices.slice(shift).concat(choices.slice(0,shift))}
 function enter(s,index,digit){if(s.solved||s.finished||!ready(s)||!Number.isInteger(index)||index<0||index>=current(s).answers.length||!/^\d$/.test(String(digit))||(s.values[index]||'').length>=3)return false;while(s.values.length<current(s).answers.length)s.values.push('');s.values[index]=(s.values[index]||'')+digit;return true}
 function erase(s,index){if(s.solved||s.finished||index<0||index>=current(s).answers.length)return false;s.values[index]=(s.values[index]||'').slice(0,-1);return true}
@@ -47,12 +47,17 @@ function next(s){if(!s.solved||s.finished)return false;if(s.index===9){s.finishe
 function valid(s){
   if(!s||s.version!==1||!modes.some(m=>m.id===s.mode)||!Array.isArray(s.questions)||s.questions.length!==10||!Number.isInteger(s.index)||s.index<0||s.index>9||!Array.isArray(s.values)||typeof s.hinted!=='boolean'||typeof s.solved!=='boolean'||typeof s.finished!=='boolean'||!Number.isInteger(s.attempts)||s.attempts<0||!Array.isArray(s.results))return false;
   if(s.questions.some(q=>!q||q.mode!==s.mode||!Number.isInteger(q.n)||q.n<0||q.n>=(s.mode==='convert'?18:s.mode==='ruler'?69:s.mode==='offset'?60:99)&&!(s.mode==='mixed'&&q.n===134)||JSON.stringify(q)!==JSON.stringify(question(s.mode,q.n))))return false;
-  if(s.mode==='offset'){const g=s.guide,q=current(s);if(!g||!Number.isInteger(g.step)||g.step<0||g.step>3||!Number.isInteger(g.counted)||g.counted<0||g.counted>q.total||g.step<2&&g.counted!==0||g.step===2&&(g.counted>=q.total||g.counted<Math.floor(q.total/10)*10&&g.counted%10!==0)||g.step===3&&g.counted!==q.total||g.step<3&&(s.solved||s.finished||s.values.some(Boolean)))return false;if(s.questions.some((q,i)=>(q.n<30)!==(i<5)))return false;}
+  if(s.mode==='offset'){const g=s.guide,q=current(s);if(!g||!Number.isInteger(g.step)||g.step<0||g.step>3||!Number.isInteger(g.counted)||g.counted<0||g.counted>q.total||g.step<2&&g.counted!==0||g.counted<Math.floor(q.total/10)*10&&g.counted%10!==0||g.step===2&&g.counted>=q.total||g.step<3&&(s.solved||s.finished||s.values.some(Boolean)))return false;if(s.questions.some((q,i)=>(q.n<30)!==(i<5)))return false;}
   if(new Set(s.questions.map(q=>q.type+':'+q.start+':'+q.total)).size!==10||s.values.length>current(s).answers.length||Object.keys(s.values).some(k=>!/^\d$/.test(k)||!/^\d{0,3}$/.test(s.values[k])||typeof s.values[k]!=='string'))return false;
   if(s.finished&&(!s.solved||s.index!==9)||s.results.length!==s.index+(s.solved?1:0))return false;
   return s.results.every((r,i)=>r&&r.id===s.questions[i].id&&typeof r.hinted==='boolean'&&Number.isInteger(r.attempts)&&r.attempts>=0)&&(!s.solved||current(s).answers.every((v,i)=>/^\d{1,3}$/.test(s.values[i]||'')&&Number(s.values[i])===v));
 }
-function restore(s){return valid(s)?JSON.parse(JSON.stringify(s)):create('mixed',Math.random,true)}
+function restore(s){
+  // Earlier ruler rounds mixed both starting positions. Keep their lengths,
+  // answers and progress while moving the old nonzero objects back to zero.
+  if(s&&s.mode==='ruler'&&Array.isArray(s.questions)&&s.questions.length===10){const questions=s.questions.map(q=>{if(!q||!Number.isInteger(q.n)||q.n<35||q.n>=69)return q;const updated=question('ruler',q.n),start=5+q.n%15,end=start+updated.total,legacy={...updated,start,end,max:Math.max(40,Math.ceil(end/10)*10),prompt:'橡皮擦沒有從 0 開始，長度是幾毫米？',hint:'先讀出終點與起點的毫米數，再用終點減起點。'};return JSON.stringify(q)===JSON.stringify(legacy)?updated:q});s={...s,questions};}
+  if(!valid(s))return create('mixed',Math.random,true);const restored=JSON.parse(JSON.stringify(s));if(restored.mode==='offset'&&restored.guide.step===2)restored.guide.step=3;return restored
+}
 function ruler(q){return Array.from({length:q.max+1},(_,mm)=>({mm,x:40+600*mm/q.max,long:mm%10===0,mid:mm%5===0,label:mm%10===0?String(mm/10):''}))}
 const api={modes,question,create,current,ready,pickMark,countGap,markChoices,enter,erase,clear,hint,check,next,valid,restore,ruler};if(typeof module!=='undefined')module.exports=api;else root.LengthPractice=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
