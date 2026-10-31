@@ -2,6 +2,7 @@
 const E=LengthPractice,$=id=>document.getElementById(id),KEY='small3-length-practice-v1',SOUND='small3-length-sound';
 let state=E.create('mixed',Math.random,true),selected=0,pending=null,enabled=true,storageFailed=false,badFields=[];
 try{state=E.restore(JSON.parse(localStorage.getItem(KEY)));enabled=localStorage.getItem(SOUND)!=='off'}catch{}
+const isTest=()=>state.mode==='offset-test';
 let audio=MultiplyAudio.create();
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch{storageFailed=true}$('saveNote').textContent=storageFailed?'目前無法保存，仍可繼續練習。':'進度會自動保存。'}
 function feedback(text,kind=''){$('feedback').textContent=text;$('helper').className='helper '+kind}
@@ -11,7 +12,7 @@ function verdict(kind,detail){$('question').dataset.feedback=kind;$('answerFeedb
 function inputs(){return [...$('answers').querySelectorAll('input')]}
 function focus(){inputs()[selected]?.focus({preventScroll:true})}
 function soundButton(){$('sound').textContent=enabled?'🔊 音效':'🔇 靜音';$('sound').setAttribute('aria-pressed',String(enabled));$('sound').setAttribute('aria-label',enabled?'關閉音效':'開啟音效')}
-function sync(){renderGuide();inputs().forEach((input,i)=>{input.value=state.values[i]||'';input.disabled=state.solved||state.finished||!E.ready(state);input.classList.toggle('selected',selected===i&&!state.solved);input.classList.toggle('correct',state.solved);input.classList.toggle('wrong',badFields.includes(i));input.setAttribute('aria-invalid',String(badFields.includes(i)))});for(const button of $('keypad').querySelectorAll('button'))button.disabled=state.solved||state.finished||!E.ready(state);$('hint').disabled=state.solved||state.finished;save()}
+function sync(){renderGuide();renderTest();renderAnswerLights();inputs().forEach((input,i)=>{input.value=state.values[i]||'';input.disabled=state.solved||state.finished||!E.ready(state);input.classList.toggle('selected',selected===i&&!state.solved);input.classList.toggle('correct',state.solved);input.classList.toggle('wrong',badFields.includes(i));input.setAttribute('aria-invalid',String(badFields.includes(i)))});for(const button of $('keypad').querySelectorAll('button'))button.disabled=state.solved||state.finished||!E.ready(state);$('hint').disabled=state.solved||state.finished||isTest();save()}
 function put(digit){if(E.enter(state,selected,digit)){clearVerdict();feedback('填好答案後，按「確認答案」檢查。');sync();focus()}}
 function erase(){if(E.erase(state,selected)){clearVerdict();feedback('可以重新填這一格。');sync();focus()}}
 function clear(){if(E.clear(state)){clearVerdict();selected=0;feedback('重新想一想，再填入答案。');sync();focus()}}
@@ -24,7 +25,7 @@ function drawRuler(q){
   ruler.append(svg('text',{x:645,y:152,fill:'#79542f','font-size':15},'公分'));
   for(const mm of [q.start,q.end]){const x=40+600*mm/q.max;ruler.append(svg('line',{x1:x,x2:x,y1:1,y2:108,stroke:state.mode==='offset'?(mm===q.start?'#237ead':'#c86d25'):'#64abe0','stroke-width':state.mode==='offset'?3:2,'stroke-dasharray':'5 4'}))}
   $('eraser').style.left=((40+600*q.start/q.max)/680*100)+'%';$('eraser').style.width=((600*q.total/q.max)/680*100)+'%';
-  $('scale').setAttribute('aria-label',`尺規從 0 到 ${q.max/10} 公分，每小格 1 毫米；橡皮擦起點 ${q.start} 毫米，終點 ${q.end} 毫米。`);
+  $('scale').setAttribute('aria-label',isTest()?'尺規與待測量的橡皮擦。請自行判讀兩端的位置與物品長度。':`尺規從 0 到 ${q.max/10} 公分，每小格 1 毫米；橡皮擦起點 ${q.start} 毫米，終點 ${q.end} 毫米。`);
 }
 function updateMeasurement(){const visible=!state.finished&&(state.mode!=='story'||state.solved);$('measurement').hidden=!visible;$('rulerVerification').hidden=!(visible&&state.mode==='story'&&state.solved);$('scaleNote').hidden=!visible;if(visible)drawRuler(E.current(state));else{$('ruler').replaceChildren();$('scale').setAttribute('aria-label','答對後顯示尺規驗證。');$('eraser').style.left='';$('eraser').style.width=''}}
 
@@ -36,23 +37,46 @@ function renderGuide(){
   $('guideEndpoints').textContent='起點：'+(g.step>0?q.start/divisor+' '+unit:'待找')+'　終點：'+(g.step>1?q.end/divisor+' '+unit:'待找');
   $('guideTitle').textContent=['① 左邊的起點在哪裡？','② 右邊的終點在哪裡？','③ 終點減起點，就是長度'][stage];
   $('guideMessage').textContent=g.step===0?'看左邊藍色虛線對著哪個刻度。':g.step===1?'看右邊橘色虛線；終點的位置還不是長度。':state.hinted?(unit==='公分'?'數距離提示：已亮起 '+g.counted/10+' 公分。每次亮起一個公分空格。':'數距離提示：已亮起 '+g.counted+' 毫米。先數 10 毫米的大段，再數 1 毫米的小格。'):'算算下面的減法，再填入長度。需要幫忙時，可以按「看提示」。';
-  const choices=E.markChoices(state).map(mm=>{const button=document.createElement('button');button.type='button';button.textContent=mm/divisor+' '+unit;button.onclick=()=>{const result=E.pickMark(state,mm);if(result.status==='wrong'){$('guideMessage').textContent=g.step===0?'再看看左邊的藍色虛線，這才是起點。':'再看看右邊的橘色虛線，這才是終點。';save();return;}updateMeasurement();sync();};return button;});$('guideChoices').replaceChildren(...choices);$('guideChoices').hidden=g.step>1;
+  const choices=E.markChoices(state).map(mm=>{const button=document.createElement('button');button.type='button';button.textContent=mm/divisor+' '+unit;button.onclick=()=>{const result=E.pickMark(state,mm);if(result.status==='wrong'){$('guideMessage').textContent=g.step===0?'再看看左邊的藍色虛線，這才是起點。':'再看看右邊的橘色虛線，這才是終點。';renderAnswerLights();save();return;}updateMeasurement();sync();};return button;});$('guideChoices').replaceChildren(...choices);$('guideChoices').hidden=g.step>1;
   $('countGap').hidden=!E.ready(state)||!state.hinted||state.solved||g.counted>=q.total;const amount=Math.min(10,q.total-g.counted);$('countGap').textContent=unit==='公分'?'再亮起 1 公分':'再亮起 '+amount+' 毫米';$('guideFormula').hidden=g.step<3;$('guideFormula').textContent=g.step===3?'終點 '+q.end/divisor+' − 起點 '+q.start/divisor+' ＝ □ '+unit:'';
   $('answers').hidden=g.step<3;$('check').disabled=!E.ready(state);if(!E.ready(state))$('check').textContent='先完成上方步驟';else if(!state.solved&&!badFields.length)$('check').textContent='✓ 確認答案';
 }
 $('countGap').onclick=()=>{if(E.countGap(state)){updateMeasurement();sync();}};
 
+
+
+function renderAnswerLights(){
+  const testing=isTest();$('answerTrack').hidden=testing&&!state.finished;if(testing&&!state.finished)return;
+  let green=0,red=0;const items=state.questions.map((q,index)=>{const result=state.results[index];let status='pending';if(testing){status=result.correct?'green':'red';}else if(result)status=result.attempts>0?'red':'green';else if(index===state.index&&state.attempts>0)status='red';
+    if(status==='green')green++;if(status==='red')red++;const item=document.createElement('li');item.textContent=String(index+1);item.dataset.status=status;item.setAttribute('aria-label','第 '+(index+1)+' 題，'+(status==='green'?(testing?'答對':'一次答對'):status==='red'?(testing?'答錯':'答錯過'):'未作答'));item.setAttribute('aria-current',index===state.index&&!state.finished?'step':'false');return item;});$('answerLights').replaceChildren(...items);
+  $('answerTrackSummary').textContent=testing?'答對 '+green+' 題｜答錯 '+red+' 題':'一次答對 '+green+' 題｜答錯過 '+red+' 題';
+}
+
+function renderTest(){
+  const testing=isTest();$('question').dataset.exam=String(testing);$('examNotice').hidden=!testing||state.finished;$('hint').hidden=testing;$('unitRule').hidden=testing;$('helper').hidden=testing;$('examPrevious').hidden=!testing||state.finished;$('examPrevious').disabled=state.index===0;
+  $('examReview').hidden=true;$('examReview').replaceChildren();if(!testing)return;
+  if(state.finished)return;
+  const answers=state.examAnswers.map((value,index)=>index===state.index?(state.values[0]||''):value),filled=answers.filter(Boolean).length;
+  $('examNotice').textContent='已填 '+filled+'／10 題｜交卷後公布成績';
+  $('check').textContent=state.index===9?'交卷看成績':'下一題 →';
+}
+function renderTestResult(){
+  const score=E.testScore(state);$('questionTitle').textContent='非零起點測驗｜成績';$('prompt').textContent='已交卷，來看看這次的結果。';$('resultStars').textContent=score>=80?'★ ★ ★':score>=50?'★ ★ ☆':'★ ☆ ☆';$('resultSummary').textContent=score+' 分 · 答對 '+score/10+'／10 題';$('replay').textContent='再測驗 10 題';$('examReview').hidden=false;
+  const cards=state.questions.map((q,index)=>{const row=document.createElement('article'),title=document.createElement('strong'),answer=document.createElement('p'),solution=document.createElement('p'),r=state.results[index],unit=q.units[0],divisor=unit==='公分'?10:1;row.className='exam-review-row '+(r.correct?'correct':'wrong');title.textContent=(r.correct?'✓ ':'✗ ')+'第 '+(index+1)+' 題';answer.textContent='你的答案：'+r.answer+' '+unit+'；正確答案：'+q.answers[0]+' '+unit;solution.textContent='終點 '+q.end/divisor+' '+unit+' − 起點 '+q.start/divisor+' '+unit+' ＝ '+q.answers[0]+' '+unit;row.append(title,answer,solution);return row;});$('examReview').replaceChildren(...cards);
+}
+$('examPrevious').onclick=()=>{if(E.goTestQuestion(state,state.index-1)){render();focus();}};
+
 function makeAnswers(q){$('answers').replaceChildren();q.units.forEach((unit,i)=>{const label=document.createElement('label'),input=document.createElement('input'),text=document.createElement('span');input.readOnly=true;input.inputMode='none';input.maxLength=3;input.autocomplete='off';input.dataset.index=String(i);input.setAttribute('aria-label',unit+'答案');input.addEventListener('focus',()=>{selected=i;sync()});input.addEventListener('keydown',event=>{if(/^\d$/.test(event.key)){event.preventDefault();put(event.key)}else if(event.key==='Backspace'||event.key==='Delete'){event.preventDefault();erase()}else if(event.key==='Enter'){event.preventDefault();check()}else if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();selected=Math.max(0,Math.min(q.units.length-1,selected+(event.key==='ArrowLeft'?-1:1)));focus()}});text.textContent=unit;const wrap=document.createElement('span'),mark=document.createElement('span');wrap.className='input-wrap';mark.className='answer-mark';mark.textContent='✓';mark.setAttribute('aria-hidden','true');wrap.append(input,mark);label.append(wrap,text);$('answers').append(label)})}
 function render(){
-  selected=0;clearVerdict();const q=E.current(state);$('mode').value=state.mode;$('questionTitle').textContent=state.mode==='offset'?'不是從 0 開始量':state.mode==='ruler'?'從 0 開始量':state.mode==='story'?'生活應用':'長度換算';$('progress').textContent=`第 ${state.index+1} 題 / 共 10 題`;$('prompt').textContent=q.prompt;
-  for(const id of ['measurement','answers','actions','helper','scaleNote'])$(id).hidden=false;$('result').hidden=true;updateMeasurement();makeAnswers(q);sync();$('check').textContent=state.solved?(state.index===9?'查看成果':'下一題 →'):!E.ready(state)?'先完成上方步驟':'✓ 確認答案';feedback(q.hint);if(state.solved)verdict('correct',explanation());
+  selected=0;clearVerdict();const q=E.current(state);$('mode').value=state.mode;$('questionTitle').textContent=isTest()?'不是從 0 開始｜測驗':state.mode==='offset'?'不是從 0 開始｜練習':state.mode==='ruler'?'從 0 開始量':state.mode==='story'?'生活應用':'長度換算';$('progress').textContent=`第 ${state.index+1} 題 / 共 10 題`;$('prompt').textContent=q.prompt;
+  for(const id of ['measurement','answers','actions','helper','scaleNote'])$(id).hidden=false;$('result').hidden=true;updateMeasurement();makeAnswers(q);sync();$('check').textContent=state.solved?(state.index===9?'查看成果':'下一題 →'):!E.ready(state)?'先完成上方步驟':'✓ 確認答案';feedback(q.hint);if(isTest()&&!state.finished){$('check').textContent=state.index===9?'交卷看成績':'下一題 →';$('replay').textContent='再測驗 10 題';}else $('replay').textContent='再練習 10 題';if(state.solved&&!isTest())verdict('correct',explanation());
   if(state.finished){clearVerdict();for(const id of ['measurement','answers','actions','scaleNote'])$(id).hidden=true;$('result').hidden=false;$('questionTitle').textContent='這一輪的練習成果';$('progress').textContent='10 / 10 題';$('prompt').textContent='完成 10 題，越來越熟練！';$('resultStars').textContent='★ ★ ★';$('resultSummary').textContent=`獨立首次答對 ${state.results.filter(r=>!r.hinted&&r.attempts===0).length} 題`;feedback('看提示、重試都能幫助學習，學會最重要。')}
-  save();
+  if(isTest()&&state.finished)renderTestResult();save();
 }
-function check(){if(state.finished)return;if(state.solved){audio.stop();E.next(state);render();return}const result=E.check(state);save();if(result.status==='guided'){feedback('先找起點、找終點，再用終點減起點算長度。');return}if(result.status==='incomplete'){badFields=E.current(state).answers.flatMap((_,i)=>!state.values[i]?[i]:[]);sync();verdict('incomplete','先填完標示的格子，再按確認。');return}if(result.status==='wrong'){if(enabled)audio.play('wrong');badFields=result.bad;sync();verdict('wrong',state.mode==='offset'?'長度要用終點減起點，不能直接填終點的數字喔。':'檢查公分和毫米喔。');return}if(result.status==='correct'){if(enabled)audio.play('correct');badFields=[];sync();updateMeasurement();verdict('correct',explanation());feedback(state.mode==='offset'?'起點可以不是 0，長度是兩端之間的距離。':'一步一步換算，學會最重要。');$('check').textContent=state.index===9?'查看成果':'下一題 →'}}
+function check(){if(state.finished)return;if(state.solved){audio.stop();E.next(state);render();return}const result=E.check(state);save();if(result.status==='recorded'||result.status==='submitted'){render();return}if(isTest()&&result.status==='incomplete'&&Number.isInteger(result.missing)){render();badFields=[0];sync();verdict('incomplete','第 '+(result.missing+1)+' 題還沒填，請填好再交卷。');return}if(result.status==='guided'){feedback('先找起點、找終點，再用終點減起點算長度。');return}if(result.status==='incomplete'){badFields=E.current(state).answers.flatMap((_,i)=>!state.values[i]?[i]:[]);sync();verdict('incomplete','先填完標示的格子，再按確認。');return}if(result.status==='wrong'){if(enabled)audio.play('wrong');badFields=result.bad;sync();verdict('wrong',state.mode==='offset'?'長度要用終點減起點，不能直接填終點的數字喔。':'檢查公分和毫米喔。');return}if(result.status==='correct'){if(enabled)audio.play('correct');badFields=[];sync();updateMeasurement();verdict('correct',explanation());feedback(state.mode==='offset'?'起點可以不是 0，長度是兩端之間的距離。':'一步一步換算，學會最重要。');$('check').textContent=state.index===9?'查看成果':'下一題 →'}}
 function start(mode){audio.stop();state=E.create(mode);render()}
 for(const mode of E.modes){const option=document.createElement('option');option.value=mode.id;option.textContent=mode.title;$('mode').append(option)}
-$('mode').onchange=()=>{const mode=$('mode').value;if(mode===state.mode)return;if(!state.finished&&(state.results.length||state.values.some(Boolean)||state.hinted||state.mode==='offset'&&(state.guide.step>0||state.attempts>0))){pending=mode;$('mode').value=state.mode;$('switchDialog').showModal()}else start(mode)};
+$('mode').onchange=()=>{const mode=$('mode').value;if(mode===state.mode)return;if(!state.finished&&(state.results.length||state.values.some(Boolean)||state.hinted||isTest()&&state.examAnswers.some(Boolean)||state.mode==='offset'&&(state.guide.step>0||state.attempts>0))){pending=mode;$('mode').value=state.mode;$('switchDialog').showModal()}else start(mode)};
 $('cancelSwitch').onclick=()=>{pending=null;$('switchDialog').close()};$('switchDialog').addEventListener('cancel',()=>{pending=null});$('confirmSwitch').onclick=()=>{const mode=pending;pending=null;$('switchDialog').close();if(mode)start(mode)};
 $('hint').onclick=()=>{const text=E.hint(state);if(text){feedback(text);if(state.mode==='offset'){updateMeasurement();sync();}else save()}};$('check').onclick=check;$('clear').onclick=clear;$('erase').onclick=erase;for(const button of $('keypad').querySelectorAll('[data-digit]'))button.onclick=()=>put(button.dataset.digit);
 $('sound').onclick=()=>{enabled=!enabled;audio.stop();soundButton();try{localStorage.setItem(SOUND,enabled?'on':'off')}catch{}};
