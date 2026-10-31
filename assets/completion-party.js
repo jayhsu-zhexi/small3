@@ -2,6 +2,8 @@
 function create(env=root){
   let dialog=null,clip=null,animations=[],timer=null,previousFocus=null;
   const doc=env.document;
+  function prepareAudio(){try{if(!clip&&typeof env.Audio==='function'){clip=new env.Audio('/assets/length-complete-h-v1.wav');clip.preload='auto';clip.volume=.85;}}catch{}}
+  prepareAudio();
   function stopSound(){if(clip)try{clip.pause();clip.currentTime=0}catch{}}
   function close(){if(timer!==null){env.clearTimeout(timer);timer=null;}animations.forEach(a=>{try{a.cancel()}catch{}});animations=[];stopSound();if(dialog?.open){dialog.close();(doc.querySelector?.('#replay, #anotherRound')||previousFocus)?.focus?.({preventScroll:true});}}
   function animate(el,frames,options){if(typeof el.animate==='function')animations.push(el.animate(frames,options));}
@@ -32,9 +34,8 @@ function create(env=root){
       if(reduced){animate(particle,[{opacity:0,transform:`translate(${clamp(x)}px,${y*.6}px)`},{opacity:.8},{opacity:0}],{duration:1300,delay:950,fill:'both'});return;}
       animate(particle,[{opacity:0,transform:'translate(64px,26px) rotate(0deg)',offset:0},{opacity:1,offset:.03},{opacity:1,transform:`translate(${clamp(x)}px,${y}px) rotate(${turn*.4}deg)`,offset:.36},{opacity:.85,offset:.8},{opacity:0,transform:`translate(${clamp(x+drift)}px,${h*.6}px) rotate(${turn}deg)`,offset:1}],{duration:2400+(i%5)*100,delay:950+(i%6)*18,easing:'cubic-bezier(.18,.55,.5,1)',fill:'both'});
     });
-    // Start the audio directly in the answer gesture; the file includes the
-    // short lead-in before the party pop so iPad playback stays permitted.
-    if(options.sound!==false)try{if(!clip){clip=new env.Audio('/assets/completion-party-h-v1.wav');clip.preload='auto';clip.volume=.85;}const playing=clip.play();if(playing?.catch)playing.catch(()=>{});}catch{}
+    // Preload the music and start it in the same gesture as the bear overlay.
+    if(options.sound!==false)try{prepareAudio();const playing=clip.play();if(playing?.catch)playing.catch(()=>{});}catch{}
     timer=env.setTimeout(close,5100);
   }
   return {show,close,stopSound,dispose(){close();dialog?.remove();dialog=null;clip=null;}};
