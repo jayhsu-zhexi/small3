@@ -30,3 +30,5 @@
 @media(min-width:950px){.workshop[data-guide-selecting=true] .question .measurement{max-width:640px}.question[data-guide-selecting=true] .endpoint-options{grid-template-columns:repeat(4,minmax(0,1fr))}.question[data-guide-selecting=true] .endpoint-status{min-height:1.45em;margin:5px 0}.question[data-guide-selecting=true] .endpoint-card{padding:10px}.question[data-guide-selecting=true] .endpoint-options button{min-height:46px}.question[data-guide-selecting=true] .question-body{justify-content:space-between;gap:5px}.question[data-guide-selecting=true] .guide-message{margin:4px 0 8px}}
 
 .question[data-guide-selecting=true] .guide-practice>h4{display:none}
+
+.guide-practice[data-hinted=true] .guide-message{display:block!important;background:#fff1bf;border:1px solid #e8c66d;border-radius:11px;padding:8px 10px;color:#745023;font-weight:800;line-height:1.5}.endpoint-hint{stroke-width:5;animation:endpoint-hint-pulse .8s ease-in-out 2}@keyframes endpoint-hint-pulse{0%,100%{stroke-opacity:1}50%{stroke-opacity:.35}}@media(prefers-reduced-motion:reduce){.endpoint-hint{animation:none}}
