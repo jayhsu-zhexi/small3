@@ -78,3 +78,9 @@
 @media(max-width:600px){.mode-controls{gap:5px}.fullscreen-button{padding:3px 7px;border-radius:12px}.fullscreen-button #fullscreenLabel{display:none}.mode-controls .mode-bar{gap:6px}}
 :root:fullscreen,:root:-webkit-full-screen{background:#fff9ee}
 @supports(height:100dvh){@media(max-width:600px),(min-width:950px){.workshop{height:100dvh}}}
+
+/* A bounded keypad stays comfortable when fullscreen adds vertical space. */
+@media(min-width:950px){
+  .keypad-panel .panel-head{flex:none}
+  .keypad{flex:0 1 auto;align-self:center;width:100%;max-width:290px;aspect-ratio:3/4;max-height:calc(100% - 64px);margin-block:auto;grid-template-rows:repeat(4,minmax(0,1fr))}
+}
