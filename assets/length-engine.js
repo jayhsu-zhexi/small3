@@ -1,6 +1,22 @@
 (function(root){'use strict';
 const modes=[{id:'ruler',title:'認識刻度｜從 0 開始'},{id:'offset',title:'不是從 0 開始｜練習'},{id:'offset-test',title:'不是從 0 開始｜測驗'},{id:'convert',title:'公分毫米換算'},{id:'mixed',title:'公分與毫米合併'},{id:'story',title:'生活應用'}];
+const storyPairs=[];
+for(let left=10;left<=30;left++)for(let right=1;right<=30;right++){if(left+right<=30)storyPairs.push({operation:'+',left,right});if(right<left)storyPairs.push({operation:'−',left,right});}
+const questionKey=q=>q.operation?q.type+':'+q.left+':'+q.right:q.type+':'+q.start+':'+q.total;
 function question(mode,n){
+  if(mode==='story'&&n>=99){
+    const {operation,left,right}=storyPairs[n-99],answer=operation==='+'?left+right:left-right,add=operation==='+';
+    const prompt=add?[
+      `一條緞帶長 ${left} 公分，另一條長 ${right} 公分，接起來共長幾公分？`,
+      `積木排成 ${left} 公分，再接上 ${right} 公分，現在共長幾公分？`,
+      `一支鉛筆長 ${left} 公分，另一支長 ${right} 公分，兩支合起來長幾公分？`
+    ][n%3]:[
+      `緞帶原本長 ${left} 公分，剪掉 ${right} 公分，還剩幾公分？`,
+      `繩子長 ${left} 公分，用掉 ${right} 公分，還剩幾公分？`,
+      `紙條長 ${left} 公分，剪下 ${right} 公分，剩下的長幾公分？`
+    ][n%3];
+    return {id:mode+'-'+n,mode,n,type:add?'story-add':'story-subtract',total:answer*10,start:0,end:answer*10,max:Math.max(40,answer*10),prompt,units:['公分'],answers:[answer],hint:add?'把兩段長度加起來。先算個位，再算十位；個位滿 10 記得進位。':'從原本長度減掉剪掉或用掉的長度。先算個位，不夠減時，向十位借 1 個十。',operation,left,right};
+  }
   let total,start=0,type,prompt,units,answers,hint;
   if(mode==='ruler'){
     start=0;total=11+n%69;type='read';units=['毫米'];answers=[total];
@@ -28,10 +44,10 @@ function question(mode,n){
 }
 function create(mode='mixed',random=Math.random,sample=false){
   if(!modes.some(m=>m.id===mode))mode='mixed';
-  const count=mode==='convert'?18:mode==='ruler'?69:['offset','offset-test'].includes(mode)?60:99,pool=Array.from({length:count},(_,i)=>i);
+  const count=mode==='convert'?18:mode==='ruler'?69:['offset','offset-test'].includes(mode)?60:mode==='story'?99+storyPairs.length:99,pool=Array.from({length:count},(_,i)=>i);
   for(let i=pool.length-1;i>0;i--){const j=Math.min(i,Math.max(0,Math.floor(random()*(i+1))));[pool[i],pool[j]]=[pool[j],pool[i]]}
   // The approved 3 cm 6 mm sample is a join question (n=134); use its canonical ID.
-  const chosen=['offset','offset-test'].includes(mode)?[...pool.filter(n=>n<30).slice(0,5),...pool.filter(n=>n>=30).slice(0,5)]:pool.slice(0,10);if(mode==='offset-test')for(let i=chosen.length-1;i>0;i--){const j=Math.min(i,Math.max(0,Math.floor(random()*(i+1))));[chosen[i],chosen[j]]=[chosen[j],chosen[i]]}if(mode==='mixed'&&sample){const at=chosen.indexOf(35);if(at>=0)chosen.splice(at,1);else chosen.pop();chosen.unshift(134)}
+  const chosen=mode==='story'?[...pool.filter(n=>n<30).slice(0,4),...pool.filter(n=>n>=99&&storyPairs[n-99].operation==='+').slice(0,3),...pool.filter(n=>n>=99&&storyPairs[n-99].operation==='−').slice(0,3)]:['offset','offset-test'].includes(mode)?[...pool.filter(n=>n<30).slice(0,5),...pool.filter(n=>n>=30).slice(0,5)]:pool.slice(0,10);if(mode==='offset-test'||mode==='story')for(let i=chosen.length-1;i>0;i--){const j=Math.min(i,Math.max(0,Math.floor(random()*(i+1))));[chosen[i],chosen[j]]=[chosen[j],chosen[i]]}if(mode==='mixed'&&sample){const at=chosen.indexOf(35);if(at>=0)chosen.splice(at,1);else chosen.pop();chosen.unshift(134)}
   const state={version:1,mode,questions:chosen.map(n=>question(mode,n)),index:0,values:[],hinted:false,attempts:0,solved:false,finished:false,results:[]};if(mode==='offset')state.guide={step:0,counted:0,endpoints:{start:false,end:false}};if(mode==='offset-test'){state.examAnswers=Array(10).fill('');state.examNotes=Array.from({length:10},()=>({start:'',end:''}));state.examScaffold=false;state.examImmediate=true;state.examRetry=true;state.examFreshInputs=true;}return state;
 }
 const current=s=>s.questions[s.index];
@@ -45,14 +61,14 @@ function markChoices(s,endpoint){if(s.mode!=='offset'||s.guide.step>1)return [];
 function enter(s,index,digit){if(s.solved||s.finished||!ready(s)||!Number.isInteger(index)||index<0||index>=current(s).answers.length||!/^\d$/.test(String(digit))||(s.values[index]||'').length>=3)return false;while(s.values.length<current(s).answers.length)s.values.push('');s.values[index]=(s.values[index]||'')+digit;return true}
 function erase(s,index){if(s.solved||s.finished||index<0||index>=current(s).answers.length)return false;s.values[index]=(s.values[index]||'').slice(0,-1);return true}
 function clear(s){if(s.solved||s.finished)return false;s.values=[];return true}
-function hint(s){if(s.solved||s.finished)return '';s.hinted=true;if(s.mode==='offset-test'){s.examScaffold=true;return '終點減起點，就是長度；請自己讀取刻度並計算。';}const q=current(s),cm=Math.floor(q.total/10),mm=q.total%10;return q.type==='guided'?s.guide.step===0?'看橡皮擦的左端。起點不一定是 0，先找到左邊虛線對著哪個刻度。':s.guide.step===1?'看橡皮擦的右端。這是終點的位置，還不是橡皮擦的長度。':'先把終點和起點都換成題目要求的單位，再用終點減起點。答對後可以按「驗證」查看長度。':q.type==='read'?`終點讀作 ${q.end} 毫米，起點讀作 ${q.start} 毫米；用終點減起點。`:q.type==='mm-cm'?`${q.total} 毫米裡每 10 毫米是一組，數一數共有幾組。`:q.type==='cm-mm'?`${cm} 公分有 ${cm} 個 10 毫米，把它們加起來。`:q.type==='split'?`${q.total} 毫米中，每 10 毫米先圈成一組，剩下的不足 10 毫米另外填。`:`${cm} 公分先換成 ${cm*10} 毫米，再加上 ${mm} 毫米。`}
+function hint(s){if(s.solved||s.finished)return '';s.hinted=true;if(s.mode==='offset-test'){s.examScaffold=true;return '終點減起點，就是長度；請自己讀取刻度並計算。';}const q=current(s),cm=Math.floor(q.total/10),mm=q.total%10;if(q.operation)return q.hint;return q.type==='guided'?s.guide.step===0?'看橡皮擦的左端。起點不一定是 0，先找到左邊虛線對著哪個刻度。':s.guide.step===1?'看橡皮擦的右端。這是終點的位置，還不是橡皮擦的長度。':'先把終點和起點都換成題目要求的單位，再用終點減起點。答對後可以按「驗證」查看長度。':q.type==='read'?`終點讀作 ${q.end} 毫米，起點讀作 ${q.start} 毫米；用終點減起點。`:q.type==='mm-cm'?`${q.total} 毫米裡每 10 毫米是一組，數一數共有幾組。`:q.type==='cm-mm'?`${cm} 公分有 ${cm} 個 10 毫米，把它們加起來。`:q.type==='split'?`${q.total} 毫米中，每 10 毫米先圈成一組，剩下的不足 10 毫米另外填。`:`${cm} 公分先換成 ${cm*10} 毫米，再加上 ${mm} 毫米。`}
 function check(s){if(s.solved||s.finished)return {status:'locked'};if(!ready(s))return {status:'guided'};const q=current(s);if(q.answers.some((_,i)=>!/^\d{1,3}$/.test(s.values[i]||'')))return {status:'incomplete'};if(s.mode==='offset-test'){const answer=s.values[0];if(s.attempts===0)s.examAnswers[s.index]=answer;if(Number(answer)!==q.answers[0]){s.attempts++;return {status:'wrong',bad:[0]}}s.solved=true;s.results.push({id:q.id,answer:s.examAnswers[s.index],correct:s.attempts===0,hinted:s.hinted,attempts:s.attempts});return {status:'correct'}}const bad=q.answers.flatMap((answer,i)=>Number(s.values[i])!==answer?[i]:[]);if(bad.length){s.attempts++;return {status:'wrong',bad}}s.solved=true;s.results.push({id:q.id,hinted:s.hinted,attempts:s.attempts});return {status:'correct'}}
 function next(s){if(!s.solved||s.finished)return false;if(s.index===9){s.finished=true;return true}s.index++;s.values=[];s.hinted=false;s.attempts=0;s.solved=false;if(s.mode==='offset-test'){s.examAnswers[s.index]='';s.examScaffold=false;if(s.examNotes)s.examNotes[s.index]={start:'',end:''};}if(s.mode==='offset')s.guide={step:0,counted:0,endpoints:{start:false,end:false}};return true}
 function valid(s){
   if(!s||s.version!==1||!modes.some(m=>m.id===s.mode)||!Array.isArray(s.questions)||s.questions.length!==10||!Number.isInteger(s.index)||s.index<0||s.index>9||!Array.isArray(s.values)||typeof s.hinted!=='boolean'||typeof s.solved!=='boolean'||typeof s.finished!=='boolean'||!Number.isInteger(s.attempts)||s.attempts<0||!Array.isArray(s.results))return false;
-  if(s.questions.some(q=>!q||q.mode!==s.mode||!Number.isInteger(q.n)||q.n<0||q.n>=(s.mode==='convert'?18:s.mode==='ruler'?69:['offset','offset-test'].includes(s.mode)?60:99)&&!(s.mode==='mixed'&&q.n===134)||JSON.stringify(q)!==JSON.stringify(question(s.mode,q.n))))return false;
+  if(s.questions.some(q=>!q||q.mode!==s.mode||!Number.isInteger(q.n)||q.n<0||q.n>=(s.mode==='convert'?18:s.mode==='ruler'?69:['offset','offset-test'].includes(s.mode)?60:s.mode==='story'?99+storyPairs.length:99)&&!(s.mode==='mixed'&&q.n===134)||JSON.stringify(q)!==JSON.stringify(question(s.mode,q.n))))return false;
   if(s.mode==='offset'){const g=s.guide,q=current(s);if(!g||!Number.isInteger(g.step)||g.step<0||g.step>3||!Number.isInteger(g.counted)||g.counted<0||g.counted>q.total||g.step<2&&g.counted!==0||g.counted<Math.floor(q.total/10)*10&&g.counted%10!==0||g.step===2&&g.counted>=q.total||g.step<3&&(s.solved||s.finished||s.values.some(Boolean)))return false;if(s.questions.some((q,i)=>(q.n<30)!==(i<5)))return false;if(g.endpoints&&(typeof g.endpoints.start!=='boolean'||typeof g.endpoints.end!=='boolean'||g.step!==(g.endpoints.start?(g.endpoints.end?3:1):0)))return false;}
-  if(new Set(s.questions.map(q=>q.type+':'+q.start+':'+q.total)).size!==10||s.values.length>current(s).answers.length||Object.keys(s.values).some(k=>!/^\d$/.test(k)||!/^\d{0,3}$/.test(s.values[k])||typeof s.values[k]!=='string'))return false;
+  if(new Set(s.questions.map(questionKey)).size!==10||s.values.length>current(s).answers.length||Object.keys(s.values).some(k=>!/^\d$/.test(k)||!/^\d{0,3}$/.test(s.values[k])||typeof s.values[k]!=='string'))return false;
   if(s.mode==='offset-test'){
     if(s.examScaffold!==undefined&&(typeof s.examScaffold!=='boolean'||s.examScaffold&&!s.hinted))return false;
     if(s.examNotes!==undefined&&(!Array.isArray(s.examNotes)||s.examNotes.length!==10||!Array.from(s.examNotes).every(note=>note&&['start','end'].every(key=>typeof note[key]==='string'&&/^\d{0,3}$/.test(note[key])))))return false;

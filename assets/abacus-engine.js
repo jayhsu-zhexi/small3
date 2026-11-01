@@ -6,13 +6,14 @@
  function move(s,col,bead){if(!Number.isInteger(col)||col<0||col>=s.digits.length||!Number.isInteger(bead)||bead<0||bead>4)return;const upper=s.digits[col]>=5,lower=s.digits[col]%5;s.digits[col]=bead===0?(upper?0:5)+lower:(upper?5:0)+(bead<=lower?bead-1:bead);s.result=null;}
  function clear(s){s.digits.fill(0);s.result=null;}
  function parse(input,s){const str=String(input).trim();if(!/^\d{1,7}(?:\.\d{1,2})?$/.test(str)||Number(str)>s.max||(s.scale===1&&str.includes('.')))throw Error('請輸入 0～'+s.max.toLocaleString('en-US')+(s.scale===100?'，最多兩位小數。':' 的整數。'));return Number(str);}
- function setProblem(s,a,op,b){a=parse(a,s);b=parse(b,s);if(op!=='+'&&op!=='-')throw Error('請選擇加法或減法。');const cents=Math.round(a*100)+(op==='+'?1:-1)*Math.round(b*100),answer=cents/100;if(answer<0)throw Error('減法的第一個數字要大於或等於第二個數字。');if(answer>s.max)throw Error('答案超過目前算盤的範圍，請換小一點的數字。');s.problem={a,b,op,answer};clear(s);}
+ function setProblem(s,a,op,b){a=parse(a,s);b=parse(b,s);if(!['+','-','*'].includes(op))throw Error('請選擇加法、減法或乘法。');let cents;if(op==='*'){const product=BigInt(Math.round(a*100))*BigInt(Math.round(b*100));if(product%100n)throw Error('乘法答案最多只能有兩位小數，請調整數字。');if(product/100n>BigInt(Math.round(s.max*100)))throw Error('答案超過目前算盤的範圍，請換小一點的數字。');cents=Number(product/100n);}else cents=Math.round(a*100)+(op==='+'?1:-1)*Math.round(b*100);const answer=cents/100;if(answer<0)throw Error('減法的第一個數字要大於或等於第二個數字。');if(answer>s.max)throw Error('答案超過目前算盤的範圍，請換小一點的數字。');s.problem={a,b,op,answer};clear(s);}
  function check(s){if(!s.problem)return null;s.result=value(s)===s.problem.answer;return s.result;}
  function free(s){s.problem=null;s.result=null;}
  function randomProblem(s,limit=100,operation='mixed',random=Math.random){
-  if(![10,20,100,1000,99999,9999999].includes(limit)||limit>s.max||!['+','-','mixed'].includes(operation))throw Error('請選擇有效的出題範圍與運算。');
+  if(![10,20,100,1000,99999,9999999].includes(limit)||limit>s.max||!['+','-','*','mixed'].includes(operation))throw Error('請選擇有效的出題範圍與運算。');
   const pick=max=>Math.floor(Math.max(0,Math.min(.999999999,random()))*(max+1));
   const op=operation==='mixed'?(pick(1)?'+':'-'):operation;
+  if(op==='*'){let a=2+pick(Math.floor(limit/2)-2),b=2+pick(Math.floor(limit/a)-2);if(s.problem&&s.problem.a===a&&s.problem.b===b&&s.problem.op==='*'){if(b<Math.floor(limit/a))b++;else if(a>2)a--;else b=3;}setProblem(s,a,'*',b);return;}
   // Both operands are positive; subtraction also keeps a strictly positive answer.
   let total=2+pick(limit-2);
   let a=op==='+'?1+pick(total-2):total,b=op==='+'?total-a:1+pick(total-2);
@@ -21,15 +22,16 @@
   setProblem(s,a,op,b);
  }
  function setSequence(s,numbers,ops){
-  if(!Array.isArray(numbers)||numbers.length<2||numbers.length>5||!Array.isArray(ops)||ops.length!==numbers.length-1)throw Error('請選擇 2～5 口，並填入每個數字及加減符號。');
-  const terms=numbers.map((input,index)=>{const n=parse(input,s);if(n===0)throw Error('第 '+(index+1)+' 口必須大於 0，請輸入目前算盤範圍內的正數。');return n;});let answer=Math.round(terms[0]*100);
+  if(!Array.isArray(numbers)||numbers.length<2||numbers.length>5||!Array.isArray(ops)||ops.length!==numbers.length-1)throw Error('請選擇 2～5 口，並填入每個數字及運算符號。');
+  const terms=numbers.map((input,index)=>{const n=parse(input,s);if(n===0)throw Error('第 '+(index+1)+' 口必須大於 0，請輸入目前算盤範圍內的正數。');return n;});if(ops.includes('*')){if(terms.length!==2||ops.length!==1)throw Error('乘法請使用 2 個數字，暫不混合加減或連乘。');setProblem(s,terms[0],'*',terms[1]);s.problem.terms=terms;s.problem.ops=['*'];return;}let answer=Math.round(terms[0]*100);
   ops.forEach((op,i)=>{if(op!=='+'&&op!=='-')throw Error('請選擇加法或減法。');answer+=(op==='+'?1:-1)*Math.round(terms[i+1]*100);if(answer<0||answer>Math.round(s.max*100))throw Error('第 '+(i+2)+' 口算完超過目前算盤範圍，請調整題目。');});
   if(answer<=0)throw Error('答案必須大於 0，請調整數字或加減符號後再開始練習。');
   s.problem={a:terms[0],b:terms[1],op:ops[0],terms,ops:ops.slice(),answer:answer/100};clear(s);
  }
  function randomSequence(s,limit=100,operation='mixed',count=2,random=Math.random){
   if(!Number.isInteger(count)||count<2||count>5)throw Error('請選擇 2～5 口。');
-  if(![10,20,100,1000,99999,9999999].includes(limit)||limit>s.max||!['+','-','mixed'].includes(operation))throw Error('請選擇有效的出題範圍與運算。');
+  if(![10,20,100,1000,99999,9999999].includes(limit)||limit>s.max||!['+','-','*','mixed'].includes(operation))throw Error('請選擇有效的出題範圍與運算。');
+  if(operation==='*'&&count!==2)throw Error('乘法請選擇 2 個數字。');
   if(count===2){randomProblem(s,limit,operation,random);return;}
   const previous=s.problem,signature=p=>JSON.stringify([p.terms||[p.a,p.b],p.ops||[p.op]]),pick=(lo,hi)=>lo+Math.floor(Math.max(0,Math.min(.999999999,random()))*(hi-lo+1));
   for(let attempt=0;attempt<8;attempt++){
