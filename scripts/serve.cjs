@@ -1,17 +1,22 @@
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
-function createServer(root = path.resolve(__dirname, '..')) {
+function createServer(root = path.resolve(__dirname, '..'), options = {}) {
+  const admin = require('../server/admin.cjs');
+  let adminHandler;
+  function getAdminHandler(){return adminHandler ||= admin.createHandler({store:options.adminStore || admin.fileStore(path.resolve(__dirname,'../.local-admin')),now:options.now});}
   const types={'.mp3':'audio/mpeg','.wav':'audio/wav','.txt':'text/plain; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.webp':'image/webp','.svg':'image/svg+xml','.html':'text/html; charset=utf-8'};
   const publicFiles = new Map(require('./build.cjs').files.map(file=>['/'+file,[file,types[path.extname(file)]]]));
   publicFiles.set('/board',['board.html',types['.html']]);
   publicFiles.set('/board/',['board.html',types['.html']]);
   publicFiles.set('/detective',['detective.html',types['.html']]);
   publicFiles.set('/detective/',['detective.html',types['.html']]);
-  for(const route of ['length','multiply','blocks','geography','vocabulary','abacus','parcels','crossing','memory','pinball','vault','survival','kart']){publicFiles.set('/'+route,[route+'.html',types['.html']]);publicFiles.set('/'+route+'/',[route+'.html',types['.html']]);}
+  for(const route of ['admin','length','multiply','blocks','geography','vocabulary','abacus','parcels','crossing','memory','pinball','vault','survival','kart']){publicFiles.set('/'+route,[route+'.html',types['.html']]);publicFiles.set('/'+route+'/',[route+'.html',types['.html']]);}
   return http.createServer((req, res) => {
-    if (!['GET', 'HEAD'].includes(req.method)) { res.writeHead(405).end(); return; }
     const pathname = new URL(req.url, 'http://localhost').pathname;
+    if(pathname==='/api/site')return getAdminHandler()(req,res);
+    if(pathname.startsWith('/api/')){res.writeHead(404).end();return;}
+    if (!['GET', 'HEAD'].includes(req.method)) { res.writeHead(405).end(); return; }
     if (pathname.startsWith('/assets/') && !publicFiles.has(pathname)) { res.writeHead(404).end(); return; }
     const [file, type] = publicFiles.get(pathname) || ['index.html', 'text/html; charset=utf-8'];
     try {

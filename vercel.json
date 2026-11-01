@@ -5,14 +5,46 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/length", "destination": "/length.html" },
-    { "source": "/length/", "destination": "/length.html" },
-    { "source": "/multiply", "destination": "/multiply.html" },
-    { "source": "/multiply/", "destination": "/multiply.html" },
-    { "source": "/blocks", "destination": "/blocks.html" },
-    { "source": "/blocks/", "destination": "/blocks.html" },
-    { "source": "/geography", "destination": "/geography.html" },
-    { "source": "/geography/", "destination": "/geography.html" },
+    {
+      "source": "/admin",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/admin/",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/length",
+      "destination": "/length.html"
+    },
+    {
+      "source": "/length/",
+      "destination": "/length.html"
+    },
+    {
+      "source": "/multiply",
+      "destination": "/multiply.html"
+    },
+    {
+      "source": "/multiply/",
+      "destination": "/multiply.html"
+    },
+    {
+      "source": "/blocks",
+      "destination": "/blocks.html"
+    },
+    {
+      "source": "/blocks/",
+      "destination": "/blocks.html"
+    },
+    {
+      "source": "/geography",
+      "destination": "/geography.html"
+    },
+    {
+      "source": "/geography/",
+      "destination": "/geography.html"
+    },
     {
       "source": "/vocabulary",
       "destination": "/vocabulary.html"
@@ -122,8 +154,14 @@
       "destination": "/board.html"
     },
     {
-      "source": "/((?!assets/|(?:length|multiply|blocks|geography|vocabulary|abacus|board|detective|parcels|crossing|memory|pinball|vault|survival|kart)(?:/|$|\\.html$)).*)",
+      "source": "/((?!api/|assets/|(?:admin|length|multiply|blocks|geography|vocabulary|abacus|board|detective|parcels|crossing|memory|pinball|vault|survival|kart)(?:/|$|\\.html$)).*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "functions": {
+    "api/site.js": {
+      "includeFiles": "assets/site-settings.js",
+      "maxDuration": 15
+    }
+  }
 }
