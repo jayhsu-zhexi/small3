@@ -50,3 +50,31 @@
   .mode-bar{padding:5px 14px;font-size:1rem}.mode-bar select{padding:5px 10px;font-size:1rem}
   .save-note{display:none}
 }
+
+/* Keep navigation outside the independently scrollable question content. */
+.toolbar{display:contents}
+.mode-controls{display:flex;align-items:stretch;gap:8px;grid-column:1/-1;min-width:0}
+.mode-controls .mode-bar{flex:1;min-width:0}
+.fullscreen-button{display:flex;align-items:center;justify-content:center;gap:5px;flex:none;padding:6px 12px;border:2px solid #8ed4fa;background:linear-gradient(#e8f8ff,#c9edff);border-radius:15px;color:#345474;font-size:.95rem}
+.fullscreen-button>span:first-child{font-size:1.4rem}.fullscreen-button[aria-pressed=true]{background:#def3de;border-color:#83c99b}
+.fullscreen-button:focus-visible{outline:3px solid #328dce;outline-offset:2px}
+.question{display:flex;flex-direction:column;min-height:0}
+.question-body{min-height:0;flex:1;overflow:auto;overscroll-behavior:contain}
+#question>.actions{position:static;flex:none;width:100%;padding:9px 12px 12px;margin:0;border-top:1px solid #d9edf5;background:#f3fbff}
+@media(max-width:600px){#question>.actions{padding:6px 8px 8px}}
+@media(min-width:950px) and (max-height:900px){
+  .workshop{min-height:480px;padding:8px 12px;gap:8px;grid-template-rows:48px minmax(0,1fr);grid-template-columns:minmax(0,1fr) 270px}
+  .toolbar{display:flex;align-items:center;gap:16px;grid-column:1/-1;min-width:0}
+  .toolbar .top{flex:1;min-width:0;min-height:0;height:48px;padding:0 43px 0 70px;justify-content:flex-start}
+  .toolbar .top h1{font-size:1.25rem;letter-spacing:0}.toolbar .top h1 span,.toolbar .top p{display:none}
+  .toolbar .home{top:8px;left:0;font-size:.9rem;padding:6px 0}
+  .toolbar .stationery{right:0;bottom:4px;width:40px;height:40px}
+  .toolbar .mode-bar{flex:0 1 360px;min-width:0;gap:8px;padding:4px 8px;font-size:.85rem;border-width:2px;border-radius:14px;box-shadow:none}
+  .toolbar .mode-bar>span{white-space:nowrap}.toolbar .mode-bar select{font-size:.95rem;padding:6px;border-radius:10px}
+  .save-note{display:none}
+  .keypad-panel .panel-head h2{font-size:1.05rem}
+  .toolbar .mode-controls{flex:0 1 460px;gap:8px}.toolbar .mode-controls .mode-bar{flex:1}
+}
+@media(max-width:600px){.mode-controls{gap:5px}.fullscreen-button{padding:3px 7px;border-radius:12px}.fullscreen-button #fullscreenLabel{display:none}.mode-controls .mode-bar{gap:6px}}
+:root:fullscreen,:root:-webkit-full-screen{background:#fff9ee}
+@supports(height:100dvh){@media(max-width:600px),(min-width:950px){.workshop{height:100dvh}}}
