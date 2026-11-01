@@ -84,3 +84,21 @@
   .keypad-panel .panel-head{flex:none}
   .keypad{flex:0 1 auto;align-self:center;width:100%;max-width:290px;aspect-ratio:3/4;max-height:calc(100% - 64px);margin-block:auto;grid-template-rows:repeat(4,minmax(0,1fr))}
 }
+
+/* Portrait tablets also need an explicit, bounded page grid. */
+@media(min-width:601px) and (max-width:949px){
+  .workshop{height:100svh;height:100dvh;min-height:480px;max-width:900px;padding:8px;gap:8px;grid-template-columns:minmax(0,1fr);grid-template-rows:58px 48px minmax(0,1fr) 248px}
+  .top,.mode-controls{grid-column:1/-1}.top{min-height:0;padding:0 65px}.top h1{font-size:1.65rem}.top p{font-size:.8rem}.stationery{height:53px;width:58px}.home{top:8px;font-size:.95rem}
+  .mode-bar{padding:4px 10px;gap:10px;border-width:2px;border-radius:16px;font-size:1rem}.mode-bar select{font-size:1rem;padding:6px 8px}.fullscreen-button{font-size:.9rem}
+  .question{height:100%}.question .panel-head{padding:9px 11px}.question .panel-head h2{font-size:1.05rem}.question .panel-head>span{font-size:.74rem}
+  .question-body{padding:8px 10px;gap:7px;justify-content:space-between}.question-body>*{flex-shrink:0}.question h3{font-size:1.1rem;line-height:1.4}.measurement{max-width:520px;margin:0}.rule{font-size:.95rem;padding:5px 9px}
+  .answers{gap:10px}.answers label{font-size:1.1rem;gap:7px}.answers input{width:110px;height:48px;font-size:1.6rem}.answers label+label input,.answers:has(label+label) input{width:70px}
+  .actions button{min-height:42px;font-size:1rem}.answer-feedback{min-height:66px;padding:8px;gap:8px}.answer-feedback strong{font-size:1.15rem}.answer-feedback p{font-size:.82rem}.feedback-icon{height:36px;width:36px;font-size:1.6rem}
+  .helper{min-height:50px;padding:3px;gap:5px}.helper img{width:46px;height:46px}.helper p{font-size:.8rem;padding:5px}.scale-note{font-size:.65rem}
+  .keypad-panel{display:flex;flex-direction:column;min-height:0}.keypad-panel .panel-head{padding:6px 10px;min-height:36px;flex:none}.keypad-panel .panel-head h2{font-size:.95rem}.sound{font-size:.75rem;padding:5px}
+  .keypad{flex:1;min-height:0;align-self:center;width:100%;grid-template-rows:repeat(4,minmax(0,1fr));gap:5px;padding:5px 8px 8px}.keypad button{min-height:0;border-width:2px;border-radius:13px;font-size:1.6rem}.keypad .tool{font-size:1rem}
+  .guide-practice{padding:8px}.guide-practice h4{font-size:.9rem}.guide-message{font-size:.8rem}.guide-formula{font-size:.95rem;padding:6px}.save-note{display:none}
+  .workshop[data-guide-selecting=true]{grid-template-columns:minmax(0,1fr);grid-template-rows:58px 48px minmax(0,1fr)}
+  .guide-practice[data-step="3"]>h4,.guide-practice[data-step="3"]:not([data-hinted="true"]) .guide-message{display:none}
+  .question[data-guide-selecting=true] .endpoint-options{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
