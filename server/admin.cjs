@@ -40,7 +40,7 @@ function createHandler({store,now=()=>Date.now(),production=false}={}){
    let body;try{body=JSON.parse(raw);}catch{return send(res,400,{error:'資料格式不正確。'});}
    if(!body||typeof body!=='object'||Array.isArray(body))return send(res,400,{error:'資料格式不正確。'});
    if(action==='login'){
-    if(typeof body.password!=='string'||!equal(body.password,taiwanDate(now())))return send(res,401,{error:'密碼不正確，請輸入台灣時間今天的 8 位數日期。'});
+    if(typeof body.password!=='string'||!equal(body.password,taiwanDate(now())))return send(res,401,{error:'密碼不正確，請再試一次。'});
     const payload=Buffer.from(JSON.stringify({day:taiwanDate(now()),exp:now()+8*60*60*1000,nonce:crypto.randomBytes(16).toString('hex')})).toString('base64url');
     res.setHeader('Set-Cookie',cookie(payload+'.'+signature(payload),28800));return send(res,200,{ok:true,storage:store.kind});
    }
