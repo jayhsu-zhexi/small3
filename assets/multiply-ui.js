@@ -1,8 +1,8 @@
 (()=>{'use strict';const M=MultiplyPractice,$=id=>document.getElementById(id),KEY='small3-multiply-practice-v1';let state=M.create('carry',Math.random,true),selected={kind:'answer',place:0},pendingMode=null,storageWarning=false;try{state=M.restore(JSON.parse(localStorage.getItem(KEY)))}catch{};
 let audio=typeof MultiplyAudio==='undefined'?{play(){},stop(){},dispose(){}}:MultiplyAudio.create();let soundEnabled=true;try{soundEnabled=localStorage.getItem('small3-multiply-sound')!=='off'}catch{}
-const completionParty=typeof CompletionParty==='undefined'?{show(){},close(){}}:CompletionParty.create();
+const completionParty=typeof CompletionParty==='undefined'?{show(){},close(){}}:CompletionParty.create(undefined,{perfectSound:true});
 function stopCompletion(){completionParty.close()}
-function playCompletion(){audio.stop();completionParty.show({sound:soundEnabled})}
+function playCompletion(){audio.stop();completionParty.show({sound:soundEnabled,perfect:state.finished&&state.results.length===10&&state.results.every(r=>r.attempts===0)})}
 
 function soundControl(){const button=$('soundToggle');button.textContent=soundEnabled?'🔊 音效':'🔇 靜音';button.setAttribute('aria-pressed',String(soundEnabled));button.setAttribute('aria-label',soundEnabled?'關閉音效':'開啟音效')}
 $('soundToggle').onclick=()=>{soundEnabled=!soundEnabled;stopCompletion();audio.stop();soundControl();try{localStorage.setItem('small3-multiply-sound',soundEnabled?'on':'off')}catch{}};soundControl();

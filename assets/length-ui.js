@@ -4,9 +4,9 @@ let state=E.create('mixed',Math.random,true),selected=0,pending=null,enabled=tru
 try{state=E.restore(JSON.parse(localStorage.getItem(KEY)));enabled=localStorage.getItem(SOUND)!=='off'}catch{}
 const isTest=()=>state.mode==='offset-test';
 let audio=MultiplyAudio.create();
-const completionParty=typeof CompletionParty==='undefined'?{show(){},close(){}}:CompletionParty.create();
+const completionParty=typeof CompletionParty==='undefined'?{show(){},close(){}}:CompletionParty.create(undefined,{perfectSound:true});
 function stopCompletion(){completionParty.close()}
-function playCompletion(){audio.stop();completionParty.show({sound:enabled})}
+function playCompletion(){audio.stop();const perfect=state.finished&&state.results.length===10&&state.results.every(r=>isTest()?r.correct:r.attempts===0);completionParty.show({sound:enabled,perfect})}
 
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch{storageFailed=true}$('saveNote').textContent=storageFailed?'目前無法保存，仍可繼續練習。':'進度會自動保存。'}
 function feedback(text,kind=''){$('feedback').textContent=text;$('helper').className='helper '+kind}
