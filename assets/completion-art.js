@@ -97,7 +97,7 @@
       phase: random(i, 9) * Math.PI * 2, mirror: random(i, 10) > .5 ? 1 : -1,
       trail: .32 + random(i, 11) * .16, wave: .85 + random(i, 12) * .25
     }));
-  
+
     function materialAt(name, t) {
       const rows = materials[name], position = clamp(t) * (rows.length - 1);
       const index = Math.floor(position), part = position - index;
@@ -109,7 +109,7 @@
           + (-before[i] + 3 * value - 3 * b[i] + after[i]) * part * part * part)
         : mix(value, b[i], part));
     }
-  
+
     function flight(p, time) {
       const sx = p.side === 1 ? 7 : width - 7, sy = height * .91;
       const tx = width * p.destination, apex = height * p.apex;
@@ -124,7 +124,7 @@
         y: apex + p.speed * (height / 500) * settling
       };
     }
-  
+
     function pointsFor(p, age, poster) {
       const front = flight(p, age), unfold = smooth(age / .42);
       const blend = smooth((age - p.rise * .48) / (p.rise * .8)), length = p.length * scale;
@@ -149,7 +149,7 @@
       }
       return points;
     }
-  
+
     function drawStrip(p, age, poster = false) {
       if (age <= 0) return;
       const alpha = poster ? .75 : 1 - smooth((age - 7.15) / .85);
@@ -176,7 +176,7 @@
       }
       ctx.globalAlpha = 1;
     }
-  
+
     function clear() { ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, width, height); }
     function render(time) {
       clear(); let active = 0;
