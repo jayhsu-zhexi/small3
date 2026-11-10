@@ -34,7 +34,7 @@
   // Play the approved native GIF frames unchanged; only the surrounding confetti is drawn separately.
   function createCheer(canvas, confetti, stage, images, env = root) {
     const ctx = canvas.getContext?.('2d'), rain = confetti.getContext?.('2d');
-    const frameSize = 313, frameDuration = 120, frameCount = 16, duration = 9600;
+    const frameSize = 313, frameDuration = 120, frameCount = 16, cheerCount = 3, duration = 9600;
     const colors = ['#e6ae39', '#cc7eac', '#71bfa7', '#80b7db', '#b099ce', '#efaa77'];
     const particles = Array.from({length: 58}, (_, i) => ({
       x: (i * .61803398875) % 1, drift: Math.sin(i * 2.3) * 36, speed: 84 + (i % 7) * 12,
@@ -44,13 +44,16 @@
     canvas.width = canvas.height = frameSize * 2;
     canvas.dataset.loaded = String(Boolean(ctx && images));
     function draw() {
-      const index = reduced ? 7 : Math.min(frameCount - 1, Math.floor(elapsed / frameDuration));
+      // Repeat the complete native motion three times, then hold its landing pose.
+      const tick = Math.min(frameCount * cheerCount - 1, Math.floor(elapsed / frameDuration));
+      const index = reduced ? 7 : tick % frameCount;
       if (ctx && images) {
         ctx.setTransform(2, 0, 0, 2, 0, 0); ctx.clearRect(0, 0, frameSize, frameSize);
         ctx.drawImage(images[0], (index % 4) * frameSize, Math.floor(index / 4) * frameSize,
           frameSize, frameSize, 0, 0, frameSize, frameSize);
       }
       canvas.dataset.frame = String(index + 1);
+      canvas.dataset.cheer = String(reduced ? 0 : Math.floor(tick / frameCount) + 1);
       canvas.dataset.elapsed = (elapsed / 1000).toFixed(2);
       if (!rain) return;
       rain.setTransform(dpr, 0, 0, dpr, 0, 0); rain.clearRect(0, 0, width, height);
