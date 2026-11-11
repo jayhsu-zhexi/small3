@@ -26,12 +26,21 @@
       "status": "passed",
       "title": "網站整合及發布",
       "updated_revision": 61
+    },
+    {
+      "created_revision": 66,
+      "id": "AC-004",
+      "oracle": "三個內容頁的小熊按鈕清楚顯示返回點心店，與頂部首頁連結分開；圖像透明且可讀，手機平板不溢出；返回及續玩行為與既有通關不變，完整建置通過。",
+      "required": true,
+      "status": "passed",
+      "title": "圖像返回辨識及續玩",
+      "updated_revision": 111
     }
   ],
   "completion": {
     "blockers": [],
-    "checked_at": "2026-11-11T10:44:57+00:00",
-    "checked_revision": 63,
+    "checked_at": "2026-11-11T11:44:06+00:00",
+    "checked_revision": 113,
     "ready": true
   },
   "created_at": "2026-11-11T10:16:17+00:00",
@@ -64,6 +73,25 @@
         "既有首頁管理測試",
         "實際手機與平板版面及兩類完成測試",
         "精確部署驗證"
+      ]
+    },
+    {
+      "created_revision": 72,
+      "id": "DES-002",
+      "impact": [
+        "number-bakery.html 三處返回位置與 CSS 版本",
+        "number-bakery.css 圖像按鈕排版",
+        "新增透明 WebP 及建置資產登錄",
+        "素材製作紀錄"
+      ],
+      "solution": "內建 ImageGen 參考既有小熊，生成透明的薄荷綠木框按鈕；以 HTML 文字覆蓋返回點心店，確保手機清晰及無障礙。移除內容頁上方的文字返回，將相同 to-menu 按鈕置於跟讀導覽後、作答卡下及成果卡動作區；沿用現有 click/renderMenu，不修改計分、保存或通關。",
+      "status": "converged",
+      "title": "小熊圖像返回按鈕",
+      "updated_revision": 100,
+      "verification": [
+        "小熊按鈕與頂部首頁連結保持明顯距離",
+        "三個返回仍可回選單及續玩",
+        "圖像與文字在手機及平板可辨識"
       ]
     }
   ],
@@ -100,6 +128,17 @@
       "summary": "de32e760a7f95ae974612ca1e067d14a43b87612 的 Validate game completed/success，Vercel success；三種 number-bakery 路由與首頁、新遊戲 JS/CSS/WebP、首頁設定及共用通關程式均回傳 200，內容 SHA-256 與該 Git commit 完全一致。公開首頁設定含新遊戲，正式頁面實際載入並無 JavaScript 錯誤。",
       "title": "GitHub CI、Vercel 與正式資產一致",
       "updated_revision": 58
+    },
+    {
+      "artifact": "work/bear-return-build.log",
+      "command": "npm run build",
+      "created_revision": 107,
+      "id": "EVD-004",
+      "method": "CUA 實際點擊與版面觀察、既有介面測試、完整建置",
+      "status": "passed",
+      "summary": "透明 WebP 840x280 已加入靜態建置。1024 寬成果頁按鈕位於卡片底部，再接訂單旁；390 寬按鈕 270x90，文字在按鈕範圍內，無橫向溢出，與頂端首頁連結相距約 650px。跟讀、作答、成果三頁均可返回點心店，作答再續玩仍保留第 1 題首次答對；完成後仍顯示 10/10 全綠通關。既有介面測試與 npm run build 通過。",
+      "title": "小熊返回按鈕外觀與行為驗證",
+      "updated_revision": 108
     }
   ],
   "findings": [],
@@ -710,6 +749,474 @@
       "operation": "task.status",
       "revision": 63,
       "summary": "TASK-002：implemented → verified"
+    },
+    {
+      "at": "2026-11-11T11:32:01+00:00",
+      "changed_ids": [
+        "SPEC-001"
+      ],
+      "operation": "spec.status",
+      "revision": 64,
+      "summary": "SPEC-001：converged → needs_revision"
+    },
+    {
+      "at": "2026-11-11T11:32:01+00:00",
+      "changed_ids": [
+        "REQ-003"
+      ],
+      "operation": "requirement.add",
+      "revision": 65,
+      "summary": "新增 REQ-003 返回操作依層級只顯示一個"
+    },
+    {
+      "at": "2026-11-11T11:32:01+00:00",
+      "changed_ids": [
+        "AC-004"
+      ],
+      "operation": "acceptance.add",
+      "revision": 66,
+      "summary": "新增 AC-004 單一返回入口與續玩"
+    },
+    {
+      "at": "2026-11-11T11:32:01+00:00",
+      "changed_ids": [
+        "TASK-003"
+      ],
+      "operation": "task.add",
+      "revision": 67,
+      "summary": "新增 TASK-003 統一點心店返回位置"
+    },
+    {
+      "at": "2026-11-11T11:32:02+00:00",
+      "changed_ids": [
+        "LINK-020",
+        "REQ-003",
+        "SPEC-001"
+      ],
+      "operation": "link.add",
+      "revision": 68,
+      "summary": "新增 contains：SPEC-001 → REQ-003"
+    },
+    {
+      "at": "2026-11-11T11:32:02+00:00",
+      "changed_ids": [
+        "AC-004",
+        "LINK-021",
+        "REQ-003"
+      ],
+      "operation": "link.add",
+      "revision": 69,
+      "summary": "新增 contains：REQ-003 → AC-004"
+    },
+    {
+      "at": "2026-11-11T11:32:02+00:00",
+      "changed_ids": [
+        "AC-004",
+        "LINK-022",
+        "TASK-003"
+      ],
+      "operation": "link.add",
+      "revision": 70,
+      "summary": "新增 implements：AC-004 → TASK-003"
+    },
+    {
+      "at": "2026-11-11T11:32:02+00:00",
+      "changed_ids": [
+        "LINK-023",
+        "TASK-002",
+        "TASK-003"
+      ],
+      "operation": "link.add",
+      "revision": 71,
+      "summary": "新增 depends_on：TASK-002 → TASK-003"
+    },
+    {
+      "at": "2026-11-11T11:32:02+00:00",
+      "changed_ids": [
+        "DES-002"
+      ],
+      "operation": "design.add",
+      "revision": 72,
+      "summary": "新增 DES-002 分層返回導覽"
+    },
+    {
+      "at": "2026-11-11T11:32:02+00:00",
+      "changed_ids": [
+        "DES-002",
+        "LINK-024",
+        "REQ-003"
+      ],
+      "operation": "link.add",
+      "revision": 73,
+      "summary": "新增 designed_by：REQ-003 → DES-002"
+    },
+    {
+      "at": "2026-11-11T11:32:03+00:00",
+      "changed_ids": [
+        "DES-002",
+        "LINK-025",
+        "TASK-003"
+      ],
+      "operation": "link.add",
+      "revision": 74,
+      "summary": "新增 implements：DES-002 → TASK-003"
+    },
+    {
+      "at": "2026-11-11T11:32:03+00:00",
+      "changed_ids": [
+        "DES-002"
+      ],
+      "operation": "design.status",
+      "revision": 75,
+      "summary": "DES-002：draft → in_review"
+    },
+    {
+      "at": "2026-11-11T11:32:03+00:00",
+      "changed_ids": [
+        "REV-002"
+      ],
+      "operation": "review.add",
+      "revision": 76,
+      "summary": "新增 REV-002 返回層級與資料保留檢查"
+    },
+    {
+      "at": "2026-11-11T11:32:04+00:00",
+      "changed_ids": [
+        "DES-002",
+        "LINK-026",
+        "REV-002"
+      ],
+      "operation": "link.add",
+      "revision": 77,
+      "summary": "新增 reviews：DES-002 → REV-002"
+    },
+    {
+      "at": "2026-11-11T11:32:04+00:00",
+      "changed_ids": [
+        "REV-002"
+      ],
+      "operation": "review.status",
+      "revision": 78,
+      "summary": "REV-002：changes_required → converged"
+    },
+    {
+      "at": "2026-11-11T11:32:04+00:00",
+      "changed_ids": [
+        "DES-002"
+      ],
+      "operation": "design.status",
+      "revision": 79,
+      "summary": "DES-002：in_review → converged"
+    },
+    {
+      "at": "2026-11-11T11:32:04+00:00",
+      "changed_ids": [
+        "REQ-003"
+      ],
+      "operation": "requirement.status",
+      "revision": 80,
+      "summary": "REQ-003：draft → converged"
+    },
+    {
+      "at": "2026-11-11T11:32:04+00:00",
+      "changed_ids": [
+        "AC-004"
+      ],
+      "operation": "acceptance.status",
+      "revision": 81,
+      "summary": "AC-004：draft → ready"
+    },
+    {
+      "at": "2026-11-11T11:32:05+00:00",
+      "changed_ids": [
+        "SPEC-001"
+      ],
+      "operation": "spec.status",
+      "revision": 82,
+      "summary": "SPEC-001：needs_revision → converged"
+    },
+    {
+      "at": "2026-11-11T11:32:05+00:00",
+      "changed_ids": [
+        "TASK-003"
+      ],
+      "operation": "task.status",
+      "revision": 83,
+      "summary": "TASK-003：planned → ready"
+    },
+    {
+      "at": "2026-11-11T11:32:05+00:00",
+      "changed_ids": [
+        "TASK-003"
+      ],
+      "operation": "task.status",
+      "revision": 84,
+      "summary": "TASK-003：ready → in_progress"
+    },
+    {
+      "at": "2026-11-11T11:32:05+00:00",
+      "changed_ids": [],
+      "operation": "gate.record",
+      "revision": 85,
+      "summary": "記錄 final gate：unknown"
+    },
+    {
+      "at": "2026-11-11T11:32:05+00:00",
+      "changed_ids": [
+        "ACT-004",
+        "TASK-003"
+      ],
+      "operation": "activity.start",
+      "revision": 86,
+      "summary": "啟動 ACT-004：TASK-003 implementation"
+    },
+    {
+      "at": "2026-11-11T11:36:21+00:00",
+      "changed_ids": [
+        "ACT-004",
+        "TASK-003"
+      ],
+      "operation": "activity.stop",
+      "revision": 87,
+      "summary": "停止 ACT-004（completed）：使用者釐清希望以小熊圖像按鈕區分返回，不採用先前單一返回方案"
+    },
+    {
+      "at": "2026-11-11T11:36:21+00:00",
+      "changed_ids": [
+        "TASK-003"
+      ],
+      "operation": "task.status",
+      "revision": 88,
+      "summary": "TASK-003：in_progress → needs_rework"
+    },
+    {
+      "at": "2026-11-11T11:36:21+00:00",
+      "changed_ids": [
+        "SPEC-001"
+      ],
+      "operation": "spec.status",
+      "revision": 89,
+      "summary": "SPEC-001：converged → needs_revision"
+    },
+    {
+      "at": "2026-11-11T11:36:22+00:00",
+      "changed_ids": [
+        "REQ-003"
+      ],
+      "operation": "requirement.status",
+      "revision": 90,
+      "summary": "REQ-003：converged → needs_revision"
+    },
+    {
+      "at": "2026-11-11T11:36:22+00:00",
+      "changed_ids": [
+        "DES-002"
+      ],
+      "operation": "design.status",
+      "revision": 91,
+      "summary": "DES-002：converged → needs_revision"
+    },
+    {
+      "at": "2026-11-11T11:36:22+00:00",
+      "changed_ids": [
+        "REV-002"
+      ],
+      "operation": "review.status",
+      "revision": 92,
+      "summary": "REV-002：converged → changes_required"
+    },
+    {
+      "at": "2026-11-11T11:36:22+00:00",
+      "changed_ids": [
+        "REQ-003"
+      ],
+      "operation": "requirement.update",
+      "revision": 93,
+      "summary": "更新 REQ-003"
+    },
+    {
+      "at": "2026-11-11T11:36:22+00:00",
+      "changed_ids": [
+        "AC-004"
+      ],
+      "operation": "acceptance.update",
+      "revision": 94,
+      "summary": "更新 AC-004"
+    },
+    {
+      "at": "2026-11-11T11:36:22+00:00",
+      "changed_ids": [
+        "TASK-003"
+      ],
+      "operation": "task.update",
+      "revision": 95,
+      "summary": "更新 TASK-003"
+    },
+    {
+      "at": "2026-11-11T11:36:22+00:00",
+      "changed_ids": [
+        "DES-002"
+      ],
+      "operation": "design.update",
+      "revision": 96,
+      "summary": "更新 DES-002"
+    },
+    {
+      "at": "2026-11-11T11:36:23+00:00",
+      "changed_ids": [
+        "DES-002"
+      ],
+      "operation": "design.status",
+      "revision": 97,
+      "summary": "DES-002：needs_revision → in_review"
+    },
+    {
+      "at": "2026-11-11T11:36:23+00:00",
+      "changed_ids": [
+        "REV-002"
+      ],
+      "operation": "review.update",
+      "revision": 98,
+      "summary": "更新 REV-002"
+    },
+    {
+      "at": "2026-11-11T11:36:23+00:00",
+      "changed_ids": [
+        "REV-002"
+      ],
+      "operation": "review.status",
+      "revision": 99,
+      "summary": "REV-002：changes_required → converged"
+    },
+    {
+      "at": "2026-11-11T11:36:23+00:00",
+      "changed_ids": [
+        "DES-002"
+      ],
+      "operation": "design.status",
+      "revision": 100,
+      "summary": "DES-002：in_review → converged"
+    },
+    {
+      "at": "2026-11-11T11:36:23+00:00",
+      "changed_ids": [
+        "REQ-003"
+      ],
+      "operation": "requirement.status",
+      "revision": 101,
+      "summary": "REQ-003：needs_revision → converged"
+    },
+    {
+      "at": "2026-11-11T11:36:23+00:00",
+      "changed_ids": [
+        "SPEC-001"
+      ],
+      "operation": "spec.status",
+      "revision": 102,
+      "summary": "SPEC-001：needs_revision → converged"
+    },
+    {
+      "at": "2026-11-11T11:36:24+00:00",
+      "changed_ids": [
+        "TASK-003"
+      ],
+      "operation": "task.status",
+      "revision": 103,
+      "summary": "TASK-003：needs_rework → in_progress"
+    },
+    {
+      "at": "2026-11-11T11:36:24+00:00",
+      "changed_ids": [
+        "ACT-005",
+        "TASK-003"
+      ],
+      "operation": "activity.start",
+      "revision": 104,
+      "summary": "啟動 ACT-005：TASK-003 implementation"
+    },
+    {
+      "at": "2026-11-11T11:44:05+00:00",
+      "changed_ids": [
+        "ACT-005",
+        "TASK-003"
+      ],
+      "operation": "activity.stop",
+      "revision": 105,
+      "summary": "停止 ACT-005（completed）：已驗證圖像與文字位置、三頁返回、續玩及完整通關"
+    },
+    {
+      "at": "2026-11-11T11:44:05+00:00",
+      "changed_ids": [
+        "TASK-003"
+      ],
+      "operation": "task.status",
+      "revision": 106,
+      "summary": "TASK-003：in_progress → implemented"
+    },
+    {
+      "at": "2026-11-11T11:44:05+00:00",
+      "changed_ids": [
+        "EVD-004"
+      ],
+      "operation": "evidence.add",
+      "revision": 107,
+      "summary": "新增 EVD-004 小熊返回按鈕外觀與行為驗證"
+    },
+    {
+      "at": "2026-11-11T11:44:05+00:00",
+      "changed_ids": [
+        "EVD-004"
+      ],
+      "operation": "evidence.status",
+      "revision": 108,
+      "summary": "EVD-004：not_run → passed"
+    },
+    {
+      "at": "2026-11-11T11:44:06+00:00",
+      "changed_ids": [
+        "EVD-004",
+        "LINK-027",
+        "TASK-003"
+      ],
+      "operation": "link.add",
+      "revision": 109,
+      "summary": "新增 produced_by：TASK-003 → EVD-004"
+    },
+    {
+      "at": "2026-11-11T11:44:06+00:00",
+      "changed_ids": [
+        "AC-004",
+        "EVD-004",
+        "LINK-028"
+      ],
+      "operation": "link.add",
+      "revision": 110,
+      "summary": "新增 validates：AC-004 → EVD-004"
+    },
+    {
+      "at": "2026-11-11T11:44:06+00:00",
+      "changed_ids": [
+        "AC-004"
+      ],
+      "operation": "acceptance.status",
+      "revision": 111,
+      "summary": "AC-004：ready → passed"
+    },
+    {
+      "at": "2026-11-11T11:44:06+00:00",
+      "changed_ids": [
+        "TASK-003"
+      ],
+      "operation": "task.status",
+      "revision": 112,
+      "summary": "TASK-003：implemented → verified"
+    },
+    {
+      "at": "2026-11-11T11:44:06+00:00",
+      "changed_ids": [],
+      "operation": "gate.record",
+      "revision": 113,
+      "summary": "記錄 final gate：passed"
     }
   ],
   "links": [
@@ -883,17 +1390,98 @@
       "to": "EVD-003",
       "type": "validates",
       "updated_revision": 60
+    },
+    {
+      "created_revision": 68,
+      "from": "SPEC-001",
+      "id": "LINK-020",
+      "label": "",
+      "to": "REQ-003",
+      "type": "contains",
+      "updated_revision": 68
+    },
+    {
+      "created_revision": 69,
+      "from": "REQ-003",
+      "id": "LINK-021",
+      "label": "",
+      "to": "AC-004",
+      "type": "contains",
+      "updated_revision": 69
+    },
+    {
+      "created_revision": 70,
+      "from": "AC-004",
+      "id": "LINK-022",
+      "label": "",
+      "to": "TASK-003",
+      "type": "implements",
+      "updated_revision": 70
+    },
+    {
+      "created_revision": 71,
+      "from": "TASK-002",
+      "id": "LINK-023",
+      "label": "",
+      "to": "TASK-003",
+      "type": "depends_on",
+      "updated_revision": 71
+    },
+    {
+      "created_revision": 73,
+      "from": "REQ-003",
+      "id": "LINK-024",
+      "label": "",
+      "to": "DES-002",
+      "type": "designed_by",
+      "updated_revision": 73
+    },
+    {
+      "created_revision": 74,
+      "from": "DES-002",
+      "id": "LINK-025",
+      "label": "",
+      "to": "TASK-003",
+      "type": "implements",
+      "updated_revision": 74
+    },
+    {
+      "created_revision": 77,
+      "from": "DES-002",
+      "id": "LINK-026",
+      "label": "",
+      "to": "REV-002",
+      "type": "reviews",
+      "updated_revision": 77
+    },
+    {
+      "created_revision": 109,
+      "from": "TASK-003",
+      "id": "LINK-027",
+      "label": "",
+      "to": "EVD-004",
+      "type": "produced_by",
+      "updated_revision": 109
+    },
+    {
+      "created_revision": 110,
+      "from": "AC-004",
+      "id": "LINK-028",
+      "label": "",
+      "to": "EVD-004",
+      "type": "validates",
+      "updated_revision": 110
     }
   ],
   "phase": "completion",
   "project": {
     "final_gate": {
-      "artifact": "work/number-bakery-build-final.log",
+      "artifact": "work/bear-return-build.log",
       "name": "npm run build",
       "required": true,
       "status": "passed",
-      "summary": "npm run build 通過，包含新遊戲、首頁相容性、共用通關及全站既有測試",
-      "updated_revision": 56
+      "summary": "新增小熊返回圖與三頁導覽位置調整後，npm run build 通過",
+      "updated_revision": 113
     },
     "name": "small3 — 小熊數字點心店",
     "root": "."
@@ -916,6 +1504,15 @@
       "summary": "不用原生文字輸入框；清楚對錯回饋、可中止音訊、可續玩、錯字複習及共享完成畫面；保留舊首頁設定。",
       "title": "手機友善的點心店及既有站台整合",
       "updated_revision": 29
+    },
+    {
+      "created_revision": 65,
+      "id": "REQ-003",
+      "required": true,
+      "status": "converged",
+      "summary": "使用者常誤按頂部返回學習星球，要求用 imagegen 製作漂亮的小熊返回按鈕。保留首頁連結，將返回點心店改為明顯的小熊木框圖像按鈕，放在跟讀、作答與成果內容下方；返回時保留進度。",
+      "title": "小熊圖像返回按鈕與明確間距",
+      "updated_revision": 101
     }
   ],
   "reviews": [
@@ -927,9 +1524,18 @@
       "summary": "已比對靜態建置、音訊、共享完成及首頁設定程式。使用按鈕答案格避免原生鍵盤；保存錯誤旗標並重驗快照；舊 16 遊戲設定只補新增遊戲，維持既有順序與 revision；英文音訊失敗可重播且不扣分。",
       "title": "設計收斂檢查",
       "updated_revision": 26
+    },
+    {
+      "created_revision": 76,
+      "id": "REV-002",
+      "reviewer": "Codex",
+      "status": "converged",
+      "summary": "依使用者新指示改用 imagegen 小熊返回按鈕。素材採既有店員造型，標籤保留真實 HTML 文字；只調整 HTML/CSS/資產，沿用原本三個 to-menu 事件，避免改動進度與通關行為。",
+      "title": "圖像返回設計確認",
+      "updated_revision": 99
     }
   ],
-  "revision": 63,
+  "revision": 113,
   "route": "completion",
   "runtime": {
     "activities": [],
@@ -959,7 +1565,7 @@
       ],
       "status": "converged",
       "title": "小熊數字點心店",
-      "updated_revision": 33
+      "updated_revision": 102
     }
   ],
   "tasks": [
@@ -980,8 +1586,17 @@
       "title": "遊戲介面、首頁整合及正式驗證",
       "updated_revision": 63,
       "validation_intent": "介面互動、手機平板、全套建置、正式精確 commit 與資產檢查"
+    },
+    {
+      "created_revision": 67,
+      "expected_outcome": "以 imagegen 小熊木框素材製作清楚可點的返回點心店按鈕，三個內容頁置於內容下方；頂部首頁連結與遊戲行為保持既有用途。",
+      "id": "TASK-003",
+      "status": "verified",
+      "title": "製作及套用小熊返回按鈕",
+      "updated_revision": 112,
+      "validation_intent": "沿用並更新介面驗證、實際手機平板檢查、完整建置"
     }
   ],
-  "updated_at": "2026-11-11T10:44:57+00:00",
+  "updated_at": "2026-11-11T11:44:06+00:00",
   "workflow_id": "WF-FBA161ED8E44"
 }

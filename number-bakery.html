@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f8f4e9">
   <meta name="description" content="和小熊店長學習 one 到 ten：聽發音、讀單字，再用畫面字母鍵盤練習拼字。">
   <title>小熊數字點心店｜學習星球</title>
-  <link rel="stylesheet" href="/assets/number-bakery.css?v=1">
+  <link rel="stylesheet" href="/assets/number-bakery.css?v=bear-return-2">
   <link rel="stylesheet" href="/assets/completion-party.css?v=crown-cheer-47">
   <script defer src="/assets/number-bakery-engine.js?v=1"></script>
   <script defer src="/assets/number-bakery-audio.js?v=1"></script>
@@ -46,17 +46,18 @@
       </section>
 
       <section id="learnView" class="lesson" aria-labelledby="learnTitle" hidden>
-        <div class="section-bar"><button class="quiet-button to-menu" type="button">← 返回選單</button><h1 id="learnTitle">和小熊一起讀</h1><span id="learnCount" class="muted"></span></div>
+        <div class="section-bar"><h1 id="learnTitle">和小熊一起讀</h1><span id="learnCount" class="muted"></span></div>
         <div class="learning-card">
           <div class="learning-quantity"><span class="eyebrow">看看有幾片餅乾</span><strong id="learnNumber"></strong><div id="learnCookies" class="cookie-tray"></div></div>
           <div class="learning-word"><p class="eyebrow">這個數字的英文是</p><strong id="learnWord" lang="en"></strong><div class="audio-controls"><button type="button" class="secondary" data-speak="normal">♪ 聽發音</button><button type="button" class="secondary" data-speak="slow">慢慢聽</button></div><p>聽完後，換你大聲讀一次。</p><button id="practicedButton" type="button" class="primary">我讀好了 ✓</button></div>
         </div>
         <div id="learnNumbers" class="learn-numbers" aria-label="選擇要學的數字"></div>
         <div class="learn-navigation"><button id="learnPrevious" type="button" class="secondary">← 上一個</button><p>跟讀由自己練習，遊戲不會評分發音。</p><button id="learnNext" type="button" class="primary">下一個 →</button></div>
+        <div class="practice-return"><button class="bear-return to-menu" type="button" aria-label="返回點心店"><img src="/assets/number-bakery-return-v1.webp" alt="" width="840" height="280"><span>← 返回點心店</span></button></div>
       </section>
 
       <section id="gameView" aria-labelledby="questionTitle" hidden>
-        <div class="section-bar"><button class="quiet-button to-menu" type="button">← 返回選單</button><span id="orderType" class="order-type"></span><span id="orderCount" class="muted"></span></div>
+        <div class="section-bar"><span id="orderType" class="order-type"></span><span id="orderCount" class="muted"></span></div>
         <ol id="progressLights" class="progress-lights" aria-label="這一輪的答題紀錄"></ol>
         <div class="order-card">
           <div class="order-heading"><span id="questionEyebrow" class="eyebrow"></span><h1 id="questionTitle"></h1></div>
@@ -67,11 +68,11 @@
           <div class="answer-actions"><button id="checkAnswer" class="primary" type="button">確認答案 ✓</button><button id="nextOrder" class="primary" type="button" hidden>下一張訂單 →</button></div>
         </div>
         <p class="round-note">綠燈：首次答對　粉紅燈：練習後答對</p>
+        <div class="practice-return"><button class="bear-return to-menu" type="button" aria-label="返回點心店"><img src="/assets/number-bakery-return-v1.webp" alt="" width="840" height="280"><span>← 返回點心店</span></button></div>
       </section>
 
       <section id="resultView" class="result-view" aria-labelledby="resultTitle" hidden>
-        <button class="quiet-button to-menu" type="button">← 返回選單</button>
-        <div class="result-card"><div class="result-heading"><img src="/assets/number-bakery-bear-v1.webp" alt="開心的小熊店長" width="640" height="640"><div><span id="resultBadge" class="result-badge"></span><h1 id="resultTitle"></h1><p id="resultSummary"></p></div></div><div id="resultOrders" class="result-orders"></div><p id="reviewMessage" class="review-message"></p><div class="result-actions"><button id="reviewMistakes" type="button" class="secondary" hidden>再練容易錯的字</button><button id="anotherRound" type="button" class="primary">再接 10 張訂單 →</button><button id="replayCelebration" type="button" class="quiet-button">再看一次小熊慶祝</button></div></div>
+        <div class="result-card"><div class="result-heading"><img src="/assets/number-bakery-bear-v1.webp" alt="開心的小熊店長" width="640" height="640"><div><span id="resultBadge" class="result-badge"></span><h1 id="resultTitle"></h1><p id="resultSummary"></p></div></div><div id="resultOrders" class="result-orders"></div><p id="reviewMessage" class="review-message"></p><div class="result-actions"><button id="reviewMistakes" type="button" class="secondary" hidden>再練容易錯的字</button><button id="anotherRound" type="button" class="primary">再接 10 張訂單 →</button><button class="bear-return to-menu" type="button" aria-label="返回點心店"><img src="/assets/number-bakery-return-v1.webp" alt="" width="840" height="280"><span>← 返回點心店</span></button><button id="replayCelebration" type="button" class="quiet-button">再看一次小熊慶祝</button></div></div>
       </section>
     </main>
     <p id="audioStatus" class="audio-status" role="status" aria-live="polite"></p>
