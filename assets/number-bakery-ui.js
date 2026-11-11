@@ -37,9 +37,9 @@ for(const key of ['range','mode','level'])$(key+'Options').addEventListener('cli
 $('soundToggle').onclick=()=>{sound=!sound;$('soundToggle').textContent=sound?'♫ 音效開':'♫ 音效關';$('soundToggle').setAttribute('aria-pressed',String(sound));if(!sound){feedbackAudio.stop();party.stopSound();}savePrefs();};
 $('startButton').onclick=requestStart;$('resumeButton').onclick=resume;document.querySelectorAll('.to-menu').forEach(b=>b.onclick=renderMenu);
 $('keepRound').onclick=()=>{$('restartDialog').close();resume();};$('replaceRound').onclick=()=>{$('restartDialog').close();start();};
-$('learnButton').onclick=()=>{learnIndex=0;show('learn');renderLearn();speak(false);};
-$('learnNumbers').onclick=event=>{const b=event.target.closest('[data-learn]');if(b){stopAudio();learnIndex=Number(b.dataset.learn);renderLearn();speak(false);}};
-$('learnPrevious').onclick=()=>{if(learnIndex>0){learnIndex--;renderLearn();speak(false);}};$('learnNext').onclick=()=>{if(learnIndex<E.RANGES[settings.range].length-1){learnIndex++;renderLearn();speak(false);}else requestStart();};
+$('learnButton').onclick=()=>{learnIndex=0;show('learn');renderLearn();speakSpelling();};
+$('learnNumbers').onclick=event=>{const b=event.target.closest('[data-learn]');if(b){stopAudio();learnIndex=Number(b.dataset.learn);renderLearn();speakSpelling();}};
+$('learnPrevious').onclick=()=>{if(learnIndex>0){learnIndex--;renderLearn();speakSpelling();}};$('learnNext').onclick=()=>{if(learnIndex<E.RANGES[settings.range].length-1){learnIndex++;renderLearn();speakSpelling();}else requestStart();};
 $('practicedButton').onclick=()=>{const n=E.RANGES[settings.range][learnIndex];if(!practiced.includes(n))practiced.push(n);savePrefs();renderLearn();};
 document.addEventListener('click',event=>{const b=event.target.closest('[data-speak]');if(b){if(b.dataset.speak==='spell')speakSpelling();else speak(b.dataset.speak==='slow');}});
 $('choiceArea').onclick=event=>{const b=event.target.closest('[data-choice]');if(b&&E.choose(state,Number(b.dataset.choice)))changed();};
