@@ -23,27 +23,16 @@
       "id": "AC-003",
       "oracle": "首頁舊設定相容測試通過；npm run build 通過；正式 Vercel 精確 commit 部署成功並確認新路由與資產一致。",
       "required": true,
-      "status": "ready",
+      "status": "passed",
       "title": "網站整合及發布",
-      "updated_revision": 32
+      "updated_revision": 61
     }
   ],
   "completion": {
-    "blockers": [
-      {
-        "code": "task",
-        "id": "TASK-002",
-        "message": "Task 尚未 verified"
-      },
-      {
-        "code": "acceptance",
-        "id": "AC-003",
-        "message": "最新 Evidence 為 not_run"
-      }
-    ],
-    "checked_at": "2026-11-11T10:40:50+00:00",
-    "checked_revision": 56,
-    "ready": false
+    "blockers": [],
+    "checked_at": "2026-11-11T10:44:57+00:00",
+    "checked_revision": 63,
+    "ready": true
   },
   "created_at": "2026-11-11T10:16:17+00:00",
   "designs": [
@@ -100,6 +89,17 @@
       "summary": "實際完成一輪完整拼字：錯一題並重新整理後，9/10 首次答對、一般通關；認字十題全對顯示全綠皇冠動畫。另驗證跟讀慢速播放、補缺字、排序、返回首頁 Enter、重新開局提示及零文字輸入框。390x740 完整鍵盤確認鍵在 y=681；360 寬無橫向溢出；1024x768 橫放認字確認鍵在 y=734。介面 Node 測試通過。",
       "title": "瀏覽器互動與手機平板驗證",
       "updated_revision": 52
+    },
+    {
+      "artifact": "https://github.com/jayhsu-zhexi/small3/commit/de32e760a7f95ae974612ca1e067d14a43b87612",
+      "command": "node work/verify-number-bakery-release.cjs de32e760a7f95ae974612ca1e067d14a43b87612",
+      "created_revision": 57,
+      "id": "EVD-003",
+      "method": "GitHub commit status / Actions API、HTTP SHA-256 比對、CUA 正式頁面觀察",
+      "status": "passed",
+      "summary": "de32e760a7f95ae974612ca1e067d14a43b87612 的 Validate game completed/success，Vercel success；三種 number-bakery 路由與首頁、新遊戲 JS/CSS/WebP、首頁設定及共用通關程式均回傳 200，內容 SHA-256 與該 Git commit 完全一致。公開首頁設定含新遊戲，正式頁面實際載入並無 JavaScript 錯誤。",
+      "title": "GitHub CI、Vercel 與正式資產一致",
+      "updated_revision": 58
     }
   ],
   "findings": [],
@@ -642,6 +642,74 @@
       "operation": "gate.record",
       "revision": 56,
       "summary": "記錄 final gate：passed"
+    },
+    {
+      "at": "2026-11-11T10:44:56+00:00",
+      "changed_ids": [
+        "EVD-003"
+      ],
+      "operation": "evidence.add",
+      "revision": 57,
+      "summary": "新增 EVD-003 GitHub CI、Vercel 與正式資產一致"
+    },
+    {
+      "at": "2026-11-11T10:44:56+00:00",
+      "changed_ids": [
+        "EVD-003"
+      ],
+      "operation": "evidence.status",
+      "revision": 58,
+      "summary": "EVD-003：not_run → passed"
+    },
+    {
+      "at": "2026-11-11T10:44:57+00:00",
+      "changed_ids": [
+        "EVD-003",
+        "LINK-018",
+        "TASK-002"
+      ],
+      "operation": "link.add",
+      "revision": 59,
+      "summary": "新增 produced_by：TASK-002 → EVD-003"
+    },
+    {
+      "at": "2026-11-11T10:44:57+00:00",
+      "changed_ids": [
+        "AC-003",
+        "EVD-003",
+        "LINK-019"
+      ],
+      "operation": "link.add",
+      "revision": 60,
+      "summary": "新增 validates：AC-003 → EVD-003"
+    },
+    {
+      "at": "2026-11-11T10:44:57+00:00",
+      "changed_ids": [
+        "AC-003"
+      ],
+      "operation": "acceptance.status",
+      "revision": 61,
+      "summary": "AC-003：ready → passed"
+    },
+    {
+      "at": "2026-11-11T10:44:57+00:00",
+      "changed_ids": [
+        "ACT-003",
+        "TASK-002"
+      ],
+      "operation": "activity.stop",
+      "revision": 62,
+      "summary": "停止 ACT-003（completed）：本機測試、兩種完成與正式部署均已驗證"
+    },
+    {
+      "at": "2026-11-11T10:44:57+00:00",
+      "changed_ids": [
+        "TASK-002"
+      ],
+      "operation": "task.status",
+      "revision": 63,
+      "summary": "TASK-002：implemented → verified"
     }
   ],
   "links": [
@@ -797,9 +865,27 @@
       "to": "EVD-002",
       "type": "validates",
       "updated_revision": 54
+    },
+    {
+      "created_revision": 59,
+      "from": "TASK-002",
+      "id": "LINK-018",
+      "label": "",
+      "to": "EVD-003",
+      "type": "produced_by",
+      "updated_revision": 59
+    },
+    {
+      "created_revision": 60,
+      "from": "AC-003",
+      "id": "LINK-019",
+      "label": "",
+      "to": "EVD-003",
+      "type": "validates",
+      "updated_revision": 60
     }
   ],
-  "phase": "implementation_validation",
+  "phase": "completion",
   "project": {
     "final_gate": {
       "artifact": "work/number-bakery-build-final.log",
@@ -843,24 +929,11 @@
       "updated_revision": 26
     }
   ],
-  "revision": 56,
-  "route": "implementation-validation",
+  "revision": 63,
+  "route": "completion",
   "runtime": {
-    "activities": [
-      {
-        "actor": "",
-        "created_revision": 50,
-        "id": "ACT-003",
-        "node_id": "TASK-002",
-        "stage": "validation",
-        "started_at": "2026-11-11T10:40:49+00:00",
-        "state": "running",
-        "summary": "本機互動與完整建置已通過，準備驗證正式部署",
-        "updated_at": "2026-11-11T10:40:49+00:00",
-        "updated_revision": 50
-      }
-    ],
-    "primary_activity_id": "ACT-003"
+    "activities": [],
+    "primary_activity_id": null
   },
   "schema_version": 1,
   "specs": [
@@ -903,12 +976,12 @@
       "created_revision": 9,
       "expected_outcome": "完成可操作的點心店、手機鍵盤及兩種通關；首頁入口正常，正式路由可玩。",
       "id": "TASK-002",
-      "status": "implemented",
+      "status": "verified",
       "title": "遊戲介面、首頁整合及正式驗證",
-      "updated_revision": 49,
+      "updated_revision": 63,
       "validation_intent": "介面互動、手機平板、全套建置、正式精確 commit 與資產檢查"
     }
   ],
-  "updated_at": "2026-11-11T10:40:50+00:00",
+  "updated_at": "2026-11-11T10:44:57+00:00",
   "workflow_id": "WF-FBA161ED8E44"
 }
