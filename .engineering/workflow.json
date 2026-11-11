@@ -35,12 +35,21 @@
       "status": "passed",
       "title": "圖像返回辨識及續玩",
       "updated_revision": 111
+    },
+    {
+      "created_revision": 116,
+      "id": "AC-005",
+      "oracle": "十個 WAV 順序及格式正確；單檔播放、切換取消、錯誤重試、未答對不可播放、答對後與跟讀可播放；手機版面及 npm run build 通過。",
+      "required": true,
+      "status": "passed",
+      "title": "聽拼字發音與互動",
+      "updated_revision": 143
     }
   ],
   "completion": {
     "blockers": [],
-    "checked_at": "2026-11-11T11:44:06+00:00",
-    "checked_revision": 113,
+    "checked_at": "2026-11-11T12:39:08+00:00",
+    "checked_revision": 145,
     "ready": true
   },
   "created_at": "2026-11-11T10:16:17+00:00",
@@ -93,6 +102,34 @@
         "三個返回仍可回選單及續玩",
         "圖像與文字在手機及平板可辨識"
       ]
+    },
+    {
+      "created_revision": 122,
+      "id": "DES-003",
+      "reuse": [
+        "現有英文聲線",
+        "既有 Audio 控制器",
+        "既有作答與進度判斷"
+      ],
+      "risks": [
+        "作答前不可洩漏拼字",
+        "停止後舊回呼不得影響新播放",
+        "小螢幕下一題按鈕仍可用"
+      ],
+      "solution": "用 Windows Microsoft Zira Desktop en-US Rate=-1 預先產生十個 22050 Hz mono WAV。單字前後各一次，中間字母用 SpellOut 逐字加停頓。一個 Audio 物件完整播放，沿用取消與錯誤處理。認識單字新增第三按鈕，作答卡在答對後於下一題旁顯示聽拼字。",
+      "status": "converged",
+      "title": "單檔拼字朗讀與作答後入口",
+      "tradeoffs": [
+        "增加十個靜態音檔以避免手機連播限制",
+        "字母名稱練習，不提供音素或發音評分"
+      ],
+      "updated_revision": 129,
+      "verification": [
+        "WAV 標頭與時長",
+        "Audio 取消及失敗測試",
+        "UI 答對前後及學習入口",
+        "手機實際操作與完整建置"
+      ]
     }
   ],
   "evidence": [
@@ -139,6 +176,17 @@
       "summary": "透明 WebP 840x280 已加入靜態建置。1024 寬成果頁按鈕位於卡片底部，再接訂單旁；390 寬按鈕 270x90，文字在按鈕範圍內，無橫向溢出，與頂端首頁連結相距約 650px。跟讀、作答、成果三頁均可返回點心店，作答再續玩仍保留第 1 題首次答對；完成後仍顯示 10/10 全綠通關。既有介面測試與 npm run build 通過。",
       "title": "小熊返回按鈕外觀與行為驗證",
       "updated_revision": 108
+    },
+    {
+      "artifact": "work/number-bakery-spelling-build.log",
+      "command": "npm run build",
+      "created_revision": 139,
+      "id": "EVD-005",
+      "method": "Node 行為測試、WAV 格式檢查、CUA 實際瀏覽器操作、完整建置",
+      "status": "passed",
+      "summary": "十個 PCM WAV（22050 Hz、mono、16-bit）均含有效語音、時長在 3–15 秒內；生成順序為單字、SpellOut 字母名稱、單字。測試涵蓋單檔播放、取消、舊回呼、失敗重試、三題型答對前禁止拼字、答對與重載後可播放、下一題再次隱藏。手機學習及答對後點擊均觀察到 playing 狀態與 one → O → N → E → one；375px 內容寬與 1024px 平板均無橫向溢出，手機按鈕高 46px、平板 48px，下一題收起拼字按鈕，無瀏覽器錯誤。npm run build 通過。音檔透過既有 Zira 語音產生，尚未取得真人聽感回饋。",
+      "title": "拼字錄音、入口與播放驗證",
+      "updated_revision": 140
     }
   ],
   "findings": [],
@@ -1217,6 +1265,310 @@
       "operation": "gate.record",
       "revision": 113,
       "summary": "記錄 final gate：passed"
+    },
+    {
+      "at": "2026-11-11T12:33:14+00:00",
+      "changed_ids": [
+        "SPEC-001"
+      ],
+      "operation": "spec.status",
+      "revision": 114,
+      "summary": "SPEC-001：converged → needs_revision"
+    },
+    {
+      "at": "2026-11-11T12:33:14+00:00",
+      "changed_ids": [
+        "REQ-004"
+      ],
+      "operation": "requirement.add",
+      "revision": 115,
+      "summary": "新增 REQ-004 單字與逐字母跟讀"
+    },
+    {
+      "at": "2026-11-11T12:33:15+00:00",
+      "changed_ids": [
+        "AC-005"
+      ],
+      "operation": "acceptance.add",
+      "revision": 116,
+      "summary": "新增 AC-005 聽拼字發音與互動"
+    },
+    {
+      "at": "2026-11-11T12:33:15+00:00",
+      "changed_ids": [
+        "TASK-004"
+      ],
+      "operation": "task.add",
+      "revision": 117,
+      "summary": "新增 TASK-004 產生拼字語音及加入聽拼字按鈕"
+    },
+    {
+      "at": "2026-11-11T12:33:15+00:00",
+      "changed_ids": [
+        "LINK-029",
+        "REQ-004",
+        "SPEC-001"
+      ],
+      "operation": "link.add",
+      "revision": 118,
+      "summary": "新增 contains：SPEC-001 → REQ-004"
+    },
+    {
+      "at": "2026-11-11T12:33:15+00:00",
+      "changed_ids": [
+        "AC-005",
+        "LINK-030",
+        "REQ-004"
+      ],
+      "operation": "link.add",
+      "revision": 119,
+      "summary": "新增 contains：REQ-004 → AC-005"
+    },
+    {
+      "at": "2026-11-11T12:33:15+00:00",
+      "changed_ids": [
+        "AC-005",
+        "LINK-031",
+        "TASK-004"
+      ],
+      "operation": "link.add",
+      "revision": 120,
+      "summary": "新增 implements：AC-005 → TASK-004"
+    },
+    {
+      "at": "2026-11-11T12:33:15+00:00",
+      "changed_ids": [
+        "LINK-032",
+        "TASK-003",
+        "TASK-004"
+      ],
+      "operation": "link.add",
+      "revision": 121,
+      "summary": "新增 depends_on：TASK-003 → TASK-004"
+    },
+    {
+      "at": "2026-11-11T12:33:15+00:00",
+      "changed_ids": [
+        "DES-003"
+      ],
+      "operation": "design.add",
+      "revision": 122,
+      "summary": "新增 DES-003 單檔拼字朗讀與作答後入口"
+    },
+    {
+      "at": "2026-11-11T12:33:16+00:00",
+      "changed_ids": [
+        "DES-003",
+        "LINK-033",
+        "REQ-004"
+      ],
+      "operation": "link.add",
+      "revision": 123,
+      "summary": "新增 designed_by：REQ-004 → DES-003"
+    },
+    {
+      "at": "2026-11-11T12:33:16+00:00",
+      "changed_ids": [
+        "DES-003",
+        "LINK-034",
+        "TASK-004"
+      ],
+      "operation": "link.add",
+      "revision": 124,
+      "summary": "新增 implements：DES-003 → TASK-004"
+    },
+    {
+      "at": "2026-11-11T12:33:16+00:00",
+      "changed_ids": [
+        "DES-003"
+      ],
+      "operation": "design.status",
+      "revision": 125,
+      "summary": "DES-003：draft → in_review"
+    },
+    {
+      "at": "2026-11-11T12:33:16+00:00",
+      "changed_ids": [
+        "REV-003"
+      ],
+      "operation": "review.add",
+      "revision": 126,
+      "summary": "新增 REV-003 聽拼字設計檢查"
+    },
+    {
+      "at": "2026-11-11T12:33:16+00:00",
+      "changed_ids": [
+        "DES-003",
+        "LINK-035",
+        "REV-003"
+      ],
+      "operation": "link.add",
+      "revision": 127,
+      "summary": "新增 reviews：DES-003 → REV-003"
+    },
+    {
+      "at": "2026-11-11T12:33:16+00:00",
+      "changed_ids": [
+        "REV-003"
+      ],
+      "operation": "review.status",
+      "revision": 128,
+      "summary": "REV-003：changes_required → converged"
+    },
+    {
+      "at": "2026-11-11T12:33:16+00:00",
+      "changed_ids": [
+        "DES-003"
+      ],
+      "operation": "design.status",
+      "revision": 129,
+      "summary": "DES-003：in_review → converged"
+    },
+    {
+      "at": "2026-11-11T12:33:17+00:00",
+      "changed_ids": [
+        "REQ-004"
+      ],
+      "operation": "requirement.status",
+      "revision": 130,
+      "summary": "REQ-004：draft → converged"
+    },
+    {
+      "at": "2026-11-11T12:33:17+00:00",
+      "changed_ids": [
+        "AC-005"
+      ],
+      "operation": "acceptance.status",
+      "revision": 131,
+      "summary": "AC-005：draft → ready"
+    },
+    {
+      "at": "2026-11-11T12:33:17+00:00",
+      "changed_ids": [
+        "SPEC-001"
+      ],
+      "operation": "spec.status",
+      "revision": 132,
+      "summary": "SPEC-001：needs_revision → converged"
+    },
+    {
+      "at": "2026-11-11T12:33:17+00:00",
+      "changed_ids": [
+        "TASK-004"
+      ],
+      "operation": "task.status",
+      "revision": 133,
+      "summary": "TASK-004：planned → ready"
+    },
+    {
+      "at": "2026-11-11T12:33:17+00:00",
+      "changed_ids": [
+        "TASK-004"
+      ],
+      "operation": "task.status",
+      "revision": 134,
+      "summary": "TASK-004：ready → in_progress"
+    },
+    {
+      "at": "2026-11-11T12:33:17+00:00",
+      "changed_ids": [],
+      "operation": "gate.record",
+      "revision": 135,
+      "summary": "記錄 final gate：unknown"
+    },
+    {
+      "at": "2026-11-11T12:33:18+00:00",
+      "changed_ids": [
+        "ACT-006",
+        "TASK-004"
+      ],
+      "operation": "activity.start",
+      "revision": 136,
+      "summary": "啟動 ACT-006：TASK-004 implementation"
+    },
+    {
+      "at": "2026-11-11T12:39:07+00:00",
+      "changed_ids": [
+        "ACT-006",
+        "TASK-004"
+      ],
+      "operation": "activity.stop",
+      "revision": 137,
+      "summary": "停止 ACT-006（completed）：十個錄音、學習與答對後入口已完成；Node 測試、手機與平板實際操作及完整建置通過"
+    },
+    {
+      "at": "2026-11-11T12:39:07+00:00",
+      "changed_ids": [
+        "TASK-004"
+      ],
+      "operation": "task.status",
+      "revision": 138,
+      "summary": "TASK-004：in_progress → implemented"
+    },
+    {
+      "at": "2026-11-11T12:39:07+00:00",
+      "changed_ids": [
+        "EVD-005"
+      ],
+      "operation": "evidence.add",
+      "revision": 139,
+      "summary": "新增 EVD-005 拼字錄音、入口與播放驗證"
+    },
+    {
+      "at": "2026-11-11T12:39:07+00:00",
+      "changed_ids": [
+        "EVD-005"
+      ],
+      "operation": "evidence.status",
+      "revision": 140,
+      "summary": "EVD-005：not_run → passed"
+    },
+    {
+      "at": "2026-11-11T12:39:08+00:00",
+      "changed_ids": [
+        "EVD-005",
+        "LINK-036",
+        "TASK-004"
+      ],
+      "operation": "link.add",
+      "revision": 141,
+      "summary": "新增 produced_by：TASK-004 → EVD-005"
+    },
+    {
+      "at": "2026-11-11T12:39:08+00:00",
+      "changed_ids": [
+        "AC-005",
+        "EVD-005",
+        "LINK-037"
+      ],
+      "operation": "link.add",
+      "revision": 142,
+      "summary": "新增 validates：AC-005 → EVD-005"
+    },
+    {
+      "at": "2026-11-11T12:39:08+00:00",
+      "changed_ids": [
+        "AC-005"
+      ],
+      "operation": "acceptance.status",
+      "revision": 143,
+      "summary": "AC-005：ready → passed"
+    },
+    {
+      "at": "2026-11-11T12:39:08+00:00",
+      "changed_ids": [
+        "TASK-004"
+      ],
+      "operation": "task.status",
+      "revision": 144,
+      "summary": "TASK-004：implemented → verified"
+    },
+    {
+      "at": "2026-11-11T12:39:08+00:00",
+      "changed_ids": [],
+      "operation": "gate.record",
+      "revision": 145,
+      "summary": "記錄 final gate：passed"
     }
   ],
   "links": [
@@ -1471,17 +1823,98 @@
       "to": "EVD-004",
       "type": "validates",
       "updated_revision": 110
+    },
+    {
+      "created_revision": 118,
+      "from": "SPEC-001",
+      "id": "LINK-029",
+      "label": "",
+      "to": "REQ-004",
+      "type": "contains",
+      "updated_revision": 118
+    },
+    {
+      "created_revision": 119,
+      "from": "REQ-004",
+      "id": "LINK-030",
+      "label": "",
+      "to": "AC-005",
+      "type": "contains",
+      "updated_revision": 119
+    },
+    {
+      "created_revision": 120,
+      "from": "AC-005",
+      "id": "LINK-031",
+      "label": "",
+      "to": "TASK-004",
+      "type": "implements",
+      "updated_revision": 120
+    },
+    {
+      "created_revision": 121,
+      "from": "TASK-003",
+      "id": "LINK-032",
+      "label": "",
+      "to": "TASK-004",
+      "type": "depends_on",
+      "updated_revision": 121
+    },
+    {
+      "created_revision": 123,
+      "from": "REQ-004",
+      "id": "LINK-033",
+      "label": "",
+      "to": "DES-003",
+      "type": "designed_by",
+      "updated_revision": 123
+    },
+    {
+      "created_revision": 124,
+      "from": "DES-003",
+      "id": "LINK-034",
+      "label": "",
+      "to": "TASK-004",
+      "type": "implements",
+      "updated_revision": 124
+    },
+    {
+      "created_revision": 127,
+      "from": "DES-003",
+      "id": "LINK-035",
+      "label": "",
+      "to": "REV-003",
+      "type": "reviews",
+      "updated_revision": 127
+    },
+    {
+      "created_revision": 141,
+      "from": "TASK-004",
+      "id": "LINK-036",
+      "label": "",
+      "to": "EVD-005",
+      "type": "produced_by",
+      "updated_revision": 141
+    },
+    {
+      "created_revision": 142,
+      "from": "AC-005",
+      "id": "LINK-037",
+      "label": "",
+      "to": "EVD-005",
+      "type": "validates",
+      "updated_revision": 142
     }
   ],
   "phase": "completion",
   "project": {
     "final_gate": {
-      "artifact": "work/bear-return-build.log",
+      "artifact": "work/number-bakery-spelling-build.log",
       "name": "npm run build",
       "required": true,
       "status": "passed",
-      "summary": "新增小熊返回圖與三頁導覽位置調整後，npm run build 通過",
-      "updated_revision": 113
+      "summary": "聽拼字功能、十個音檔及相關測試加入後 npm run build 通過",
+      "updated_revision": 145
     },
     "name": "small3 — 小熊數字點心店",
     "root": "."
@@ -1513,6 +1946,15 @@
       "summary": "使用者常誤按頂部返回學習星球，要求用 imagegen 製作漂亮的小熊返回按鈕。保留首頁連結，將返回點心店改為明顯的小熊木框圖像按鈕，放在跟讀、作答與成果內容下方；返回時保留進度。",
       "title": "小熊圖像返回按鈕與明確間距",
       "updated_revision": 101
+    },
+    {
+      "created_revision": 115,
+      "id": "REQ-004",
+      "required": true,
+      "status": "converged",
+      "summary": "one–ten 以單字、逐個英文名稱字母、完整單字順序朗讀。在認識單字和答對後提供聽拼字，作答前不提供拼字答案。",
+      "title": "單字與逐字母跟讀",
+      "updated_revision": 130
     }
   ],
   "reviews": [
@@ -1533,9 +1975,18 @@
       "summary": "依使用者新指示改用 imagegen 小熊返回按鈕。素材採既有店員造型，標籤保留真實 HTML 文字；只調整 HTML/CSS/資產，沿用原本三個 to-menu 事件，避免改動進度與通關行為。",
       "title": "圖像返回設計確認",
       "updated_revision": 99
+    },
+    {
+      "created_revision": 126,
+      "id": "REV-003",
+      "reviewer": "Codex",
+      "status": "converged",
+      "summary": "已讀取現有聲音來源、Audio 控制器、答對狀態及靜態打包。使用預錄單檔避免連播多檔的瀏覽器限制；可用條件同時以顯示及事件保護，保留原發音、進度與通關。",
+      "title": "聽拼字設計檢查",
+      "updated_revision": 128
     }
   ],
-  "revision": 113,
+  "revision": 145,
   "route": "completion",
   "runtime": {
     "activities": [],
@@ -1565,7 +2016,7 @@
       ],
       "status": "converged",
       "title": "小熊數字點心店",
-      "updated_revision": 102
+      "updated_revision": 132
     }
   ],
   "tasks": [
@@ -1595,8 +2046,17 @@
       "title": "製作及套用小熊返回按鈕",
       "updated_revision": 112,
       "validation_intent": "沿用並更新介面驗證、實際手機平板檢查、完整建置"
+    },
+    {
+      "created_revision": 117,
+      "expected_outcome": "沿用 Zira 英文聲線，以短暫停頓逐字念英文名稱，學習與答對後可重播，返回與換題即停止。",
+      "id": "TASK-004",
+      "status": "verified",
+      "title": "產生拼字語音及加入聽拼字按鈕",
+      "updated_revision": 144,
+      "validation_intent": "音檔格式及播放生命週期測試、介面狀態測試、手機瀏覽器檢查及正式資產核對"
     }
   ],
-  "updated_at": "2026-11-11T11:44:06+00:00",
+  "updated_at": "2026-11-11T12:39:08+00:00",
   "workflow_id": "WF-FBA161ED8E44"
 }

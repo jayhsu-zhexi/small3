@@ -6,14 +6,14 @@
   <meta name="theme-color" content="#f8f4e9">
   <meta name="description" content="和小熊店長學習 one 到 ten：聽發音、讀單字，再用畫面字母鍵盤練習拼字。">
   <title>小熊數字點心店｜學習星球</title>
-  <link rel="stylesheet" href="/assets/number-bakery.css?v=bear-return-2">
+  <link rel="stylesheet" href="/assets/number-bakery.css?v=spelling-3">
   <link rel="stylesheet" href="/assets/completion-party.css?v=crown-cheer-47">
   <script defer src="/assets/number-bakery-engine.js?v=1"></script>
-  <script defer src="/assets/number-bakery-audio.js?v=1"></script>
+  <script defer src="/assets/number-bakery-audio.js?v=spelling-2"></script>
   <script defer src="/assets/multiply-audio.js?v=2"></script>
   <script defer src="/assets/completion-art.js?v=crown-cheer-47"></script>
   <script defer src="/assets/completion-party.js?v=crown-cheer-47"></script>
-  <script defer src="/assets/number-bakery-ui.js?v=1"></script>
+  <script defer src="/assets/number-bakery-ui.js?v=spelling-2"></script>
 </head>
 <body>
   <div class="bakery-shell">
@@ -49,7 +49,7 @@
         <div class="section-bar"><h1 id="learnTitle">和小熊一起讀</h1><span id="learnCount" class="muted"></span></div>
         <div class="learning-card">
           <div class="learning-quantity"><span class="eyebrow">看看有幾片餅乾</span><strong id="learnNumber"></strong><div id="learnCookies" class="cookie-tray"></div></div>
-          <div class="learning-word"><p class="eyebrow">這個數字的英文是</p><strong id="learnWord" lang="en"></strong><div class="audio-controls"><button type="button" class="secondary" data-speak="normal">♪ 聽發音</button><button type="button" class="secondary" data-speak="slow">慢慢聽</button></div><p>聽完後，換你大聲讀一次。</p><button id="practicedButton" type="button" class="primary">我讀好了 ✓</button></div>
+          <div class="learning-word"><p class="eyebrow">這個數字的英文是</p><strong id="learnWord" lang="en"></strong><div class="audio-controls"><button type="button" class="secondary" data-speak="normal">♪ 聽發音</button><button type="button" class="secondary" data-speak="slow">慢慢聽</button><button type="button" class="secondary spelling-button" data-speak="spell"><span lang="en" aria-hidden="true">abc</span> 聽拼字</button></div><p>聽完後，換你大聲讀一次。</p><button id="practicedButton" type="button" class="primary">我讀好了 ✓</button></div>
         </div>
         <div id="learnNumbers" class="learn-numbers" aria-label="選擇要學的數字"></div>
         <div class="learn-navigation"><button id="learnPrevious" type="button" class="secondary">← 上一個</button><p>跟讀由自己練習，遊戲不會評分發音。</p><button id="learnNext" type="button" class="primary">下一個 →</button></div>
@@ -65,7 +65,7 @@
           <div id="choiceArea" class="choice-area" aria-label="選擇數字"></div>
           <div id="spellingArea" hidden><div id="answerSlots" class="answer-slots" role="group" aria-label="拼字答案格"></div><p class="keyboard-note">點字母填入，點答案格可修改。</p><div id="letterKeyboard" class="letter-keyboard" role="group" aria-label="畫面英文字母鍵盤"></div><div class="edit-actions"><button id="clearAnswer" type="button">清除</button><button id="eraseLetter" type="button">⌫ 刪一格</button></div></div>
           <div id="answerFeedback" class="answer-feedback" role="status" aria-live="polite" aria-atomic="true"></div>
-          <div class="answer-actions"><button id="checkAnswer" class="primary" type="button">確認答案 ✓</button><button id="nextOrder" class="primary" type="button" hidden>下一張訂單 →</button></div>
+          <div id="answerActions" class="answer-actions"><button id="checkAnswer" class="primary" type="button">確認答案 ✓</button><button id="spellAnswer" class="secondary spelling-button" type="button" data-speak="spell" hidden><span lang="en" aria-hidden="true">abc</span> 聽拼字</button><button id="nextOrder" class="primary" type="button" hidden>下一張訂單 →</button></div>
         </div>
         <p class="round-note">綠燈：首次答對　粉紅燈：練習後答對</p>
         <div class="practice-return"><button class="bear-return to-menu" type="button" aria-label="返回點心店"><img src="/assets/number-bakery-return-v1.webp" alt="" width="840" height="280"><span>← 返回點心店</span></button></div>

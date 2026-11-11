@@ -7,10 +7,11 @@
 入口：https://small3.vercel.app/number-bakery。首頁也有卡片入口。
 練習 one–ten 的正常／慢速發音、認字與拼字，可選 1–5、6–10、1–10；每輪 10 題，數字和選項會打散。
 跟讀使用「我讀好了」記錄自主練習，不使用麥克風，也不評分發音。拼字分成補缺字、字母排序與完整 A–Z 畫面鍵盤，支援實體鍵盤；答案格是按鈕，不會呼叫手機文字鍵盤。
+「認識單字」和答對後可按「聽拼字」，依序播放 `one → O → N → E → one`；字母念英文名稱並留停頓。換題、返回或離開頁面會停止播放，未答對時不提供拼字朗讀。
 答錯後可重試並複習錯字；第一次答對才亮綠燈，錯誤紀錄在重新整理後保留。完成十題沿用一般通關；全數首次答對沿用 100 分皇冠盾牌、小熊連跳三次及立即發射的左右長彩帶。
 獨立進度和設定保存在 `small3-number-bakery-v1` / `small3-number-bakery-prefs-v1`；此功能不包含在首頁既有的匯出備份中。
 新增入口時，舊首頁設定保留原本排序、顯示選擇、名稱與 revision，再補上點心店；不更動其他遊戲的進度。
-`number-bakery.html`、`assets/number-bakery.css`、`assets/number-bakery-ui.js` 是介面；`assets/number-bakery-engine.js` 管理題目及存檔驗證，`assets/number-bakery-audio.js` 管理既有英文音檔的播放與取消。
+`number-bakery.html`、`assets/number-bakery.css`、`assets/number-bakery-ui.js` 是介面；`assets/number-bakery-engine.js` 管理題目及存檔驗證，`assets/number-bakery-audio.js` 管理英文及拼字音檔的播放與取消。拼字 WAV 位於 `assets/number-bakery-spelling/`，沿用 Microsoft Zira Desktop（en-US、Rate=-1），由 `scripts/generate-number-bakery-spelling.ps1` 產生 22.05 kHz、16-bit mono 單檔錄音；腳本拒絕覆寫既有錄音，可用 `-OutputDirectory` 指定新的試聽目錄。
 小熊素材使用內建 ImageGen 製作，透明 WebP 位於 `assets/number-bakery-bear-v1.webp`；完整製作提示記錄在 `docs/number-bakery-art.md`。
 
 ## 星球探險棋
