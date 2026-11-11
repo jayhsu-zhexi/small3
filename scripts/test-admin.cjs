@@ -5,6 +5,9 @@ const scope={module:{exports:{}}};vm.runInNewContext(fs.readFileSync('assets/sit
 async function main(){
  assert.equal(taiwanDate(Date.parse('2026-11-01T15:59:59Z')),'20261101');assert.equal(taiwanDate(Date.parse('2026-11-01T16:00:00Z')),'20261102');
  assert.throws(()=>redisStore({}),/儲存/);assert.throws(()=>S.validate({...S.defaults(),games:[]}),/清單/);
+ const legacy=S.defaults();legacy.revision=7;legacy.home.title='保留原本的首頁';legacy.games=legacy.games.filter(g=>g.id!=='number-bakery').reverse();legacy.games[0].visible=false;legacy.games[1].isNew=true;
+ const upgraded=S.validate(legacy);assert.equal(upgraded.revision,7);assert.deepEqual(upgraded.games.slice(0,-1),legacy.games);assert.equal(upgraded.home.title,legacy.home.title);assert.deepEqual(JSON.parse(JSON.stringify(upgraded.games.at(-1))),{id:'number-bakery',visible:true,isNew:true});
+ const missingExisting=S.defaults();missingExisting.games=missingExisting.games.filter(g=>g.id!=='multiply');assert.throws(()=>S.validate(missingExisting),/清單/,'Only the newly added game may be missing');
  const directory=fs.mkdtempSync(path.join(os.tmpdir(),'small3-admin-')),store=fileStore(directory);let now=Date.parse('2026-11-01T12:00:00Z');
  const handler=createHandler({store,now:()=>now});
  const server=http.createServer(async(req,res)=>{if(req.headers['x-test-parsed-body']){let raw='';for await(const chunk of req)raw+=chunk;req.body=JSON.parse(raw);}return handler(req,res);});server.listen(0,'127.0.0.1');await once(server,'listening');const origin='http://127.0.0.1:'+server.address().port;

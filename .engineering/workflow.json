@@ -1,0 +1,914 @@
+{
+  "acceptance_criteria": [
+    {
+      "created_revision": 5,
+      "id": "AC-001",
+      "oracle": "Node 測試涵蓋範圍、十題隨機與數字覆蓋、三種拼字、重複字母、首次答對、未完成答案、重複送出、續玩驗證與損壞資料。",
+      "required": true,
+      "status": "passed",
+      "title": "題目與進度正確",
+      "updated_revision": 43
+    },
+    {
+      "created_revision": 6,
+      "id": "AC-002",
+      "oracle": "瀏覽器實測聽音不洩漏單字、畫面及實體鍵盤、手機平板不溢出、續玩、一般及全綠完成；跟讀不標示已通過發音評分。",
+      "required": true,
+      "status": "passed",
+      "title": "互動與完成畫面",
+      "updated_revision": 55
+    },
+    {
+      "created_revision": 7,
+      "id": "AC-003",
+      "oracle": "首頁舊設定相容測試通過；npm run build 通過；正式 Vercel 精確 commit 部署成功並確認新路由與資產一致。",
+      "required": true,
+      "status": "ready",
+      "title": "網站整合及發布",
+      "updated_revision": 32
+    }
+  ],
+  "completion": {
+    "blockers": [
+      {
+        "code": "task",
+        "id": "TASK-002",
+        "message": "Task 尚未 verified"
+      },
+      {
+        "code": "acceptance",
+        "id": "AC-003",
+        "message": "最新 Evidence 為 not_run"
+      }
+    ],
+    "checked_at": "2026-11-11T10:40:50+00:00",
+    "checked_revision": 56,
+    "ready": false
+  },
+  "created_at": "2026-11-11T10:16:17+00:00",
+  "designs": [
+    {
+      "created_revision": 19,
+      "id": "DES-001",
+      "reuse": [
+        "既有 one–ten WAV",
+        "MultiplyAudio 答對答錯語音",
+        "CompletionParty 的一般與全綠三連跳"
+      ],
+      "risks": [
+        "聽音與拼字不得先顯示答案",
+        "重複字母的可用數量",
+        "答錯後續玩不能變全綠",
+        "取消或離頁後舊音訊不得繼續",
+        "舊首頁設定需相容"
+      ],
+      "solution": "新增 number-bakery.html、CSS、引擎、音訊及 UI；所有答案格為按鈕。純引擎管理十題牌組、錯誤旗標與可驗證快照；UI 只顯示當下可見資訊。沿用 vocabulary-audio 與 MultiplyAudio/CompletionParty。以必要的新遊戲缺項辨識舊首頁設定，保持原排序、可見性與 revision，讀取時補入新卡。",
+      "status": "converged",
+      "title": "獨立靜態頁與共用素材",
+      "tradeoffs": [
+        "不使用麥克風，跟讀是自主練習而非發音評分",
+        "本機保存，不新增帳號或伺服器進度"
+      ],
+      "updated_revision": 27,
+      "verification": [
+        "引擎與音訊測試",
+        "既有首頁管理測試",
+        "實際手機與平板版面及兩類完成測試",
+        "精確部署驗證"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "artifact": "scripts/test-number-bakery.cjs",
+      "command": "node scripts/test-number-bakery.cjs",
+      "created_revision": 39,
+      "id": "EVD-001",
+      "method": "Node assertions",
+      "status": "passed",
+      "summary": "1,080 輪通過；涵蓋三範圍、三拼字難度、重複字母、錯誤續玩、損壞資料、普通與全綠判斷、音訊取消與失敗。首次測試因 package ESM 與 CommonJS 測試載入方式不符而失敗，修正測試載入方式後通過。",
+      "title": "題目與音訊行為測試",
+      "updated_revision": 40
+    },
+    {
+      "artifact": "scripts/test-number-bakery-ui.cjs",
+      "command": "node scripts/test-number-bakery-ui.cjs",
+      "created_revision": 51,
+      "id": "EVD-002",
+      "method": "CUA 實際瀏覽器操作與 Node assertions",
+      "status": "passed",
+      "summary": "實際完成一輪完整拼字：錯一題並重新整理後，9/10 首次答對、一般通關；認字十題全對顯示全綠皇冠動畫。另驗證跟讀慢速播放、補缺字、排序、返回首頁 Enter、重新開局提示及零文字輸入框。390x740 完整鍵盤確認鍵在 y=681；360 寬無橫向溢出；1024x768 橫放認字確認鍵在 y=734。介面 Node 測試通過。",
+      "title": "瀏覽器互動與手機平板驗證",
+      "updated_revision": 52
+    }
+  ],
+  "findings": [],
+  "history": [
+    {
+      "at": "2026-11-11T10:16:17+00:00",
+      "changed_ids": [],
+      "operation": "init",
+      "revision": 1,
+      "summary": "初始化 small3 — 小熊數字點心店 工程流程"
+    },
+    {
+      "at": "2026-11-11T10:16:17+00:00",
+      "changed_ids": [
+        "SPEC-001"
+      ],
+      "operation": "spec.add",
+      "revision": 2,
+      "summary": "新增 SPEC-001 小熊數字點心店"
+    },
+    {
+      "at": "2026-11-11T10:16:18+00:00",
+      "changed_ids": [
+        "REQ-001"
+      ],
+      "operation": "requirement.add",
+      "revision": 3,
+      "summary": "新增 REQ-001 英文數字分段練習與可靠計分"
+    },
+    {
+      "at": "2026-11-11T10:16:18+00:00",
+      "changed_ids": [
+        "REQ-002"
+      ],
+      "operation": "requirement.add",
+      "revision": 4,
+      "summary": "新增 REQ-002 手機友善的點心店及既有站台整合"
+    },
+    {
+      "at": "2026-11-11T10:16:18+00:00",
+      "changed_ids": [
+        "AC-001"
+      ],
+      "operation": "acceptance.add",
+      "revision": 5,
+      "summary": "新增 AC-001 題目與進度正確"
+    },
+    {
+      "at": "2026-11-11T10:16:18+00:00",
+      "changed_ids": [
+        "AC-002"
+      ],
+      "operation": "acceptance.add",
+      "revision": 6,
+      "summary": "新增 AC-002 互動與完成畫面"
+    },
+    {
+      "at": "2026-11-11T10:16:18+00:00",
+      "changed_ids": [
+        "AC-003"
+      ],
+      "operation": "acceptance.add",
+      "revision": 7,
+      "summary": "新增 AC-003 網站整合及發布"
+    },
+    {
+      "at": "2026-11-11T10:16:18+00:00",
+      "changed_ids": [
+        "TASK-001"
+      ],
+      "operation": "task.add",
+      "revision": 8,
+      "summary": "新增 TASK-001 題庫狀態與音訊控制"
+    },
+    {
+      "at": "2026-11-11T10:16:18+00:00",
+      "changed_ids": [
+        "TASK-002"
+      ],
+      "operation": "task.add",
+      "revision": 9,
+      "summary": "新增 TASK-002 遊戲介面、首頁整合及正式驗證"
+    },
+    {
+      "at": "2026-11-11T10:16:19+00:00",
+      "changed_ids": [
+        "LINK-001",
+        "REQ-001",
+        "SPEC-001"
+      ],
+      "operation": "link.add",
+      "revision": 10,
+      "summary": "新增 contains：SPEC-001 → REQ-001"
+    },
+    {
+      "at": "2026-11-11T10:16:19+00:00",
+      "changed_ids": [
+        "LINK-002",
+        "REQ-002",
+        "SPEC-001"
+      ],
+      "operation": "link.add",
+      "revision": 11,
+      "summary": "新增 contains：SPEC-001 → REQ-002"
+    },
+    {
+      "at": "2026-11-11T10:16:19+00:00",
+      "changed_ids": [
+        "AC-001",
+        "LINK-003",
+        "REQ-001"
+      ],
+      "operation": "link.add",
+      "revision": 12,
+      "summary": "新增 contains：REQ-001 → AC-001"
+    },
+    {
+      "at": "2026-11-11T10:16:19+00:00",
+      "changed_ids": [
+        "AC-002",
+        "LINK-004",
+        "REQ-002"
+      ],
+      "operation": "link.add",
+      "revision": 13,
+      "summary": "新增 contains：REQ-002 → AC-002"
+    },
+    {
+      "at": "2026-11-11T10:16:19+00:00",
+      "changed_ids": [
+        "AC-003",
+        "LINK-005",
+        "REQ-002"
+      ],
+      "operation": "link.add",
+      "revision": 14,
+      "summary": "新增 contains：REQ-002 → AC-003"
+    },
+    {
+      "at": "2026-11-11T10:16:19+00:00",
+      "changed_ids": [
+        "AC-001",
+        "LINK-006",
+        "TASK-001"
+      ],
+      "operation": "link.add",
+      "revision": 15,
+      "summary": "新增 implements：AC-001 → TASK-001"
+    },
+    {
+      "at": "2026-11-11T10:16:19+00:00",
+      "changed_ids": [
+        "AC-002",
+        "LINK-007",
+        "TASK-002"
+      ],
+      "operation": "link.add",
+      "revision": 16,
+      "summary": "新增 implements：AC-002 → TASK-002"
+    },
+    {
+      "at": "2026-11-11T10:16:20+00:00",
+      "changed_ids": [
+        "AC-003",
+        "LINK-008",
+        "TASK-002"
+      ],
+      "operation": "link.add",
+      "revision": 17,
+      "summary": "新增 implements：AC-003 → TASK-002"
+    },
+    {
+      "at": "2026-11-11T10:16:20+00:00",
+      "changed_ids": [
+        "LINK-009",
+        "TASK-001",
+        "TASK-002"
+      ],
+      "operation": "link.add",
+      "revision": 18,
+      "summary": "新增 depends_on：TASK-001 → TASK-002"
+    },
+    {
+      "at": "2026-11-11T10:16:20+00:00",
+      "changed_ids": [
+        "DES-001"
+      ],
+      "operation": "design.add",
+      "revision": 19,
+      "summary": "新增 DES-001 獨立靜態頁與共用素材"
+    },
+    {
+      "at": "2026-11-11T10:16:20+00:00",
+      "changed_ids": [
+        "DES-001",
+        "LINK-010",
+        "SPEC-001"
+      ],
+      "operation": "link.add",
+      "revision": 20,
+      "summary": "新增 designed_by：SPEC-001 → DES-001"
+    },
+    {
+      "at": "2026-11-11T10:16:20+00:00",
+      "changed_ids": [
+        "DES-001",
+        "LINK-011",
+        "TASK-001"
+      ],
+      "operation": "link.add",
+      "revision": 21,
+      "summary": "新增 implements：DES-001 → TASK-001"
+    },
+    {
+      "at": "2026-11-11T10:16:21+00:00",
+      "changed_ids": [
+        "DES-001",
+        "LINK-012",
+        "TASK-002"
+      ],
+      "operation": "link.add",
+      "revision": 22,
+      "summary": "新增 implements：DES-001 → TASK-002"
+    },
+    {
+      "at": "2026-11-11T10:16:21+00:00",
+      "changed_ids": [
+        "DES-001"
+      ],
+      "operation": "design.status",
+      "revision": 23,
+      "summary": "DES-001：draft → in_review"
+    },
+    {
+      "at": "2026-11-11T10:16:21+00:00",
+      "changed_ids": [
+        "REV-001"
+      ],
+      "operation": "review.add",
+      "revision": 24,
+      "summary": "新增 REV-001 設計收斂檢查"
+    },
+    {
+      "at": "2026-11-11T10:16:21+00:00",
+      "changed_ids": [
+        "DES-001",
+        "LINK-013",
+        "REV-001"
+      ],
+      "operation": "link.add",
+      "revision": 25,
+      "summary": "新增 reviews：DES-001 → REV-001"
+    },
+    {
+      "at": "2026-11-11T10:16:21+00:00",
+      "changed_ids": [
+        "REV-001"
+      ],
+      "operation": "review.status",
+      "revision": 26,
+      "summary": "REV-001：changes_required → converged"
+    },
+    {
+      "at": "2026-11-11T10:16:21+00:00",
+      "changed_ids": [
+        "DES-001"
+      ],
+      "operation": "design.status",
+      "revision": 27,
+      "summary": "DES-001：in_review → converged"
+    },
+    {
+      "at": "2026-11-11T10:16:21+00:00",
+      "changed_ids": [
+        "REQ-001"
+      ],
+      "operation": "requirement.status",
+      "revision": 28,
+      "summary": "REQ-001：draft → converged"
+    },
+    {
+      "at": "2026-11-11T10:16:22+00:00",
+      "changed_ids": [
+        "REQ-002"
+      ],
+      "operation": "requirement.status",
+      "revision": 29,
+      "summary": "REQ-002：draft → converged"
+    },
+    {
+      "at": "2026-11-11T10:16:22+00:00",
+      "changed_ids": [
+        "AC-001"
+      ],
+      "operation": "acceptance.status",
+      "revision": 30,
+      "summary": "AC-001：draft → ready"
+    },
+    {
+      "at": "2026-11-11T10:16:22+00:00",
+      "changed_ids": [
+        "AC-002"
+      ],
+      "operation": "acceptance.status",
+      "revision": 31,
+      "summary": "AC-002：draft → ready"
+    },
+    {
+      "at": "2026-11-11T10:16:22+00:00",
+      "changed_ids": [
+        "AC-003"
+      ],
+      "operation": "acceptance.status",
+      "revision": 32,
+      "summary": "AC-003：draft → ready"
+    },
+    {
+      "at": "2026-11-11T10:16:22+00:00",
+      "changed_ids": [
+        "SPEC-001"
+      ],
+      "operation": "spec.status",
+      "revision": 33,
+      "summary": "SPEC-001：draft → converged"
+    },
+    {
+      "at": "2026-11-11T10:16:22+00:00",
+      "changed_ids": [
+        "TASK-001"
+      ],
+      "operation": "task.status",
+      "revision": 34,
+      "summary": "TASK-001：planned → ready"
+    },
+    {
+      "at": "2026-11-11T10:16:22+00:00",
+      "changed_ids": [
+        "TASK-001"
+      ],
+      "operation": "task.status",
+      "revision": 35,
+      "summary": "TASK-001：ready → in_progress"
+    },
+    {
+      "at": "2026-11-11T10:16:23+00:00",
+      "changed_ids": [
+        "ACT-001",
+        "TASK-001"
+      ],
+      "operation": "activity.start",
+      "revision": 36,
+      "summary": "啟動 ACT-001：TASK-001 implementation"
+    },
+    {
+      "at": "2026-11-11T10:19:29+00:00",
+      "changed_ids": [
+        "ACT-001",
+        "TASK-001"
+      ],
+      "operation": "activity.stop",
+      "revision": 37,
+      "summary": "停止 ACT-001（completed）"
+    },
+    {
+      "at": "2026-11-11T10:19:29+00:00",
+      "changed_ids": [
+        "TASK-001"
+      ],
+      "operation": "task.status",
+      "revision": 38,
+      "summary": "TASK-001：in_progress → implemented"
+    },
+    {
+      "at": "2026-11-11T10:19:45+00:00",
+      "changed_ids": [
+        "EVD-001"
+      ],
+      "operation": "evidence.add",
+      "revision": 39,
+      "summary": "新增 EVD-001 題目與音訊行為測試"
+    },
+    {
+      "at": "2026-11-11T10:19:45+00:00",
+      "changed_ids": [
+        "EVD-001"
+      ],
+      "operation": "evidence.status",
+      "revision": 40,
+      "summary": "EVD-001：not_run → passed"
+    },
+    {
+      "at": "2026-11-11T10:19:45+00:00",
+      "changed_ids": [
+        "EVD-001",
+        "LINK-014",
+        "TASK-001"
+      ],
+      "operation": "link.add",
+      "revision": 41,
+      "summary": "新增 produced_by：TASK-001 → EVD-001"
+    },
+    {
+      "at": "2026-11-11T10:19:45+00:00",
+      "changed_ids": [
+        "AC-001",
+        "EVD-001",
+        "LINK-015"
+      ],
+      "operation": "link.add",
+      "revision": 42,
+      "summary": "新增 validates：AC-001 → EVD-001"
+    },
+    {
+      "at": "2026-11-11T10:19:45+00:00",
+      "changed_ids": [
+        "AC-001"
+      ],
+      "operation": "acceptance.status",
+      "revision": 43,
+      "summary": "AC-001：ready → passed"
+    },
+    {
+      "at": "2026-11-11T10:19:46+00:00",
+      "changed_ids": [
+        "TASK-001"
+      ],
+      "operation": "task.status",
+      "revision": 44,
+      "summary": "TASK-001：implemented → verified"
+    },
+    {
+      "at": "2026-11-11T10:19:46+00:00",
+      "changed_ids": [
+        "TASK-002"
+      ],
+      "operation": "task.status",
+      "revision": 45,
+      "summary": "TASK-002：planned → ready"
+    },
+    {
+      "at": "2026-11-11T10:19:46+00:00",
+      "changed_ids": [
+        "TASK-002"
+      ],
+      "operation": "task.status",
+      "revision": 46,
+      "summary": "TASK-002：ready → in_progress"
+    },
+    {
+      "at": "2026-11-11T10:19:46+00:00",
+      "changed_ids": [
+        "ACT-002",
+        "TASK-002"
+      ],
+      "operation": "activity.start",
+      "revision": 47,
+      "summary": "啟動 ACT-002：TASK-002 implementation"
+    },
+    {
+      "at": "2026-11-11T10:40:49+00:00",
+      "changed_ids": [
+        "ACT-002",
+        "TASK-002"
+      ],
+      "operation": "activity.stop",
+      "revision": 48,
+      "summary": "停止 ACT-002（completed）"
+    },
+    {
+      "at": "2026-11-11T10:40:49+00:00",
+      "changed_ids": [
+        "TASK-002"
+      ],
+      "operation": "task.status",
+      "revision": 49,
+      "summary": "TASK-002：in_progress → implemented"
+    },
+    {
+      "at": "2026-11-11T10:40:49+00:00",
+      "changed_ids": [
+        "ACT-003",
+        "TASK-002"
+      ],
+      "operation": "activity.start",
+      "revision": 50,
+      "summary": "啟動 ACT-003：TASK-002 validation"
+    },
+    {
+      "at": "2026-11-11T10:40:49+00:00",
+      "changed_ids": [
+        "EVD-002"
+      ],
+      "operation": "evidence.add",
+      "revision": 51,
+      "summary": "新增 EVD-002 瀏覽器互動與手機平板驗證"
+    },
+    {
+      "at": "2026-11-11T10:40:49+00:00",
+      "changed_ids": [
+        "EVD-002"
+      ],
+      "operation": "evidence.status",
+      "revision": 52,
+      "summary": "EVD-002：not_run → passed"
+    },
+    {
+      "at": "2026-11-11T10:40:49+00:00",
+      "changed_ids": [
+        "EVD-002",
+        "LINK-016",
+        "TASK-002"
+      ],
+      "operation": "link.add",
+      "revision": 53,
+      "summary": "新增 produced_by：TASK-002 → EVD-002"
+    },
+    {
+      "at": "2026-11-11T10:40:50+00:00",
+      "changed_ids": [
+        "AC-002",
+        "EVD-002",
+        "LINK-017"
+      ],
+      "operation": "link.add",
+      "revision": 54,
+      "summary": "新增 validates：AC-002 → EVD-002"
+    },
+    {
+      "at": "2026-11-11T10:40:50+00:00",
+      "changed_ids": [
+        "AC-002"
+      ],
+      "operation": "acceptance.status",
+      "revision": 55,
+      "summary": "AC-002：ready → passed"
+    },
+    {
+      "at": "2026-11-11T10:40:50+00:00",
+      "changed_ids": [],
+      "operation": "gate.record",
+      "revision": 56,
+      "summary": "記錄 final gate：passed"
+    }
+  ],
+  "links": [
+    {
+      "created_revision": 10,
+      "from": "SPEC-001",
+      "id": "LINK-001",
+      "label": "",
+      "to": "REQ-001",
+      "type": "contains",
+      "updated_revision": 10
+    },
+    {
+      "created_revision": 11,
+      "from": "SPEC-001",
+      "id": "LINK-002",
+      "label": "",
+      "to": "REQ-002",
+      "type": "contains",
+      "updated_revision": 11
+    },
+    {
+      "created_revision": 12,
+      "from": "REQ-001",
+      "id": "LINK-003",
+      "label": "",
+      "to": "AC-001",
+      "type": "contains",
+      "updated_revision": 12
+    },
+    {
+      "created_revision": 13,
+      "from": "REQ-002",
+      "id": "LINK-004",
+      "label": "",
+      "to": "AC-002",
+      "type": "contains",
+      "updated_revision": 13
+    },
+    {
+      "created_revision": 14,
+      "from": "REQ-002",
+      "id": "LINK-005",
+      "label": "",
+      "to": "AC-003",
+      "type": "contains",
+      "updated_revision": 14
+    },
+    {
+      "created_revision": 15,
+      "from": "AC-001",
+      "id": "LINK-006",
+      "label": "",
+      "to": "TASK-001",
+      "type": "implements",
+      "updated_revision": 15
+    },
+    {
+      "created_revision": 16,
+      "from": "AC-002",
+      "id": "LINK-007",
+      "label": "",
+      "to": "TASK-002",
+      "type": "implements",
+      "updated_revision": 16
+    },
+    {
+      "created_revision": 17,
+      "from": "AC-003",
+      "id": "LINK-008",
+      "label": "",
+      "to": "TASK-002",
+      "type": "implements",
+      "updated_revision": 17
+    },
+    {
+      "created_revision": 18,
+      "from": "TASK-001",
+      "id": "LINK-009",
+      "label": "",
+      "to": "TASK-002",
+      "type": "depends_on",
+      "updated_revision": 18
+    },
+    {
+      "created_revision": 20,
+      "from": "SPEC-001",
+      "id": "LINK-010",
+      "label": "",
+      "to": "DES-001",
+      "type": "designed_by",
+      "updated_revision": 20
+    },
+    {
+      "created_revision": 21,
+      "from": "DES-001",
+      "id": "LINK-011",
+      "label": "",
+      "to": "TASK-001",
+      "type": "implements",
+      "updated_revision": 21
+    },
+    {
+      "created_revision": 22,
+      "from": "DES-001",
+      "id": "LINK-012",
+      "label": "",
+      "to": "TASK-002",
+      "type": "implements",
+      "updated_revision": 22
+    },
+    {
+      "created_revision": 25,
+      "from": "DES-001",
+      "id": "LINK-013",
+      "label": "",
+      "to": "REV-001",
+      "type": "reviews",
+      "updated_revision": 25
+    },
+    {
+      "created_revision": 41,
+      "from": "TASK-001",
+      "id": "LINK-014",
+      "label": "",
+      "to": "EVD-001",
+      "type": "produced_by",
+      "updated_revision": 41
+    },
+    {
+      "created_revision": 42,
+      "from": "AC-001",
+      "id": "LINK-015",
+      "label": "",
+      "to": "EVD-001",
+      "type": "validates",
+      "updated_revision": 42
+    },
+    {
+      "created_revision": 53,
+      "from": "TASK-002",
+      "id": "LINK-016",
+      "label": "",
+      "to": "EVD-002",
+      "type": "produced_by",
+      "updated_revision": 53
+    },
+    {
+      "created_revision": 54,
+      "from": "AC-002",
+      "id": "LINK-017",
+      "label": "",
+      "to": "EVD-002",
+      "type": "validates",
+      "updated_revision": 54
+    }
+  ],
+  "phase": "implementation_validation",
+  "project": {
+    "final_gate": {
+      "artifact": "work/number-bakery-build-final.log",
+      "name": "npm run build",
+      "required": true,
+      "status": "passed",
+      "summary": "npm run build 通過，包含新遊戲、首頁相容性、共用通關及全站既有測試",
+      "updated_revision": 56
+    },
+    "name": "small3 — 小熊數字點心店",
+    "root": "."
+  },
+  "requirements": [
+    {
+      "created_revision": 3,
+      "id": "REQ-001",
+      "required": true,
+      "status": "converged",
+      "summary": "1–5、6–10、1–10；先學習跟讀，再十題聽音、認字、拼字；缺字、字母排序及完整小寫鍵盤。答錯重試仍可通關，但全綠只計首次答對。",
+      "title": "英文數字分段練習與可靠計分",
+      "updated_revision": 28
+    },
+    {
+      "created_revision": 4,
+      "id": "REQ-002",
+      "required": true,
+      "status": "converged",
+      "summary": "不用原生文字輸入框；清楚對錯回饋、可中止音訊、可續玩、錯字複習及共享完成畫面；保留舊首頁設定。",
+      "title": "手機友善的點心店及既有站台整合",
+      "updated_revision": 29
+    }
+  ],
+  "reviews": [
+    {
+      "created_revision": 24,
+      "id": "REV-001",
+      "reviewer": "Codex",
+      "status": "converged",
+      "summary": "已比對靜態建置、音訊、共享完成及首頁設定程式。使用按鈕答案格避免原生鍵盤；保存錯誤旗標並重驗快照；舊 16 遊戲設定只補新增遊戲，維持既有順序與 revision；英文音訊失敗可重播且不扣分。",
+      "title": "設計收斂檢查",
+      "updated_revision": 26
+    }
+  ],
+  "revision": 56,
+  "route": "implementation-validation",
+  "runtime": {
+    "activities": [
+      {
+        "actor": "",
+        "created_revision": 50,
+        "id": "ACT-003",
+        "node_id": "TASK-002",
+        "stage": "validation",
+        "started_at": "2026-11-11T10:40:49+00:00",
+        "state": "running",
+        "summary": "本機互動與完整建置已通過，準備驗證正式部署",
+        "updated_at": "2026-11-11T10:40:49+00:00",
+        "updated_revision": 50
+      }
+    ],
+    "primary_activity_id": "ACT-003"
+  },
+  "schema_version": 1,
+  "specs": [
+    {
+      "created_revision": 2,
+      "goal": "練習 one–ten 的聽音、認字、跟讀與拼字，沿用一般及全綠通關。",
+      "id": "SPEC-001",
+      "out_of_scope": [
+        "語音辨識或發音評分",
+        "修改既有遊戲規則",
+        "更換部署平台"
+      ],
+      "preserved_behaviors": [
+        "首頁自訂順序及顯示設定",
+        "現有一般通關與全綠小熊連跳三次",
+        "既有遊戲與備份資料"
+      ],
+      "scope": [
+        "獨立靜態遊戲及首頁入口",
+        "三個數字範圍與三種拼字難度",
+        "螢幕字母鍵盤、實體鍵盤與本機續玩",
+        "既有英文音檔及共享通關動畫"
+      ],
+      "status": "converged",
+      "title": "小熊數字點心店",
+      "updated_revision": 33
+    }
+  ],
+  "tasks": [
+    {
+      "created_revision": 8,
+      "expected_outcome": "可測試的純資料引擎，可靠保存與首次答對判斷；取消舊音訊不干擾下一題。",
+      "id": "TASK-001",
+      "status": "verified",
+      "title": "題庫狀態與音訊控制",
+      "updated_revision": 44,
+      "validation_intent": "Node 行為及音訊生命週期測試"
+    },
+    {
+      "created_revision": 9,
+      "expected_outcome": "完成可操作的點心店、手機鍵盤及兩種通關；首頁入口正常，正式路由可玩。",
+      "id": "TASK-002",
+      "status": "implemented",
+      "title": "遊戲介面、首頁整合及正式驗證",
+      "updated_revision": 49,
+      "validation_intent": "介面互動、手機平板、全套建置、正式精確 commit 與資產檢查"
+    }
+  ],
+  "updated_at": "2026-11-11T10:40:50+00:00",
+  "workflow_id": "WF-FBA161ED8E44"
+}

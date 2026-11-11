@@ -11,7 +11,7 @@ function createServer(root = path.resolve(__dirname, '..'), options = {}) {
   publicFiles.set('/board/',['board.html',types['.html']]);
   publicFiles.set('/detective',['detective.html',types['.html']]);
   publicFiles.set('/detective/',['detective.html',types['.html']]);
-  for(const route of ['admin','length','multiply','blocks','geography','vocabulary','abacus','parcels','crossing','memory','pinball','vault','survival','kart']){publicFiles.set('/'+route,[route+'.html',types['.html']]);publicFiles.set('/'+route+'/',[route+'.html',types['.html']]);}
+  for(const route of ['admin','number-bakery','length','multiply','blocks','geography','vocabulary','abacus','parcels','crossing','memory','pinball','vault','survival','kart']){publicFiles.set('/'+route,[route+'.html',types['.html']]);publicFiles.set('/'+route+'/',[route+'.html',types['.html']]);}
   return http.createServer((req, res) => {
     const pathname = new URL(req.url, 'http://localhost').pathname;
     if(pathname==='/api/site')return getAdminHandler()(req,res);

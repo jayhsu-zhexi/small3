@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f8f4e9">
+  <meta name="description" content="和小熊店長學習 one 到 ten：聽發音、讀單字，再用畫面字母鍵盤練習拼字。">
+  <title>小熊數字點心店｜學習星球</title>
+  <link rel="stylesheet" href="/assets/number-bakery.css?v=1">
+  <link rel="stylesheet" href="/assets/completion-party.css?v=crown-cheer-47">
+  <script defer src="/assets/number-bakery-engine.js?v=1"></script>
+  <script defer src="/assets/number-bakery-audio.js?v=1"></script>
+  <script defer src="/assets/multiply-audio.js?v=2"></script>
+  <script defer src="/assets/completion-art.js?v=crown-cheer-47"></script>
+  <script defer src="/assets/completion-party.js?v=crown-cheer-47"></script>
+  <script defer src="/assets/number-bakery-ui.js?v=1"></script>
+</head>
+<body>
+  <div class="bakery-shell">
+    <header class="topbar">
+      <a class="back-home" href="/">← <span>返回學習星球</span></a>
+      <span class="shop-name">小熊數字點心店</span>
+      <button id="soundToggle" class="quiet-button" type="button" aria-pressed="true">♫ 音效開</button>
+    </header>
+    <p id="saveNotice" class="notice" role="status" hidden></p>
+    <main>
+      <section id="menuView" aria-labelledby="welcomeTitle">
+        <div class="welcome">
+          <div class="storefront">
+            <div class="awning" aria-hidden="true"></div>
+            <div class="welcome-copy"><span class="eyebrow">TEDDY'S NUMBER BAKERY</span><h1 id="welcomeTitle">小熊數字<br>點心店</h1><p>聽一聽、讀一讀、拼一拼，<br>一起完成美味的數字訂單！</p></div>
+            <img class="shopkeeper" src="/assets/number-bakery-bear-v1.webp" alt="穿著薄荷綠圍裙、端著餅乾的小熊店長" width="640" height="640">
+            <div class="counter" aria-hidden="true"><span>one</span><span>two</span><span>three</span></div>
+          </div>
+          <div class="setup">
+            <div class="setup-heading"><span class="small-stamp">1–10</span><div><p class="eyebrow">今天想練習什麼？</p><h2>準備開店囉</h2></div></div>
+            <fieldset><legend>數字範圍</legend><div class="segmented" id="rangeOptions"><button type="button" data-range="first">1–5</button><button type="button" data-range="last">6–10</button><button type="button" data-range="all" aria-pressed="true">1–10</button></div></fieldset>
+            <fieldset><legend>練習內容</legend><div class="mode-grid" id="modeOptions"><button type="button" data-mode="mixed" aria-pressed="true"><span>✦</span><b>綜合開店</b><small>聽音・認字・拼字</small></button><button type="button" data-mode="listen"><span>♪</span><b>聽音接單</b><small>聽英文，選數字</small></button><button type="button" data-mode="read"><span>Aa</span><b>認字送點心</b><small>讀單字，找數量</small></button><button type="button" data-mode="spell"><span>abc</span><b>拼字貼標籤</b><small>自己拼出數字單字</small></button></div></fieldset>
+            <fieldset id="levelField"><legend>拼字難度</legend><div class="segmented levels" id="levelOptions"><button type="button" data-level="missing" aria-pressed="true">補缺字<small>初學</small></button><button type="button" data-level="tiles">排字母<small>練習</small></button><button type="button" data-level="keyboard">完整拼字<small>挑戰</small></button></div></fieldset>
+            <div class="menu-actions"><button id="learnButton" class="secondary" type="button">先認識單字</button><button id="startButton" class="primary" type="button">開始接單 →</button></div>
+            <p class="fine-print">每輪 10 題，不限時。全部首次答對，就能獲得全綠通關！</p>
+          </div>
+        </div>
+        <button id="resumeButton" class="resume-strip" type="button" hidden><span>繼續上次的訂單</span><b id="resumeText"></b><span aria-hidden="true">→</span></button>
+        <div class="how-it-works"><span><b>01</b> 聽英文發音</span><span><b>02</b> 大聲讀單字</span><span><b>03</b> 點字母拼字</span></div>
+      </section>
+
+      <section id="learnView" class="lesson" aria-labelledby="learnTitle" hidden>
+        <div class="section-bar"><button class="quiet-button to-menu" type="button">← 返回選單</button><h1 id="learnTitle">和小熊一起讀</h1><span id="learnCount" class="muted"></span></div>
+        <div class="learning-card">
+          <div class="learning-quantity"><span class="eyebrow">看看有幾片餅乾</span><strong id="learnNumber"></strong><div id="learnCookies" class="cookie-tray"></div></div>
+          <div class="learning-word"><p class="eyebrow">這個數字的英文是</p><strong id="learnWord" lang="en"></strong><div class="audio-controls"><button type="button" class="secondary" data-speak="normal">♪ 聽發音</button><button type="button" class="secondary" data-speak="slow">慢慢聽</button></div><p>聽完後，換你大聲讀一次。</p><button id="practicedButton" type="button" class="primary">我讀好了 ✓</button></div>
+        </div>
+        <div id="learnNumbers" class="learn-numbers" aria-label="選擇要學的數字"></div>
+        <div class="learn-navigation"><button id="learnPrevious" type="button" class="secondary">← 上一個</button><p>跟讀由自己練習，遊戲不會評分發音。</p><button id="learnNext" type="button" class="primary">下一個 →</button></div>
+      </section>
+
+      <section id="gameView" aria-labelledby="questionTitle" hidden>
+        <div class="section-bar"><button class="quiet-button to-menu" type="button">← 返回選單</button><span id="orderType" class="order-type"></span><span id="orderCount" class="muted"></span></div>
+        <ol id="progressLights" class="progress-lights" aria-label="這一輪的答題紀錄"></ol>
+        <div class="order-card">
+          <div class="order-heading"><span id="questionEyebrow" class="eyebrow"></span><h1 id="questionTitle"></h1></div>
+          <div id="questionPrompt" class="question-prompt"></div>
+          <div id="choiceArea" class="choice-area" aria-label="選擇數字"></div>
+          <div id="spellingArea" hidden><div id="answerSlots" class="answer-slots" role="group" aria-label="拼字答案格"></div><p class="keyboard-note">點字母填入，點答案格可修改。</p><div id="letterKeyboard" class="letter-keyboard" role="group" aria-label="畫面英文字母鍵盤"></div><div class="edit-actions"><button id="clearAnswer" type="button">清除</button><button id="eraseLetter" type="button">⌫ 刪一格</button></div></div>
+          <div id="answerFeedback" class="answer-feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+          <div class="answer-actions"><button id="checkAnswer" class="primary" type="button">確認答案 ✓</button><button id="nextOrder" class="primary" type="button" hidden>下一張訂單 →</button></div>
+        </div>
+        <p class="round-note">綠燈：首次答對　粉紅燈：練習後答對</p>
+      </section>
+
+      <section id="resultView" class="result-view" aria-labelledby="resultTitle" hidden>
+        <button class="quiet-button to-menu" type="button">← 返回選單</button>
+        <div class="result-card"><div class="result-heading"><img src="/assets/number-bakery-bear-v1.webp" alt="開心的小熊店長" width="640" height="640"><div><span id="resultBadge" class="result-badge"></span><h1 id="resultTitle"></h1><p id="resultSummary"></p></div></div><div id="resultOrders" class="result-orders"></div><p id="reviewMessage" class="review-message"></p><div class="result-actions"><button id="reviewMistakes" type="button" class="secondary" hidden>再練容易錯的字</button><button id="anotherRound" type="button" class="primary">再接 10 張訂單 →</button><button id="replayCelebration" type="button" class="quiet-button">再看一次小熊慶祝</button></div></div>
+      </section>
+    </main>
+    <p id="audioStatus" class="audio-status" role="status" aria-live="polite"></p>
+    <footer class="bakery-footer">慢慢來，每一次練習都在進步。<span>進度保存在這個瀏覽器</span></footer>
+  </div>
+  <dialog id="restartDialog" class="restart-dialog" aria-labelledby="restartTitle"><h2 id="restartTitle">要開始新的訂單嗎？</h2><p>上次還有訂單沒完成。開始新一輪會取代這一輪的進度。</p><div><button id="keepRound" type="button" class="secondary">繼續原本的練習</button><button id="replaceRound" type="button" class="primary">開始新一輪</button></div></dialog>
+  <noscript>請啟用 JavaScript，才能聽發音與進行遊戲。<a href="/">返回學習星球</a></noscript>
+</body>
+</html>

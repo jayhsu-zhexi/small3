@@ -6,6 +6,14 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
+      "source": "/number-bakery",
+      "destination": "/number-bakery.html"
+    },
+    {
+      "source": "/number-bakery/",
+      "destination": "/number-bakery.html"
+    },
+    {
       "source": "/admin",
       "destination": "/admin.html"
     },
@@ -154,7 +162,7 @@
       "destination": "/board.html"
     },
     {
-      "source": "/((?!api/|assets/|(?:admin|length|multiply|blocks|geography|vocabulary|abacus|board|detective|parcels|crossing|memory|pinball|vault|survival|kart)(?:/|$|\\.html$)).*)",
+      "source": "/((?!api/|assets/|(?:admin|number-bakery|length|multiply|blocks|geography|vocabulary|abacus|board|detective|parcels|crossing|memory|pinball|vault|survival|kart)(?:/|$|\\.html$)).*)",
       "destination": "/index.html"
     }
   ],

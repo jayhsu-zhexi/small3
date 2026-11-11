@@ -8,6 +8,7 @@ files.push('multiply.html','assets/multiply-engine.js','assets/multiply-audio.js
 files.push('assets/completion-art.js','assets/completion-bear-body-v2.webp','assets/completion-bear-arms-v2.webp','assets/completion-party.js','assets/completion-party.css','assets/completion-bear-two-hand.webp','assets/completion-party-h-v1.wav','assets/length-complete-h-v1.wav','assets/length-perfect-h-applause-v1.wav','length.html','assets/length-engine.js','assets/length-ui.js','assets/length-fullscreen.js','assets/length.css','assets/length-bear.webp','assets/length-eraser.webp','assets/length-stationery.webp','assets/length-cover.webp');
 files.push('assets/completion-bear-cheer-v1.webp','assets/completion-crown-medal-v1.webp');
 files.push('assets/admin-preview.js','assets/admin-preview.css');
+files.push('number-bakery.html','assets/number-bakery-engine.js','assets/number-bakery-audio.js','assets/number-bakery-ui.js','assets/number-bakery.css','assets/number-bakery-bear-v1.webp');
 files.push('admin.html','assets/admin.css','assets/admin.js','assets/site-settings.js','assets/home-settings.js');
 function build(output = path.resolve(__dirname, '../dist')) {
   const root = path.resolve(__dirname, '..');
