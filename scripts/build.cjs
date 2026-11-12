@@ -6,7 +6,7 @@ files.push("geography.html", "assets/geography.css", "assets/geography-engine.js
 files.push('blocks.html','assets/blocks-engine.js','assets/blocks-ui.js','assets/blocks.css','assets/blocks-background.webp');
 files.push('multiply.html','assets/multiply-engine.js','assets/multiply-audio.js','assets/multiply-ui.js','assets/multiply.css','assets/multiply-background.webp','assets/multiply-bear.webp','assets/multiply-pencils.webp','assets/multiply-correct-voice-v2.mp3','assets/multiply-wrong-voice-v1.wav');
 files.push('assets/completion-art.js','assets/completion-bear-body-v2.webp','assets/completion-bear-arms-v2.webp','assets/completion-party.js','assets/completion-party.css','assets/completion-bear-two-hand.webp','assets/completion-party-h-v1.wav','assets/length-complete-h-v1.wav','assets/length-perfect-h-applause-v1.wav','length.html','assets/length-engine.js','assets/length-ui.js','assets/length-fullscreen.js','assets/length.css','assets/length-bear.webp','assets/length-eraser.webp','assets/length-stationery.webp','assets/length-cover.webp');
-files.push('assets/completion-bear-cheer-v1.webp','assets/completion-crown-medal-v1.webp');
+files.push('assets/completion-bear-cheer-v1.webp','assets/completion-bear-transform-v1.webp','assets/completion-crown-medal-v1.webp');
 files.push('assets/admin-preview.js','assets/admin-preview.css');
 files.push('number-bakery.html','assets/number-bakery-engine.js','assets/number-bakery-audio.js','assets/number-bakery-ui.js','assets/number-bakery.css','assets/number-bakery-bear-v1.webp');
 files.push('assets/number-bakery-return-v1.webp');

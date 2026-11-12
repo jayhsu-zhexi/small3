@@ -23,7 +23,7 @@
 
   function loadCheerImages(env = root) {
     if (typeof env.Image !== 'function') return Promise.resolve(null);
-    return Promise.all(['completion-bear-cheer-v1.webp', 'completion-crown-medal-v1.webp'].map(file => new Promise((resolve, reject) => {
+    return Promise.all(['completion-bear-transform-v1.webp', 'completion-crown-medal-v1.webp'].map(file => new Promise((resolve, reject) => {
       const image = new env.Image();
       image.onload = () => resolve(image);
       image.onerror = reject;
@@ -34,7 +34,8 @@
   // Play the approved native GIF frames unchanged; only the surrounding confetti is drawn separately.
   function createCheer(canvas, confetti, stage, images, env = root) {
     const ctx = canvas.getContext?.('2d'), rain = confetti.getContext?.('2d');
-    const frameSize = 313, frameDuration = 120, frameCount = 16, cheerCount = 3, duration = 9600;
+    const frameSize = 361, frameDuration = 220, frameCount = 16, introFrames = 8, cheerCount = 3, duration = 9600;
+    const jumpFrames = frameCount - introFrames;
     const colors = ['#e6ae39', '#cc7eac', '#71bfa7', '#80b7db', '#b099ce', '#efaa77'];
     const particles = Array.from({length: 58}, (_, i) => ({
       x: (i * .61803398875) % 1, drift: Math.sin(i * 2.3) * 36, speed: 84 + (i % 7) * 12,
@@ -44,16 +45,16 @@
     canvas.width = canvas.height = frameSize * 2;
     canvas.dataset.loaded = String(Boolean(ctx && images));
     function draw() {
-      // Repeat the complete native motion three times, then hold its landing pose.
-      const tick = Math.min(frameCount * cheerCount - 1, Math.floor(elapsed / frameDuration));
-      const index = reduced ? 7 : tick % frameCount;
+      // Transform once, repeat only the costumed jump three times, then hold the landing.
+      const tick = Math.min(introFrames + jumpFrames * cheerCount - 1, Math.floor(elapsed / frameDuration));
+      const index = reduced ? 7 : tick < introFrames ? tick : introFrames + (tick - introFrames) % jumpFrames;
       if (ctx && images) {
         ctx.setTransform(2, 0, 0, 2, 0, 0); ctx.clearRect(0, 0, frameSize, frameSize);
         ctx.drawImage(images[0], (index % 4) * frameSize, Math.floor(index / 4) * frameSize,
           frameSize, frameSize, 0, 0, frameSize, frameSize);
       }
       canvas.dataset.frame = String(index + 1);
-      canvas.dataset.cheer = String(reduced ? 0 : Math.floor(tick / frameCount) + 1);
+      canvas.dataset.cheer = String(reduced || tick < introFrames ? 0 : Math.floor((tick - introFrames) / jumpFrames) + 1);
       canvas.dataset.elapsed = (elapsed / 1000).toFixed(2);
       if (!rain) return;
       rain.setTransform(dpr, 0, 0, dpr, 0, 0); rain.clearRect(0, 0, width, height);
