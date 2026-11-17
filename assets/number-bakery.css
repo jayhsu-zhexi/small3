@@ -26,8 +26,6 @@
 .mode-grid .mixed-mode{grid-column:1/-1;background:#f0f4e8}
 .mode-grid button{min-height:80px}.mode-grid small{white-space:normal;line-height:1.5}
 #menuView .menu-actions{grid-template-columns:1fr;margin-top:16px}
-.practice-settings{margin:16px 0 0;background:transparent}
-.settings-note{padding:12px 12px 0;font-size:12px;line-height:1.5;color:var(--muted)}
 .spell-setup-heading{text-align:center;margin:10px 0 24px}
 .spell-setup-heading h1{font-size:30px;margin:8px 0 12px}
 .spell-setup-heading p{font-size:14px;color:var(--muted);line-height:1.8}

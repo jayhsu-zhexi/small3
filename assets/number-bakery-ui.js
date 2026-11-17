@@ -1,6 +1,6 @@
 (function(){'use strict';
 const E=window.NumberBakery,$=id=>document.getElementById(id),SAVE='small3-number-bakery-v1',PREFS='small3-number-bakery-prefs-v1';
-const names={mixed:'綜合開店',listen:'聽音接單',read:'認字送點心',spell:'拼字練習',match:'數字配對'},ranges={first:'1–5',last:'6–10',all:'1–10'},levelNames={missing:'補缺字',tiles:'排字母',keyboard:'自己拼'};
+const names={mixed:'綜合開店',listen:'聽音接單',read:'認字送點心',spell:'拼字練習',match:'數字配對'},ranges={first:'1–5',last:'6–10',all:'1–10'},levelActions={missing:'我要補字 →',tiles:'我要排字 →',keyboard:'我要自己拼 →'};
 let state=null,settings=E.config(),mixedLevel='missing',sound=true,practiced=[],view='menu',learnIndex=0,feedback='',matchFeedback=null,saveFailed=false,disposed=false;
 try{const raw=localStorage.getItem(SAVE);state=raw?E.restore(raw):null;if(raw&&!state)notice('上次的進度無法讀取；開始新一輪會建立新的進度。');const prefs=JSON.parse(localStorage.getItem(PREFS)||'{}');if(prefs&&typeof prefs==='object'){settings=E.config(prefs.config||{});mixedLevel=E.config({level:prefs.mixedLevel}).level;sound=prefs.sound!==false;practiced=Array.isArray(prefs.practiced)?[...new Set(prefs.practiced.filter(n=>Number.isInteger(n)&&n>=1&&n<=10))]:[];}}catch{notice('這個瀏覽器暫時無法保存進度，仍然可以練習。');saveFailed=true;}
 const feedbackAudio=window.MultiplyAudio.create(),party=window.CompletionParty.create(undefined,{perfectSound:true});
@@ -15,16 +15,21 @@ function audioControls(){return '<div class="audio-controls"><button type="butto
 function renderMenu(){
  show('menu',view==='menu');
  document.querySelectorAll('[data-range]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.range===settings.range)));
- document.querySelectorAll('[data-mixed-level]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.mixedLevel===mixedLevel)));
  $('rangeSummary').textContent=ranges[settings.range];$('rangeSettings').open=false;
- $('mixedLevelSummary').textContent=levelNames[mixedLevel];$('practiceSettings').open=false;
  $('resumeButton').hidden=!state;$('resumeButton').firstElementChild.textContent=state?.phase==='result'?'看看上次的成果':state?.config.mode==='match'?'繼續上次的配對':'繼續上次的訂單';
  $('resumeText').textContent=state?(state.config.mode==='match'?`已配好 ${state.results.length} / 10 對`:state.phase==='result'?'已完成 10 張':`第 ${state.index+1} / 10 張`)+` · ${ranges[state.config.range]}`:'';
 }
 function chooseMode(mode){
  if(view!=='menu')return;
  settings=E.config({...settings,mode,level:mode==='mixed'?mixedLevel:settings.level});savePrefs();
- if(mode==='spell'){show('spellSetup');$('spellRangeSummary').textContent=`數字範圍：${ranges[settings.range]}`;$('spellSetupTitle').focus({preventScroll:true});}
+ if(mode==='spell'||mode==='mixed'){
+  const mixed=mode==='mixed';show('spellSetup');
+  $('spellSetupEyebrow').textContent=mixed?'MIX · 綜合開店':'SPELL · 拼一拼';
+  $('spellSetupTitle').textContent=mixed?'先選一種拼字玩法':'幫小熊拼出英文單字';
+  $('spellSetupIntro').innerHTML=mixed?'這一輪會聽英文、認單字，也會拼字。<br>選好拼字玩法，就開始 10 張訂單！':'下面用 <strong lang="en">one</strong>（數字 1）示範怎麼玩。<br>第一次玩，可以先選「補缺字」。';
+  document.querySelectorAll('#levelOptions [data-level]').forEach(button=>{button.querySelector('.level-enter').textContent=mixed?'選這個，開始開店 →':levelActions[button.dataset.level];});
+  $('spellRangeSummary').textContent=`數字範圍：${ranges[settings.range]}`;$('spellSetupTitle').focus({preventScroll:true});
+ }
  else requestStart();
 }
 function start(reviewNumbers){state=E.create(settings,Math.random,reviewNumbers);feedback='';matchFeedback=null;notice('');save();if(state.config.mode==='match'){show('match');renderMatch();$('matchTitle').focus({preventScroll:true});return;}show('game');renderGame();$('questionTitle').setAttribute('tabindex','-1');$('questionTitle').focus({preventScroll:true});if(E.current(state).type==='listen')speak(false);}
@@ -86,8 +91,7 @@ function renderResult(){
 }
 $('rangeOptions').addEventListener('click',event=>{const b=event.target.closest('[data-range]');if(!b||view!=='menu')return;settings=E.config({...settings,range:b.dataset.range});savePrefs();renderMenu();$('rangeToggle').focus({preventScroll:true});});
 $('modeOptions').addEventListener('click',event=>{const b=event.target.closest('[data-mode]');if(b)chooseMode(b.dataset.mode);});
-$('levelOptions').addEventListener('click',event=>{const b=event.target.closest('[data-level]');if(!b||view!=='spellSetup')return;settings=E.config({...settings,mode:'spell',level:b.dataset.level});savePrefs();requestStart();});
-$('mixedLevelOptions').addEventListener('click',event=>{const b=event.target.closest('[data-mixed-level]');if(!b||view!=='menu')return;mixedLevel=E.config({level:b.dataset.mixedLevel}).level;savePrefs();renderMenu();$('mixedSettingsToggle').focus({preventScroll:true});});
+$('levelOptions').addEventListener('click',event=>{const b=event.target.closest('[data-level]');if(!b||view!=='spellSetup')return;settings=E.config({...settings,level:b.dataset.level});if(settings.mode==='mixed')mixedLevel=settings.level;savePrefs();requestStart();});
 $('soundToggle').onclick=()=>{sound=!sound;$('soundToggle').textContent=sound?'♫ 音效開':'♫ 音效關';$('soundToggle').setAttribute('aria-pressed',String(sound));if(!sound)stopAudio();savePrefs();};
 $('matchNumbers').onclick=pickMatch;$('matchWords').onclick=pickMatch;$('nextMatch').onclick=nextMatch;
 $('resumeButton').onclick=resume;document.querySelectorAll('.to-menu').forEach(b=>b.onclick=renderMenu);
