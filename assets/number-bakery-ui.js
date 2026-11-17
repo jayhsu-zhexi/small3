@@ -1,24 +1,38 @@
 (function(){'use strict';
 const E=window.NumberBakery,$=id=>document.getElementById(id),SAVE='small3-number-bakery-v1',PREFS='small3-number-bakery-prefs-v1';
-const names={mixed:'綜合開店',listen:'聽音接單',read:'認字送點心',spell:'拼字貼標籤'},ranges={first:'1–5',last:'6–10',all:'1–10'};
-let state=null,settings=E.config(),sound=true,practiced=[],view='menu',learnIndex=0,feedback='',saveFailed=false,disposed=false;
-try{const raw=localStorage.getItem(SAVE);state=raw?E.restore(raw):null;if(raw&&!state)notice('上次的進度無法讀取；開始新一輪會建立新的進度。');const prefs=JSON.parse(localStorage.getItem(PREFS)||'{}');if(prefs&&typeof prefs==='object'){settings=E.config(prefs.config||{});sound=prefs.sound!==false;practiced=Array.isArray(prefs.practiced)?[...new Set(prefs.practiced.filter(n=>Number.isInteger(n)&&n>=1&&n<=10))]:[];}}catch{notice('這個瀏覽器暫時無法保存進度，仍然可以練習。');saveFailed=true;}
+const names={mixed:'綜合開店',listen:'聽音接單',read:'認字送點心',spell:'拼字練習',match:'數字配對'},ranges={first:'1–5',last:'6–10',all:'1–10'},levelNames={missing:'補缺字',tiles:'排字母',keyboard:'自己拼'};
+let state=null,settings=E.config(),mixedLevel='missing',sound=true,practiced=[],view='menu',learnIndex=0,feedback='',matchFeedback=null,saveFailed=false,disposed=false;
+try{const raw=localStorage.getItem(SAVE);state=raw?E.restore(raw):null;if(raw&&!state)notice('上次的進度無法讀取；開始新一輪會建立新的進度。');const prefs=JSON.parse(localStorage.getItem(PREFS)||'{}');if(prefs&&typeof prefs==='object'){settings=E.config(prefs.config||{});mixedLevel=E.config({level:prefs.mixedLevel}).level;sound=prefs.sound!==false;practiced=Array.isArray(prefs.practiced)?[...new Set(prefs.practiced.filter(n=>Number.isInteger(n)&&n>=1&&n<=10))]:[];}}catch{notice('這個瀏覽器暫時無法保存進度，仍然可以練習。');saveFailed=true;}
 const feedbackAudio=window.MultiplyAudio.create(),party=window.CompletionParty.create(undefined,{perfectSound:true});
 const pronunciation=window.NumberBakeryAudio.create(window,(status,detail)=>{if(disposed)return;const el=$('audioStatus');el.classList.toggle('error',status==='error');el.textContent=status==='loading'?'正在準備發音…':status==='playing'?(detail?.spelling?`♪ ${detail.word} → ${detail.word.toUpperCase().split('').join(' → ')} → ${detail.word}`:'♪ 聽聽看，換你讀一次。'):status==='error'?'發音暫時無法播放，請再按一次發音按鈕。':'';});
 function notice(text){$('saveNotice').textContent=text;$('saveNotice').hidden=!text;}
 function save(){try{if(state)localStorage.setItem(SAVE,JSON.stringify(state));if(saveFailed){saveFailed=false;notice('');}}catch{saveFailed=true;notice('進度暫時無法保存；請先完成這一輪，再離開頁面。');}}
-function savePrefs(){try{localStorage.setItem(PREFS,JSON.stringify({config:settings,sound,practiced}));}catch{notice('這個瀏覽器暫時無法保存設定，仍然可以練習。');}}
+function savePrefs(){try{localStorage.setItem(PREFS,JSON.stringify({config:settings,mixedLevel,sound,practiced}));}catch{notice('這個瀏覽器暫時無法保存設定，仍然可以練習。');}}
 function stopAudio(){pronunciation.stop();feedbackAudio.stop();party.stopSound();}
-function show(next){stopAudio();party.close();view=next;for(const name of ['menu','learn','game','result'])$(name+'View').hidden=name!==next;document.body.dataset.view=next;window.scrollTo({top:0,behavior:'instant'});}
+function show(next,keepScroll=false){stopAudio();party.close();view=next;for(const name of ['menu','spellSetup','learn','game','match','result'])$(name+'View').hidden=name!==next;document.body.dataset.view=next;if(!keepScroll)window.scrollTo({top:0,behavior:'instant'});}
 function cookies(n){return `<div class="cookies" style="grid-template-columns:repeat(${Math.min(n,5)},1fr)" aria-hidden="true">`+Array.from({length:n},()=>'<i class="cookie"></i>').join('')+'</div>';}
 function audioControls(){return '<div class="audio-controls"><button type="button" class="secondary" data-speak="normal">♪ 聽發音</button><button type="button" class="secondary" data-speak="slow">慢慢聽</button></div>';}
-function renderMenu(){show('menu');for(const key of ['range','mode','level'])document.querySelectorAll('[data-'+key+']').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset[key]===settings[key])));$('levelField').hidden=!['mixed','spell'].includes(settings.mode);$('resumeButton').hidden=!state;$('resumeButton').firstElementChild.textContent=state?.phase==='result'?'看看上次的成果':'繼續上次的訂單';$('resumeText').textContent=state?(state.phase==='result'?'已完成 10 張':`第 ${state.index+1} / 10 張`)+` · ${ranges[state.config.range]}`:'';}
-function start(reviewNumbers){state=E.create(settings,Math.random,reviewNumbers);feedback='';notice('');save();show('game');renderGame();if(E.current(state).type==='listen')speak(false);}
-function resume(){if(!state)return;if(state.phase==='result'){show('result');renderResult();}else{show('game');feedback=state.entry.solved?'correct':state.entry.attempts?'retry':'';renderGame();}}
+function renderMenu(){
+ show('menu',view==='menu');
+ document.querySelectorAll('[data-range]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.range===settings.range)));
+ document.querySelectorAll('[data-mixed-level]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.mixedLevel===mixedLevel)));
+ $('rangeSummary').textContent=ranges[settings.range];$('rangeSettings').open=false;
+ $('mixedLevelSummary').textContent=levelNames[mixedLevel];$('practiceSettings').open=false;
+ $('resumeButton').hidden=!state;$('resumeButton').firstElementChild.textContent=state?.phase==='result'?'看看上次的成果':state?.config.mode==='match'?'繼續上次的配對':'繼續上次的訂單';
+ $('resumeText').textContent=state?(state.config.mode==='match'?`已配好 ${state.results.length} / 10 對`:state.phase==='result'?'已完成 10 張':`第 ${state.index+1} / 10 張`)+` · ${ranges[state.config.range]}`:'';
+}
+function chooseMode(mode){
+ if(view!=='menu')return;
+ settings=E.config({...settings,mode,level:mode==='mixed'?mixedLevel:settings.level});savePrefs();
+ if(mode==='spell'){show('spellSetup');$('spellRangeSummary').textContent=`數字範圍：${ranges[settings.range]}`;$('spellSetupTitle').focus({preventScroll:true});}
+ else requestStart();
+}
+function start(reviewNumbers){state=E.create(settings,Math.random,reviewNumbers);feedback='';matchFeedback=null;notice('');save();if(state.config.mode==='match'){show('match');renderMatch();$('matchTitle').focus({preventScroll:true});return;}show('game');renderGame();$('questionTitle').setAttribute('tabindex','-1');$('questionTitle').focus({preventScroll:true});if(E.current(state).type==='listen')speak(false);}
+function resume(){if(!state)return;if(state.phase==='result'){show('result');renderResult();}else if(state.config.mode==='match'){show('match');matchFeedback=null;renderMatch();}else{show('game');feedback=state.entry.solved?'correct':state.entry.attempts?'retry':'';renderGame();}}
 function requestStart(){if(state&&state.phase==='playing')$('restartDialog').showModal();else start();}
 function speak(slow){const n=view==='learn'?E.RANGES[settings.range][learnIndex]:view==='game'?E.current(state).n:null;if(n){feedbackAudio.stop();party.stopSound();pronunciation.play(n,slow);}}
 function speakSpelling(){if(view!=='learn'&&!(view==='game'&&state.entry.solved))return;const n=view==='learn'?E.RANGES[settings.range][learnIndex]:E.current(state).n;feedbackAudio.stop();party.stopSound();pronunciation.spell(n);}
-function renderLearn(){const numbers=E.RANGES[settings.range],n=numbers[learnIndex];$('learnCount').textContent=`${learnIndex+1} / ${numbers.length}`;$('learnNumber').textContent=n;$('learnWord').textContent=E.word(n);$('learnCookies').innerHTML=cookies(n);$('learnCookies').setAttribute('aria-label',`${n} 片餅乾`);$('practicedButton').textContent=practiced.includes(n)?'已練習跟讀 ✓':'我讀好了 ✓';$('practicedButton').setAttribute('aria-pressed',String(practiced.includes(n)));$('learnPrevious').disabled=learnIndex===0;$('learnNext').textContent=learnIndex===numbers.length-1?'開始接單 →':'下一個 →';$('learnNumbers').innerHTML=numbers.map((value,i)=>`<button type="button" data-learn="${i}" aria-label="練習數字 ${value}" aria-current="${i===learnIndex}" class="${practiced.includes(value)?'practiced':''}">${value}</button>`).join('');}
+function renderLearn(){const numbers=E.RANGES[settings.range],n=numbers[learnIndex];$('learnCount').textContent=`${learnIndex+1} / ${numbers.length}`;$('learnNumber').textContent=n;$('learnWord').textContent=E.word(n);$('learnCookies').innerHTML=cookies(n);$('learnCookies').setAttribute('aria-label',`${n} 片餅乾`);$('practicedButton').textContent=practiced.includes(n)?'已練習跟讀 ✓':'我讀好了 ✓';$('practicedButton').setAttribute('aria-pressed',String(practiced.includes(n)));$('learnPrevious').disabled=learnIndex===0;$('learnNext').textContent=learnIndex===numbers.length-1?'選個玩法 →':'下一個 →';$('learnNumbers').innerHTML=numbers.map((value,i)=>`<button type="button" data-learn="${i}" aria-label="練習數字 ${value}" aria-current="${i===learnIndex}" class="${practiced.includes(value)?'practiced':''}">${value}</button>`).join('');}
 function renderLights(){const el=$('progressLights');el.innerHTML=state.tasks.map((_,i)=>{const result=state.results[i],isNow=i===state.index,wrong=isNow&&state.entry.attempts>0&&!state.entry.solved;const kind=result?(result.first?'first':'retry'):wrong?'retry':isNow?'now':'';const label=result?(result.first?'首次答對':'練習後答對'):wrong?'再試一次':isNow?'目前這題':'尚未作答';return `<li class="${kind}" aria-label="第 ${i+1} 題：${label}">${result?(result.first?'✓':'✓'):i+1}</li>`;}).join('');}
 function renderGame(){const task=E.current(state),type=task.type;$('gameView').dataset.type=type;$('gameView').dataset.level=state.config.level;$('orderType').textContent=names[type];$('orderCount').textContent=`第 ${state.index+1} / 10 張`;renderLights();$('questionEyebrow').textContent=type==='listen'?'LISTEN · 聽一聽':type==='read'?'READ · 讀一讀':'SPELL · 拼一拼';$('questionTitle').textContent=type==='listen'?'客人想要幾片餅乾？':type==='read'?'讀讀單字，要送幾片餅乾？':'這張數字標籤怎麼拼？';
  const prompt=$('questionPrompt');if(type==='listen')prompt.innerHTML='<div class="listen-prompt"><div class="listen-icon" aria-hidden="true">♪</div>'+audioControls()+'</div><p class="prompt-note">先聽英文，再選對應的數字。</p>';else if(type==='read')prompt.innerHTML=`<strong class="read-word" lang="en">${E.word(task.n)}</strong>`+audioControls();else prompt.innerHTML=`<div class="target-quantity"><strong>${task.n}</strong><div class="cookie-tray" role="img" aria-label="${task.n} 片餅乾">${cookies(task.n)}</div></div>`+audioControls();
@@ -32,14 +46,55 @@ function renderFeedback(){const el=$('answerFeedback'),solved=state.entry.solved
 function changed(){feedback=state.entry.attempts?'retry':'';save();if(E.current(state).type==='spell')renderSpelling();else renderChoices();renderFeedback();}
 function check(){if(view!=='game')return;const result=E.submit(state);if(result==='locked')return;feedback=result;stopAudio();if(result==='correct'||result==='wrong'){save();if(sound)feedbackAudio.play(result);renderLights();if(E.current(state).type==='spell')renderSpelling();else renderChoices();}renderFeedback();if(result==='correct')$('nextOrder').focus({preventScroll:true});}
 function next(){if(view!=='game'||!E.advance(state))return;stopAudio();feedback='';save();if(state.phase==='result'){show('result');renderResult();party.show({sound,perfect:E.perfect(state)});}else{renderGame();$('questionTitle').setAttribute('tabindex','-1');$('questionTitle').focus({preventScroll:true});if(E.current(state).type==='listen')speak(false);}}
-function renderResult(){const count=state.results.filter(r=>r.first).length,isPerfect=E.perfect(state),missed=E.mistakes(state);$('resultBadge').textContent=isPerfect?'全綠通關 · 100 分':'順利通關';$('resultTitle').textContent=isPerfect?'全部一次答對！':'點心訂單完成了！';$('resultSummary').textContent=`完成 10 張訂單，首次答對 ${count} / 10 題。`;$('resultOrders').innerHTML=state.results.map((r,i)=>`<div class="result-order ${r.first?'':'retry'}"><strong>${r.n}</strong><span lang="en">${E.word(r.n)}</span><small>${i+1}. ${r.first?'首次答對':'練習後答對'}</small></div>`).join('');$('reviewMessage').textContent=missed.length?'再練一次這些字：'+missed.map(E.word).join('、')+'。':'十張訂單都是綠燈！也可以試試更進階的拼字難度。';$('reviewMistakes').hidden=!missed.length;}
-for(const key of ['range','mode','level'])$(key+'Options').addEventListener('click',event=>{const b=event.target.closest('[data-'+key+']');if(!b)return;settings=E.config({...settings,[key]:b.dataset[key]});savePrefs();renderMenu();});
-$('soundToggle').onclick=()=>{sound=!sound;$('soundToggle').textContent=sound?'♫ 音效開':'♫ 音效關';$('soundToggle').setAttribute('aria-pressed',String(sound));if(!sound){feedbackAudio.stop();party.stopSound();}savePrefs();};
-$('startButton').onclick=requestStart;$('resumeButton').onclick=resume;document.querySelectorAll('.to-menu').forEach(b=>b.onclick=renderMenu);
+function renderMatch(){
+ const board=state.boards[state.index],complete=E.matchComplete(state);
+ $('matchCount').textContent=`第 ${state.index+1} / ${state.boards.length} 回合`;
+ const errors=E.matchErrors(state);$('matchCompleted').textContent=`${state.results.length} / 10`;$('matchErrors').textContent=String(errors);$('matchStats').dataset.errors=String(errors>0);
+ for(const side of ['left','right']){
+  $(side==='left'?'matchNumbers':'matchWords').innerHTML=board[side].map(n=>{
+   const entry=board.entries.find(item=>item.n===n),selected=state.selection[side]===n,wrong=matchFeedback?.status==='wrong'&&matchFeedback[side]===n;
+   return `<button type="button" class="match-tile${entry.solved?' matched':''}${wrong?' mismatch':''}" data-match-side="${side}" data-match="${n}" aria-pressed="${selected}" aria-label="${side==='left'?'數字 '+n:E.word(n)}${entry.solved?'，已配對':''}" ${side==='right'?'lang="en"':''} ${entry.solved?'disabled':''}><span>${side==='left'?n:E.word(n)}</span><i aria-hidden="true">${entry.solved?'✓':selected?'●':''}</i></button>`;
+  }).join('');
+ }
+ const message=$('matchFeedback');message.className='answer-feedback '+(matchFeedback?.status==='wrong'?'wrong':complete||matchFeedback?.status==='correct'?'correct':'neutral');
+ if(matchFeedback?.status==='wrong')message.textContent='↻ 還沒配成一對，再試一次！';
+ else if(complete)message.textContent='✓ 這一組全部配好了！準備好就繼續。';
+ else if(matchFeedback?.status==='correct')message.textContent=`✓ 答對了！${E.word(matchFeedback.n)} 是 ${matchFeedback.n}。`;
+ else if(state.selection.left!==null)message.textContent=`已選數字 ${state.selection.left}，找找右邊的英文。`;
+ else if(state.selection.right!==null)message.textContent=`已選 ${E.word(state.selection.right)}，找找左邊的數字。`;
+ else message.textContent='先點一張卡片，再到另一邊找它的朋友。';
+ $('matchProgress').textContent=`已配好 ${state.results.length} / 10 對`;
+ $('nextMatch').disabled=!complete;$('nextMatch').textContent=state.index===state.boards.length-1?'完成配對，看成果 ✦':'下一組配對 →';
+}
+function pickMatch(event){
+ if(view!=='match')return;const button=event.target.closest('[data-match-side]');if(!button||button.disabled)return;
+ const side=button.dataset.matchSide,n=Number(button.dataset.match),result=E.selectMatch(state,side,n);if(result.status==='locked')return;
+ stopAudio();matchFeedback=result;save();renderMatch();
+ if(sound){if(result.status==='correct')pronunciation.play(result.n);else if(result.status==='wrong')feedbackAudio.play('wrong');}
+ if(E.matchComplete(state))$('nextMatch').focus({preventScroll:true});
+ else (document.querySelector(`#matchView [data-match-side="${side}"][data-match="${n}"]:not(:disabled)`)||document.querySelector(`#matchView [data-match-side="${side}"]:not(:disabled)`))?.focus({preventScroll:true});
+}
+function nextMatch(){if(view!=='match'||!E.advance(state))return;stopAudio();matchFeedback=null;save();if(state.phase==='result'){show('result');renderResult();party.show({sound,perfect:E.perfect(state)});}else{renderMatch();$('matchTitle').focus({preventScroll:true});}}
+function renderResult(){
+ const count=state.results.filter(r=>r.first).length,isPerfect=E.perfect(state),missed=E.mistakes(state),matching=state.config.mode==='match';
+ $('resultBadge').textContent=isPerfect?'全綠通關 · 100 分':'順利通關';
+ $('resultTitle').textContent=matching?(isPerfect?'零失誤，全部配對成功！':'數字朋友都找到了！'):isPerfect?'全部一次答對！':'點心訂單完成了！';
+ $('resultSummary').textContent=matching?`完成 10 / 10 對，配錯 ${E.matchErrors(state)} 次。`:`完成 10 張訂單，首次答對 ${count} / 10 題。`;
+ $('resultOrders').innerHTML=state.results.map((r,i)=>`<div class="result-order ${matching||r.first?'':'retry'}"><strong>${r.n}</strong><span lang="en">${E.word(r.n)}</span><small>${matching?'已配對 ✓':`${i+1}. ${r.first?'首次答對':'練習後答對'}`}</small></div>`).join('');
+ $('reviewMessage').textContent=missed.length?'再練一次這些字：'+missed.map(E.word).join('、')+'。':matching?'完成 10 對，而且配錯 0 次，獲得全綠通關！也可以挑戰自己拼出單字。':'十張訂單都是綠燈！也可以試試更進階的拼字難度。';
+ $('reviewMistakes').hidden=!missed.length;$('anotherRound').textContent=matching?'再玩 10 對 →':'再接 10 張訂單 →';
+}
+$('rangeOptions').addEventListener('click',event=>{const b=event.target.closest('[data-range]');if(!b||view!=='menu')return;settings=E.config({...settings,range:b.dataset.range});savePrefs();renderMenu();$('rangeToggle').focus({preventScroll:true});});
+$('modeOptions').addEventListener('click',event=>{const b=event.target.closest('[data-mode]');if(b)chooseMode(b.dataset.mode);});
+$('levelOptions').addEventListener('click',event=>{const b=event.target.closest('[data-level]');if(!b||view!=='spellSetup')return;settings=E.config({...settings,mode:'spell',level:b.dataset.level});savePrefs();requestStart();});
+$('mixedLevelOptions').addEventListener('click',event=>{const b=event.target.closest('[data-mixed-level]');if(!b||view!=='menu')return;mixedLevel=E.config({level:b.dataset.mixedLevel}).level;savePrefs();renderMenu();$('mixedSettingsToggle').focus({preventScroll:true});});
+$('soundToggle').onclick=()=>{sound=!sound;$('soundToggle').textContent=sound?'♫ 音效開':'♫ 音效關';$('soundToggle').setAttribute('aria-pressed',String(sound));if(!sound)stopAudio();savePrefs();};
+$('matchNumbers').onclick=pickMatch;$('matchWords').onclick=pickMatch;$('nextMatch').onclick=nextMatch;
+$('resumeButton').onclick=resume;document.querySelectorAll('.to-menu').forEach(b=>b.onclick=renderMenu);
 $('keepRound').onclick=()=>{$('restartDialog').close();resume();};$('replaceRound').onclick=()=>{$('restartDialog').close();start();};
 $('learnButton').onclick=()=>{learnIndex=0;show('learn');renderLearn();speakSpelling();};
 $('learnNumbers').onclick=event=>{const b=event.target.closest('[data-learn]');if(b){stopAudio();learnIndex=Number(b.dataset.learn);renderLearn();speakSpelling();}};
-$('learnPrevious').onclick=()=>{if(learnIndex>0){learnIndex--;renderLearn();speakSpelling();}};$('learnNext').onclick=()=>{if(learnIndex<E.RANGES[settings.range].length-1){learnIndex++;renderLearn();speakSpelling();}else requestStart();};
+$('learnPrevious').onclick=()=>{if(learnIndex>0){learnIndex--;renderLearn();speakSpelling();}};$('learnNext').onclick=()=>{if(learnIndex<E.RANGES[settings.range].length-1){learnIndex++;renderLearn();speakSpelling();}else renderMenu();};
 $('practicedButton').onclick=()=>{const n=E.RANGES[settings.range][learnIndex];if(!practiced.includes(n))practiced.push(n);savePrefs();renderLearn();};
 document.addEventListener('click',event=>{const b=event.target.closest('[data-speak]');if(b){if(b.dataset.speak==='spell')speakSpelling();else speak(b.dataset.speak==='slow');}});
 $('choiceArea').onclick=event=>{const b=event.target.closest('[data-choice]');if(b&&E.choose(state,Number(b.dataset.choice)))changed();};

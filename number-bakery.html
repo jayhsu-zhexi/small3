@@ -4,16 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#f8f4e9">
-  <meta name="description" content="和小熊店長學習 one 到 ten：聽發音、讀單字，再用畫面字母鍵盤練習拼字。">
+  <meta name="description" content="和小熊店長學習 one 到 ten：聽發音、讀單字、左右配對，再用畫面字母鍵盤練習拼字。">
   <title>小熊數字點心店｜學習星球</title>
-  <link rel="stylesheet" href="/assets/number-bakery.css?v=spelling-3">
+  <link rel="stylesheet" href="/assets/number-bakery.css?v=menu-guide-8">
   <link rel="stylesheet" href="/assets/completion-party.css?v=crown-cheer-47">
-  <script defer src="/assets/number-bakery-engine.js?v=1"></script>
+  <script defer src="/assets/number-bakery-engine.js?v=matching-errors-5"></script>
   <script defer src="/assets/number-bakery-audio.js?v=spelling-slow-3"></script>
   <script defer src="/assets/multiply-audio.js?v=2"></script>
   <script defer src="/assets/completion-art.js?v=bear-transform-49"></script>
   <script defer src="/assets/completion-party.js?v=crown-cheer-47"></script>
-  <script defer src="/assets/number-bakery-ui.js?v=spelling-default-3"></script>
+  <script defer src="/assets/number-bakery-ui.js?v=menu-flow-7"></script>
 </head>
 <body>
   <div class="bakery-shell">
@@ -33,16 +33,33 @@
             <div class="counter" aria-hidden="true"><span>one</span><span>two</span><span>three</span></div>
           </div>
           <div class="setup">
-            <div class="setup-heading"><span class="small-stamp">1–10</span><div><p class="eyebrow">今天想練習什麼？</p><h2>準備開店囉</h2></div></div>
-            <fieldset><legend>數字範圍</legend><div class="segmented" id="rangeOptions"><button type="button" data-range="first">1–5</button><button type="button" data-range="last">6–10</button><button type="button" data-range="all" aria-pressed="true">1–10</button></div></fieldset>
-            <fieldset><legend>練習內容</legend><div class="mode-grid" id="modeOptions"><button type="button" data-mode="mixed" aria-pressed="true"><span>✦</span><b>綜合開店</b><small>聽音・認字・拼字</small></button><button type="button" data-mode="listen"><span>♪</span><b>聽音接單</b><small>聽英文，選數字</small></button><button type="button" data-mode="read"><span>Aa</span><b>認字送點心</b><small>讀單字，找數量</small></button><button type="button" data-mode="spell"><span>abc</span><b>拼字貼標籤</b><small>自己拼出數字單字</small></button></div></fieldset>
-            <fieldset id="levelField"><legend>拼字難度</legend><div class="segmented levels" id="levelOptions"><button type="button" data-level="missing" aria-pressed="true">補缺字<small>初學</small></button><button type="button" data-level="tiles">排字母<small>練習</small></button><button type="button" data-level="keyboard">完整拼字<small>挑戰</small></button></div></fieldset>
-            <div class="menu-actions"><button id="learnButton" class="secondary" type="button">先認識單字</button><button id="startButton" class="primary" type="button">開始接單 →</button></div>
-            <p class="fine-print">每輪 10 題，不限時。全部首次答對，就能獲得全綠通關！</p>
+            <div class="setup-heading"><span class="small-stamp">1–10</span><div><p class="eyebrow">選一個玩法，開始練習</p><h2>今天想玩什麼？</h2></div></div>
+            <details id="rangeSettings" class="range-settings"><summary id="rangeToggle"><span>數字範圍 <strong id="rangeSummary">1–10</strong></span><span class="range-setting-label">設定 <span class="range-chevron" aria-hidden="true">⌄</span></span></summary><div class="segmented" id="rangeOptions" role="group" aria-label="選擇數字範圍"><button type="button" data-range="first">1–5</button><button type="button" data-range="last">6–10</button><button type="button" data-range="all" aria-pressed="true">1–10</button></div></details>
+            <div class="mode-grid" id="modeOptions" role="group" aria-label="選擇練習玩法">
+              <button type="button" class="matching-mode" data-mode="match"><span aria-hidden="true">↔</span><b>數字配對</b><small>數字和英文配一對</small></button>
+              <button type="button" data-mode="listen"><span aria-hidden="true">♪</span><b>聽音接單</b><small>聽英文，選數字</small></button>
+              <button type="button" data-mode="read"><span aria-hidden="true">Aa</span><b>認字送點心</b><small>讀單字，找數量</small></button>
+              <button type="button" data-mode="spell"><span aria-hidden="true">abc</span><b>拼字練習</b><small>選一種拼字玩法 →</small></button>
+              <button type="button" class="mixed-mode" data-mode="mixed"><span aria-hidden="true">✦</span><b>綜合開店</b><small>聽音、認字、拼字，一起練習</small></button>
+            </div>
+            <div class="menu-actions"><button id="learnButton" class="secondary" type="button">先認識單字</button></div>
+            <details id="practiceSettings" class="range-settings practice-settings"><summary id="mixedSettingsToggle"><span>練習設定</span><span class="range-setting-label">綜合：<strong id="mixedLevelSummary">補缺字</strong> <span class="range-chevron" aria-hidden="true">⌄</span></span></summary><p class="settings-note">調整「綜合開店」裡的拼字難度。</p><div class="segmented levels" id="mixedLevelOptions" role="group" aria-label="綜合開店的拼字難度"><button type="button" data-mixed-level="missing" aria-pressed="true">補缺字<small>初學</small></button><button type="button" data-mixed-level="tiles">排字母<small>練習</small></button><button type="button" data-mixed-level="keyboard">自己拼<small>挑戰</small></button></div></details>
+            <p id="roundDescription" class="fine-print">每輪 10 題或 10 對，不限時。零失誤完成，就能獲得全綠通關！</p>
           </div>
         </div>
         <button id="resumeButton" class="resume-strip" type="button" hidden><span>繼續上次的訂單</span><b id="resumeText"></b><span aria-hidden="true">→</span></button>
         <div class="how-it-works"><span><b>01</b> 聽英文發音</span><span><b>02</b> 大聲讀單字</span><span><b>03</b> 點字母拼字</span></div>
+      </section>
+
+      <section id="spellSetupView" class="spell-setup" aria-labelledby="spellSetupTitle" hidden>
+        <div class="spell-setup-heading"><span class="eyebrow">SPELL · 拼一拼</span><h1 id="spellSetupTitle" tabindex="-1">幫小熊拼出英文單字</h1><p>下面用 <strong lang="en">one</strong>（數字 1）示範怎麼玩。<br>第一次玩，可以先選「補缺字」。<span id="spellRangeSummary" class="spell-range"></span></p></div>
+        <div id="levelOptions" class="spell-level-options" role="group" aria-label="選擇拼字玩法">
+          <button type="button" class="spell-level" data-level="missing"><span class="level-tag">有字母提示</span><b>補缺字</b><span class="spelling-example" aria-hidden="true"><i>o</i><i class="blank">_</i><i>e</i></span><small class="level-instruction">找出少掉的字母。<br>例如 <span lang="en">o _ e</span>，點 <strong lang="en">n</strong>，就變成 <strong lang="en">one</strong>！</small><span class="level-enter">我要補字 →</span></button>
+          <button type="button" class="spell-level" data-level="tiles"><span class="level-tag">字母都給你</span><b>排字母</b><span class="spelling-example" aria-hidden="true"><i>e</i><i>o</i><i>n</i></span><small class="level-instruction">字母的順序被打亂了。<br>依序點 <strong lang="en">o → n → e</strong>，排成 <strong lang="en">one</strong>。</small><span class="level-enter">我要排字 →</span></button>
+          <button type="button" class="spell-level" data-level="keyboard"><span class="level-tag">自己想一想</span><b>自己拼</b><span class="spelling-example" aria-hidden="true"><span class="example-number">1 →</span><i class="blank">_</i><i class="blank">_</i><i class="blank">_</i></span><small class="level-instruction">看數字，想想英文怎麼拼。<br>例如看到 <strong>1</strong>，就在字母鍵盤點 <strong lang="en">o、n、e</strong>。</small><span class="level-enter">我要自己拼 →</span></button>
+        </div>
+        <p class="spell-finish-note">進入遊戲後，填好答案再按「<strong>確認答案</strong>」。<br>拼錯也沒關係，改一改再試一次！</p>
+        <div class="practice-return"><button class="bear-return to-menu" type="button" aria-label="返回點心店"><img src="/assets/number-bakery-return-v1.webp" alt="" width="840" height="280"><span>← 返回點心店</span></button></div>
       </section>
 
       <section id="learnView" class="lesson" aria-labelledby="learnTitle" hidden>
@@ -71,6 +88,22 @@
         <div class="practice-return"><button class="bear-return to-menu" type="button" aria-label="返回點心店"><img src="/assets/number-bakery-return-v1.webp" alt="" width="840" height="280"><span>← 返回點心店</span></button></div>
       </section>
 
+      <section id="matchView" aria-labelledby="matchTitle" hidden>
+        <div class="section-bar"><span class="order-type">↔ 數字配對</span><span id="matchCount" class="muted"></span></div>
+        <div id="matchStats" class="match-stats" role="status" aria-live="polite" aria-atomic="true"><span>已配對 <strong id="matchCompleted">0 / 10</strong> 對</span><span class="match-error-count">配錯 <strong id="matchErrors">0</strong> 次</span></div>
+        <div class="order-card matching-card">
+          <div class="matching-heading"><img src="/assets/number-bakery-bear-v1.webp" alt="" width="96" height="96"><div><span class="eyebrow">MATCH · 配一配</span><h1 id="matchTitle" tabindex="-1">幫數字找到英文朋友</h1><p>左右各點一張，哪邊先選都可以。</p></div></div>
+          <div class="matching-board">
+            <div class="match-column"><h2 id="matchNumbersLabel">數字 <span>123</span></h2><div id="matchNumbers" class="match-cards" role="group" aria-labelledby="matchNumbersLabel"></div></div>
+            <div class="match-column"><h2 id="matchWordsLabel">英文 <span>Aa</span></h2><div id="matchWords" class="match-cards" role="group" aria-labelledby="matchWordsLabel"></div></div>
+          </div>
+          <div id="matchFeedback" class="answer-feedback neutral" role="status" aria-live="polite" aria-atomic="true"></div>
+          <div class="match-actions"><span id="matchProgress"></span><button id="nextMatch" type="button" class="primary" disabled>下一組配對 →</button></div>
+        </div>
+        <p class="round-note"><strong>全綠通關：完成 10 對，而且配錯 0 次。</strong><br>卡片變綠表示已配好；每次錯配只記 1 次。</p>
+        <div class="practice-return"><button class="bear-return to-menu" type="button" aria-label="返回點心店"><img src="/assets/number-bakery-return-v1.webp" alt="" width="840" height="280"><span>← 返回點心店</span></button></div>
+      </section>
+
       <section id="resultView" class="result-view" aria-labelledby="resultTitle" hidden>
         <div class="result-card"><div class="result-heading"><img src="/assets/number-bakery-bear-v1.webp" alt="開心的小熊店長" width="640" height="640"><div><span id="resultBadge" class="result-badge"></span><h1 id="resultTitle"></h1><p id="resultSummary"></p></div></div><div id="resultOrders" class="result-orders"></div><p id="reviewMessage" class="review-message"></p><div class="result-actions"><button id="reviewMistakes" type="button" class="secondary" hidden>再練容易錯的字</button><button id="anotherRound" type="button" class="primary">再接 10 張訂單 →</button><button class="bear-return to-menu" type="button" aria-label="返回點心店"><img src="/assets/number-bakery-return-v1.webp" alt="" width="840" height="280"><span>← 返回點心店</span></button><button id="replayCelebration" type="button" class="quiet-button">再看一次小熊慶祝</button></div></div>
       </section>
@@ -78,7 +111,7 @@
     <p id="audioStatus" class="audio-status" role="status" aria-live="polite"></p>
     <footer class="bakery-footer">慢慢來，每一次練習都在進步。<span>進度保存在這個瀏覽器</span></footer>
   </div>
-  <dialog id="restartDialog" class="restart-dialog" aria-labelledby="restartTitle"><h2 id="restartTitle">要開始新的訂單嗎？</h2><p>上次還有訂單沒完成。開始新一輪會取代這一輪的進度。</p><div><button id="keepRound" type="button" class="secondary">繼續原本的練習</button><button id="replaceRound" type="button" class="primary">開始新一輪</button></div></dialog>
+  <dialog id="restartDialog" class="restart-dialog" aria-labelledby="restartTitle"><h2 id="restartTitle">要開始新的練習嗎？</h2><p>上次的練習還沒完成。開始新一輪會取代原本的進度。</p><div><button id="keepRound" type="button" class="secondary">繼續原本的練習</button><button id="replaceRound" type="button" class="primary">開始新一輪</button></div></dialog>
   <noscript>請啟用 JavaScript，才能聽發音與進行遊戲。<a href="/">返回學習星球</a></noscript>
 </body>
 </html>

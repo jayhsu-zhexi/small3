@@ -16,6 +16,43 @@ const tiles=E.create({mode:'spell',level:'tiles'},random(2),[3]);assert.equal(E.
 const editing=E.create({mode:'spell',level:'keyboard'},random(1),[3]);E.put(editing,'T');E.put(editing,'h');E.erase(editing);assert.equal(editing.entry.draft.join(''),'t');assert.equal(editing.entry.focus,1);assert.equal(E.put(editing,'!'),false);
 const clean=E.create();for(const mutate of [s=>s.version=2,s=>s.index=10,s=>s.config.range='oops',s=>s.tasks[0].n=11,s=>s.tasks[0].choices=[1,1,1],s=>s.entry.attempts=-1,s=>s.entry.solved=true,s=>s.phase='result',s=>s.results.push({n:1,first:true}),s=>s.entry.draft=['<img>'],s=>s.tasks[0].bank=['<script>']]){const s=structuredClone(clean);mutate(s);assert.equal(E.restore(s),null);}
 assert.equal(E.restore('not json'),null);assert.equal(E.restore(' '.repeat(40001)),null);const forged=structuredClone(wrong);forged.results[0].first=true;assert.equal(E.restore(forged),null);
+// Matching must accept either selection order, keep positions stable, and survive a reload after every tap.
+for(const range of Object.keys(E.RANGES))for(let seed=1;seed<=30;seed++){
+ let s=E.create({mode:'match',range},random(seed));assert.equal(s.boards.length,2);assert.equal(E.matchErrors(s),0);assert.equal(E.perfect(s),false,'Zero errors alone cannot finish a round');
+ assert.deepEqual([...new Set(s.boards.flatMap(b=>b.left))].sort((a,b)=>a-b),E.RANGES[range]);
+ while(s.phase==='playing'){
+  const board=s.boards[s.index],positions=JSON.stringify([board.left,board.right]);
+  assert.equal(board.left.length,5);assert.equal(new Set(board.left).size,5);assert.notDeepEqual(board.left,board.right);assert.equal(E.advance(s),false);
+  for(const [i,n] of board.right.entries()){
+   const first=i%2?'right':'left',second=i%2?'left':'right';
+   assert.equal(E.selectMatch(s,first,n).status,'selected');s=E.restore(JSON.stringify(s));assert.ok(s);assert.equal(s.selection[first],n);
+   assert.equal(E.selectMatch(s,second,n).status,'correct');assert.equal(E.selectMatch(s,first,n).status,'locked');
+   s=E.restore(JSON.stringify(s));assert.ok(s);assert.equal(E.matchErrors(s),0);assert.equal(JSON.stringify([s.boards[s.index].left,s.boards[s.index].right]),positions);
+  }
+  assert.equal(E.matchComplete(s),true);assert.equal(E.advance(s),true);s=E.restore(s);assert.ok(s);
+ }
+ assert.equal(s.results.length,10);assert.equal(E.perfect(s),true);assert.equal(E.advance(s),false);assert.equal(E.selectMatch(s,'left',1).status,'locked');
+}
+let matching=E.create({mode:'match'},random(12));const [a,b]=matching.boards[0].left;
+E.selectMatch(matching,'left',a);E.selectMatch(matching,'left',a);assert.deepEqual(matching.selection,{left:null,right:null});assert.equal(E.matchErrors(matching),0);
+E.selectMatch(matching,'left',a);E.selectMatch(matching,'left',b);assert.equal(matching.selection.left,b,'Changing the same side is not an answer');assert.ok(matching.boards[0].entries.every(e=>e.attempts===0));
+assert.equal(E.selectMatch(matching,'right',a).status,'wrong');matching=E.restore(JSON.stringify(matching));assert.ok(matching);assert.equal(matching.results.length,0);assert.equal(E.matchErrors(matching),1,'One wrong pairing counts once, even though two words need review');
+assert.equal(E.selectMatch(matching,'right',11).status,'locked');assert.equal(E.selectMatch(matching,'other',a).status,'locked');
+while(matching.phase==='playing'){for(const n of matching.boards[matching.index].left){E.selectMatch(matching,'right',n);E.selectMatch(matching,'left',n);}E.advance(matching);}
+assert.equal(E.perfect(matching),false);assert.deepEqual(E.mistakes(matching).sort((x,y)=>x-y),[a,b].sort((x,y)=>x-y));assert.equal(E.matchErrors(matching),1);assert.equal(E.matchErrors(E.restore(matching)),1);
+const repeated=E.create({mode:'match'},random(7)),[repeatA,repeatB]=repeated.boards[0].left;
+for(let error=1;error<=3;error++){E.selectMatch(repeated,'right',repeatA);E.selectMatch(repeated,'left',repeatB);assert.equal(E.matchErrors(repeated),error);assert.equal(E.matchErrors(E.restore(repeated)),error);}
+E.selectMatch(repeated,'left',repeatA);E.selectMatch(repeated,'right',repeatA);assert.equal(E.matchErrors(repeated),3,'Correcting a pair preserves the previous error count');
+// A saved round from the original preview has per-word attempts, not an error counter.
+const legacy=E.create({mode:'match'},random(17)),[legacyA,legacyB]=legacy.boards[0].entries;
+legacyA.attempts=2;legacyA.solved=true;legacyB.attempts=1;
+legacy.results.push({n:legacyA.n,type:'match',board:0,attempts:2,first:false});
+const restoredLegacy=E.restore(JSON.stringify(legacy));assert.ok(restoredLegacy);assert.equal(E.matchErrors(restoredLegacy),1);assert.equal(restoredLegacy.results.length,1);assert.deepEqual(restoredLegacy.boards,legacy.boards);
+for(const size of [1,2,3,4,6,7,9,10]){let s=E.create({mode:'match'},random(size),E.RANGES.all.slice(0,size));while(s.phase==='playing'){const board=s.boards[s.index];assert.equal(new Set(board.left).size,board.left.length);assert.ok(board.left.length<=5);for(const n of board.right){E.selectMatch(s,'right',n);E.selectMatch(s,'left',n);}E.advance(s);s=E.restore(s);assert.ok(s);}assert.equal(s.results.length,10);}
+const matchingClean=E.create({mode:'match'},random(1));
+for(const mutate of [s=>s.index=1,s=>s.boards[0].right[0]=11,s=>s.boards[0].left[1]=s.boards[0].left[0],s=>s.boards[0].entries[0].solved=true,s=>s.boards[0].entries[0].attempts=-1,s=>s.boards[0].entries[0].attempts=1,s=>s.boards[0].entries[0].attempts=2,s=>s.boards[1].entries[0].attempts=1,s=>s.selection={left:s.boards[0].left[0],right:s.boards[0].left[1]},s=>s.selection.left=11,s=>s.results.push({n:1}),s=>s.phase='result',s=>s.boards.pop()]){const s=structuredClone(matchingClean);mutate(s);assert.equal(E.restore(s),null);}
+for(const mutate of [s=>s.results[0].first=!s.results[0].first,s=>s.results[0].attempts++,s=>s.results[0].board=1,s=>s.results[1]=s.results[0]]){const s=structuredClone(matching);mutate(s);assert.equal(E.restore(s),null);}
+console.log('PASS number matching: 90 randomized full rounds, one count per wrong pairing, zero errors plus completion required for perfect results, legacy saves, both selection orders, stable positions, retries, small review pools, invalid saves and duplicate actions.');
 for(const word of E.WORDS)assert.ok(fs.statSync('assets/vocabulary-audio/'+word+'.wav').size>1000);
 const clips=[],events=[],timers=new Map();let nextTimer=0;
 class FakeAudio{constructor(src){this.src=src;this.paused=false;clips.push(this);}play(){return {catch:fn=>this.reject=fn};}pause(){this.paused=true;}}
