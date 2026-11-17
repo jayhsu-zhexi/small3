@@ -9,7 +9,7 @@ function notice(text){$('saveNotice').textContent=text;$('saveNotice').hidden=!t
 function save(){try{if(state)localStorage.setItem(SAVE,JSON.stringify(state));if(saveFailed){saveFailed=false;notice('');}}catch{saveFailed=true;notice('進度暫時無法保存；請先完成這一輪，再離開頁面。');}}
 function savePrefs(){try{localStorage.setItem(PREFS,JSON.stringify({config:settings,mixedLevel,sound,practiced}));}catch{notice('這個瀏覽器暫時無法保存設定，仍然可以練習。');}}
 function stopAudio(){pronunciation.stop();feedbackAudio.stop();party.stopSound();}
-function show(next,keepScroll=false){stopAudio();party.close();view=next;for(const name of ['menu','spellSetup','learn','game','match','result'])$(name+'View').hidden=name!==next;document.body.dataset.view=next;if(!keepScroll)window.scrollTo({top:0,behavior:'instant'});}
+function show(next,keepScroll=false){stopAudio();party.close();view=next;for(const name of ['menu','spellSetup','learn','game','match','result'])$(name+'View').hidden=name!==next;$('homeLink').hidden=next!=='menu';$('bakeryReturn').hidden=next==='menu';document.body.dataset.view=next;if(!keepScroll)window.scrollTo({top:0,behavior:'instant'});}
 function cookies(n){return `<div class="cookies" style="grid-template-columns:repeat(${Math.min(n,5)},1fr)" aria-hidden="true">`+Array.from({length:n},()=>'<i class="cookie"></i>').join('')+'</div>';}
 function audioControls(){return '<div class="audio-controls"><button type="button" class="secondary" data-speak="normal">♪ 聽發音</button><button type="button" class="secondary" data-speak="slow">慢慢聽</button></div>';}
 function renderMenu(){

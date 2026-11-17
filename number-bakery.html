@@ -6,19 +6,20 @@
   <meta name="theme-color" content="#f8f4e9">
   <meta name="description" content="和小熊店長學習 one 到 ten：聽發音、讀單字、左右配對，再用畫面字母鍵盤練習拼字。">
   <title>小熊數字點心店｜學習星球</title>
-  <link rel="stylesheet" href="/assets/number-bakery.css?v=menu-guide-8">
+  <link rel="stylesheet" href="/assets/number-bakery.css?v=top-return-9">
   <link rel="stylesheet" href="/assets/completion-party.css?v=crown-cheer-47">
   <script defer src="/assets/number-bakery-engine.js?v=matching-errors-5"></script>
   <script defer src="/assets/number-bakery-audio.js?v=spelling-slow-3"></script>
   <script defer src="/assets/multiply-audio.js?v=2"></script>
   <script defer src="/assets/completion-art.js?v=bear-transform-49"></script>
   <script defer src="/assets/completion-party.js?v=crown-cheer-47"></script>
-  <script defer src="/assets/number-bakery-ui.js?v=menu-flow-7"></script>
+  <script defer src="/assets/number-bakery-ui.js?v=top-return-8"></script>
 </head>
 <body>
   <div class="bakery-shell">
     <header class="topbar">
-      <a class="back-home" href="/">← <span>返回學習星球</span></a>
+      <a id="homeLink" class="back-home" href="/">← <span>返回學習星球</span></a>
+      <button id="bakeryReturn" class="bear-return to-menu" type="button" aria-label="返回點心店" hidden><img src="/assets/number-bakery-return-v1.webp" alt="" width="840" height="280"><span>← 返回點心店</span></button>
       <span class="shop-name">小熊數字點心店</span>
       <button id="soundToggle" class="quiet-button" type="button" aria-pressed="true">♫ 音效開</button>
     </header>
@@ -59,7 +60,6 @@
           <button type="button" class="spell-level" data-level="keyboard"><span class="level-tag">自己想一想</span><b>自己拼</b><span class="spelling-example" aria-hidden="true"><span class="example-number">1 →</span><i class="blank">_</i><i class="blank">_</i><i class="blank">_</i></span><small class="level-instruction">看數字，想想英文怎麼拼。<br>例如看到 <strong>1</strong>，就在字母鍵盤點 <strong lang="en">o、n、e</strong>。</small><span class="level-enter">我要自己拼 →</span></button>
         </div>
         <p class="spell-finish-note">進入遊戲後，填好答案再按「<strong>確認答案</strong>」。<br>拼錯也沒關係，改一改再試一次！</p>
-        <div class="practice-return"><button class="bear-return to-menu" type="button" aria-label="返回點心店"><img src="/assets/number-bakery-return-v1.webp" alt="" width="840" height="280"><span>← 返回點心店</span></button></div>
       </section>
 
       <section id="learnView" class="lesson" aria-labelledby="learnTitle" hidden>
@@ -70,7 +70,6 @@
         </div>
         <div id="learnNumbers" class="learn-numbers" aria-label="選擇要學的數字"></div>
         <div class="learn-navigation"><button id="learnPrevious" type="button" class="secondary">← 上一個</button><p>跟讀由自己練習，遊戲不會評分發音。</p><button id="learnNext" type="button" class="primary">下一個 →</button></div>
-        <div class="practice-return"><button class="bear-return to-menu" type="button" aria-label="返回點心店"><img src="/assets/number-bakery-return-v1.webp" alt="" width="840" height="280"><span>← 返回點心店</span></button></div>
       </section>
 
       <section id="gameView" aria-labelledby="questionTitle" hidden>
@@ -85,7 +84,6 @@
           <div id="answerActions" class="answer-actions"><button id="checkAnswer" class="primary" type="button">確認答案 ✓</button><button id="spellAnswer" class="secondary spelling-button" type="button" data-speak="spell" hidden><span lang="en" aria-hidden="true">abc</span> 聽拼字</button><button id="nextOrder" class="primary" type="button" hidden>下一張訂單 →</button></div>
         </div>
         <p class="round-note">綠燈：首次答對　粉紅燈：練習後答對</p>
-        <div class="practice-return"><button class="bear-return to-menu" type="button" aria-label="返回點心店"><img src="/assets/number-bakery-return-v1.webp" alt="" width="840" height="280"><span>← 返回點心店</span></button></div>
       </section>
 
       <section id="matchView" aria-labelledby="matchTitle" hidden>
@@ -101,11 +99,10 @@
           <div class="match-actions"><span id="matchProgress"></span><button id="nextMatch" type="button" class="primary" disabled>下一組配對 →</button></div>
         </div>
         <p class="round-note"><strong>全綠通關：完成 10 對，而且配錯 0 次。</strong><br>卡片變綠表示已配好；每次錯配只記 1 次。</p>
-        <div class="practice-return"><button class="bear-return to-menu" type="button" aria-label="返回點心店"><img src="/assets/number-bakery-return-v1.webp" alt="" width="840" height="280"><span>← 返回點心店</span></button></div>
       </section>
 
       <section id="resultView" class="result-view" aria-labelledby="resultTitle" hidden>
-        <div class="result-card"><div class="result-heading"><img src="/assets/number-bakery-bear-v1.webp" alt="開心的小熊店長" width="640" height="640"><div><span id="resultBadge" class="result-badge"></span><h1 id="resultTitle"></h1><p id="resultSummary"></p></div></div><div id="resultOrders" class="result-orders"></div><p id="reviewMessage" class="review-message"></p><div class="result-actions"><button id="reviewMistakes" type="button" class="secondary" hidden>再練容易錯的字</button><button id="anotherRound" type="button" class="primary">再接 10 張訂單 →</button><button class="bear-return to-menu" type="button" aria-label="返回點心店"><img src="/assets/number-bakery-return-v1.webp" alt="" width="840" height="280"><span>← 返回點心店</span></button><button id="replayCelebration" type="button" class="quiet-button">再看一次小熊慶祝</button></div></div>
+        <div class="result-card"><div class="result-heading"><img src="/assets/number-bakery-bear-v1.webp" alt="開心的小熊店長" width="640" height="640"><div><span id="resultBadge" class="result-badge"></span><h1 id="resultTitle"></h1><p id="resultSummary"></p></div></div><div id="resultOrders" class="result-orders"></div><p id="reviewMessage" class="review-message"></p><div class="result-actions"><button id="reviewMistakes" type="button" class="secondary" hidden>再練容易錯的字</button><button id="anotherRound" type="button" class="primary">再接 10 張訂單 →</button><button id="replayCelebration" type="button" class="quiet-button">再看一次小熊慶祝</button></div></div>
       </section>
     </main>
     <p id="audioStatus" class="audio-status" role="status" aria-live="polite"></p>
