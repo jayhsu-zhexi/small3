@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f6f4e6">
+  <meta name="description" content="和小熊認識 26 個小寫英文字母，聽字母名稱、跟著筆順寫，再玩十題聽音測驗。">
+  <title>小熊字母花園｜學習星球</title>
+  <link rel="stylesheet" href="/assets/alphabet-garden.css?v=1">
+  <link rel="stylesheet" href="/assets/completion-party.css?v=crown-cheer-47">
+  <script defer src="/assets/alphabet-garden-letters.js?v=1"></script>
+  <script defer src="/assets/alphabet-garden-quiz.js?v=1"></script>
+  <script defer src="/assets/alphabet-garden-trace.js?v=1"></script>
+  <script defer src="/assets/multiply-audio.js?v=2"></script>
+  <script defer src="/assets/completion-art.js?v=bear-transform-49"></script>
+  <script defer src="/assets/completion-party.js?v=crown-cheer-47"></script>
+  <script defer src="/assets/alphabet-garden-ui.js?v=1"></script>
+</head>
+<body>
+  <div class="garden-shell">
+    <header class="garden-bar">
+      <a id="planet-link" href="/">‹ 返回學習星球</a>
+      <button id="garden-return" class="text-button" type="button" hidden>‹ 返回字母花園</button>
+      <button id="effects" class="text-button" type="button" aria-pressed="true">♫ 提示音開</button>
+    </header>
+    <main>
+      <section id="menu" class="scene" aria-labelledby="garden-title">
+        <div class="hero">
+          <img class="hero-art" src="/assets/alphabet-garden-cover.webp" alt="園丁小熊正在為花朵澆水" width="1200" height="800" fetchpriority="high">
+          <div class="hero-copy"><h1 id="garden-title" tabindex="-1">小熊<span>字母花園</span></h1><p>聽一聽，寫一寫，<br>和小熊種出字母花。</p></div>
+        </div>
+        <div class="menu-choices">
+          <button class="menu-choice" id="practice-entry" type="button"><span class="mode-icon" aria-hidden="true">🌱</span><span><b>和小熊練習</b><small>聽字母名稱，也能跟著描寫。</small></span><span aria-hidden="true" class="chevron">›</span></button>
+          <button class="menu-choice quiz-choice" id="quiz-entry" type="button"><span class="mode-icon" aria-hidden="true">🌼</span><span><b>我來測驗</b><small>聽聲音，幫十朵花找到字母。</small></span><span aria-hidden="true" class="chevron">›</span></button>
+        </div>
+        <button id="resume-round" type="button" class="resume" hidden></button>
+      </section>
+
+      <section id="practice" class="scene" aria-labelledby="practice-title" hidden>
+        <div class="section-head"><h1 id="practice-title" tabindex="-1">和小熊練習</h1><label class="range-label">選字母組 <select id="practice-group"></select></label></div>
+        <div id="letter-rack" class="letter-rack" role="group" aria-label="點一個想練習的字母"></div>
+        <div id="listen-panel" class="work-panel listen-layout">
+          <button id="letter-card" class="specimen" type="button"><span id="large-letter" aria-hidden="true"></span><span class="specimen-label" aria-hidden="true">♪ 點字母聽名稱</span></button>
+          <div class="lesson-copy"><h2>跟小熊念一遍</h2><p>聽完換你念。想再聽一次，就點字母。</p>
+            <div class="action-row"><button type="button" id="practice-slow" class="soft-button">慢慢聽</button><button type="button" id="trace-entry" class="primary-button">跟著寫</button></div>
+          </div>
+        </div>
+        <div id="trace-panel" class="work-panel trace-layout" hidden>
+          <div class="board-wrap">
+            <svg id="trace-board" viewBox="-18 0 156 158" role="img" aria-label="字母描寫板">
+              <g class="paper-lines" aria-hidden="true"><path d="M-200 20 H320 M-200 144 H320"/><path class="midline" d="M-200 60 H320"/><path class="baseline" d="M-200 112 H320"/></g>
+              <g class="trace-model"></g><g class="trace-ink"></g><g class="trace-demo"></g>
+              <g class="trace-marker" aria-hidden="true"><circle class="marker-halo" r="6.5"/><circle class="marker-dot" r="3"/><path class="trace-direction" d="M7 -2.5 L11 0 L7 2.5"/></g>
+            </svg>
+          </div>
+          <div class="lesson-copy trace-copy"><div class="trace-heading"><h2>跟著寫</h2><span id="stroke-step" class="mini-note"></span></div>
+            <p id="trace-hint" role="status" aria-live="polite">從綠點開始描。</p>
+            <div class="action-row"><button id="trace-demo" type="button" class="primary-button">看小熊寫</button><button id="trace-reset" type="button" class="soft-button">重寫一次</button></div>
+            <button id="listen-again" type="button" class="text-button">♪ 回去聽字母</button>
+          </div>
+        </div>
+        <div class="practice-foot"><button id="previous-letter" type="button" class="soft-button">‹ 上一個字母</button><button id="next-letter" type="button" class="soft-button">下一個字母 ›</button></div>
+        <button id="return-result" type="button" class="resume" hidden>回到這次的測驗成果</button>
+      </section>
+
+      <section id="setup" class="scene narrow" aria-labelledby="setup-title" hidden>
+        <div class="work-panel setup-panel">
+          <img class="garden-stamp" src="/assets/alphabet-garden-cover.webp" alt="" width="180" height="180">
+          <h1 id="setup-title" tabindex="-1">我來測驗</h1>
+          <p>聽小熊念字母，再點選答案。<br>每答對一題，花園就開一朵花。</p>
+          <label class="setup-range" for="quiz-scope">這次想挑戰哪些字母？</label><select id="quiz-scope"></select>
+          <p class="rule">共 10 題，可以重聽。每題第一次都選對，就是全綠通關。</p>
+          <button type="button" id="start-quiz" class="primary-button">開始聽音測驗</button>
+        </div>
+      </section>
+
+      <section id="quiz" class="scene narrow" aria-labelledby="quiz-title" hidden>
+        <div class="section-head"><h1 id="quiz-title" tabindex="-1">聽聲音找字母</h1><span id="question-count" class="mini-note"></span></div>
+        <ol id="quiz-lights" class="lights" aria-label="十題測驗紀錄"></ol>
+        <div class="work-panel question-panel">
+          <h2>你聽到哪個字母？</h2>
+          <div class="action-row"><button type="button" id="quiz-replay" class="primary-button">♪ 再聽一次</button><button type="button" id="quiz-slow" class="soft-button">慢慢聽</button></div>
+          <div id="answers" class="answers" role="group" aria-label="選擇聽到的字母"></div>
+          <div id="quiz-feedback" class="feedback" role="status" aria-live="polite"></div>
+          <button id="next-question" class="primary-button next-question" type="button" hidden>下一題</button>
+        </div>
+      </section>
+
+      <section id="result" class="scene narrow" aria-labelledby="result-title" hidden>
+        <div class="work-panel results-panel">
+          <span class="result-flower" aria-hidden="true">🌼</span>
+          <h1 id="result-title" tabindex="-1"></h1><p id="result-summary"></p>
+          <div class="result-letters" id="result-letters" aria-label="每題的作答結果"></div>
+          <div class="action-row"><button type="button" id="review-letters" class="primary-button" hidden>再練剛才認錯的字母</button><button type="button" id="anotherRound" class="soft-button">再測一次</button></div>
+          <button id="replay-party" type="button" class="text-button">再看一次小熊慶祝</button>
+        </div>
+      </section>
+    </main>
+    <p id="audio-notice" class="notice" role="status" hidden></p><p id="save-notice" class="notice" role="status" hidden></p>
+    <dialog id="restart-dialog" aria-labelledby="restart-title"><h2 id="restart-title">上次的測驗還沒做完</h2><p>重新開始會取代上次的作答進度。</p><div class="action-row"><button id="keep-round" class="primary-button" type="button">繼續上次的測驗</button><button id="replace-round" class="soft-button" type="button">重新開始</button></div></dialog>
+    <noscript>請啟用 JavaScript 來播放字母發音和描寫筆畫。</noscript>
+  </div>
+</body>
+</html>

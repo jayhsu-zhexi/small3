@@ -2,6 +2,14 @@
 
 正式入口：https://small3.vercel.app
 
+## 小熊字母花園
+
+從學習星球首頁進入字母花園，或直接開啟 `/alphabet-garden`。孩子可分五組認識 a 到 z 的小寫字形，點字母聽美式字母名稱，按「慢慢聽」以 0.75 倍速重聽。描寫板會示範每一筆，手指離開後能從綠點接著寫。
+
+聽音測驗每輪 10 題。重聽次數不限，每題第一次都答對就播放全綠通關動畫。有認錯的字母時，完成後播放一般通關動畫，並可單獨複習那些字母。這個瀏覽器會保留未完成的測驗。
+
+發音檔由 `scripts/generate-alphabet-garden-audio.ps1` 使用 Microsoft Zira Desktop 產生。封面使用 ImageGen 製作，畫面是右側穿綠色吊帶褲的小熊在暖色花園裡澆水，左側留出標題空間。
+
 ## 小熊數字點心店
 
 入口：https://small3.vercel.app/number-bakery。首頁也有卡片入口。

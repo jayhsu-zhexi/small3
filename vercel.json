@@ -6,6 +6,14 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
+      "source": "/alphabet-garden",
+      "destination": "/alphabet-garden.html"
+    },
+    {
+      "source": "/alphabet-garden/",
+      "destination": "/alphabet-garden.html"
+    },
+    {
       "source": "/number-bakery",
       "destination": "/number-bakery.html"
     },
@@ -162,7 +170,7 @@
       "destination": "/board.html"
     },
     {
-      "source": "/((?!api/|assets/|(?:admin|number-bakery|length|multiply|blocks|geography|vocabulary|abacus|board|detective|parcels|crossing|memory|pinball|vault|survival|kart)(?:/|$|\\.html$)).*)",
+      "source": "/((?!api/|assets/|(?:admin|alphabet-garden|number-bakery|length|multiply|blocks|geography|vocabulary|abacus|board|detective|parcels|crossing|memory|pinball|vault|survival|kart)(?:/|$|\\.html$)).*)",
       "destination": "/index.html"
     }
   ],

@@ -10,6 +10,8 @@ files.push('assets/completion-bear-cheer-v1.webp','assets/completion-bear-transf
 files.push('assets/admin-preview.js','assets/admin-preview.css');
 files.push('number-bakery.html','assets/number-bakery-engine.js','assets/number-bakery-audio.js','assets/number-bakery-ui.js','assets/number-bakery.css','assets/number-bakery-bear-v1.webp');
 files.push('assets/number-bakery-return-v1.webp');
+files.push('alphabet-garden.html','assets/alphabet-garden.css','assets/alphabet-garden-cover.webp','assets/alphabet-garden-letters.js','assets/alphabet-garden-quiz.js','assets/alphabet-garden-trace.js','assets/alphabet-garden-ui.js');
+for (const letter of 'abcdefghijklmnopqrstuvwxyz') files.push('assets/alphabet-garden-audio/'+letter+'.wav');
 for (const word of ['one','two','three','four','five','six','seven','eight','nine','ten']) files.push('assets/number-bakery-spelling/'+word+'.wav');
 files.push('admin.html','assets/admin.css','assets/admin.js','assets/site-settings.js','assets/home-settings.js');
 function build(output = path.resolve(__dirname, '../dist')) {

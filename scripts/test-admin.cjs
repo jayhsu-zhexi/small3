@@ -7,6 +7,12 @@ async function main(){
  assert.throws(()=>redisStore({}),/儲存/);assert.throws(()=>S.validate({...S.defaults(),games:[]}),/清單/);
  const legacy=S.defaults();legacy.revision=7;legacy.home.title='保留原本的首頁';legacy.games=legacy.games.filter(g=>g.id!=='number-bakery').reverse();legacy.games[0].visible=false;legacy.games[1].isNew=true;
  const upgraded=S.validate(legacy);assert.equal(upgraded.revision,7);assert.deepEqual(upgraded.games.slice(0,-1),legacy.games);assert.equal(upgraded.home.title,legacy.home.title);assert.deepEqual(JSON.parse(JSON.stringify(upgraded.games.at(-1))),{id:'number-bakery',visible:true,isNew:true});
+ for(const omitted of [['alphabet-garden'],['number-bakery','alphabet-garden']]){
+  const old=S.defaults();old.revision=12;old.games=old.games.filter(g=>!omitted.includes(g.id)).reverse();old.games[0].visible=false;
+  const current=S.validate(old);assert.equal(current.revision,12);assert.deepEqual(current.games.slice(0,old.games.length),old.games);
+  assert.deepEqual(Array.from(current.games.slice(old.games.length),g=>g.id),omitted);
+  assert.ok(current.games.slice(old.games.length).every(g=>g.visible&&g.isNew));
+ }
  const missingExisting=S.defaults();missingExisting.games=missingExisting.games.filter(g=>g.id!=='multiply');assert.throws(()=>S.validate(missingExisting),/清單/,'Only the newly added game may be missing');
  const directory=fs.mkdtempSync(path.join(os.tmpdir(),'small3-admin-')),store=fileStore(directory);let now=Date.parse('2026-11-01T12:00:00Z');
  const handler=createHandler({store,now:()=>now});
