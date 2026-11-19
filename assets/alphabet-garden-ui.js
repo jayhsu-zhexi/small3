@@ -13,11 +13,10 @@
   const roundKey = 'small3-alphabet-garden-round-v1';
   const saved = read(prefsKey) || {};
   const group = quiz.groups.includes(saved.group) ? saved.group : quiz.groups[0];
-  const prefs = {group, letter: Array.from(group).includes(saved.letter) ? saved.letter : group[0], effects: saved.effects !== false};
+  const prefs = {letter: Array.from(quiz.alphabet).includes(saved.letter) ? saved.letter : group[0], effects: saved.effects !== false};
   let round = quiz.restore(read(roundKey));
   let view = 'menu';
-  let practiceGroups = quiz.groups;
-  let activeGroup = group;
+  let practiceLetters = quiz.alphabet;
   let letter = prefs.letter;
   let tracing = false;
   let reviewing = false;
@@ -120,61 +119,58 @@
     select.value = selected;
   }
 
-  function selectLetter(next, speak = true) {
-    letter = next;
-    activeGroup = practiceGroups.find(item => item.includes(letter));
-    if (!reviewing) {
-      Object.assign(prefs, {group: activeGroup, letter});
-      save(prefsKey, prefs);
-    }
-    byId('practice-group').value = activeGroup;
+  function drawRack() {
     const rack = byId('letter-rack');
-    const focusChip = rack.contains(document.activeElement);
-    rack.replaceChildren(...Array.from(activeGroup, char => {
+    rack.replaceChildren(...Array.from(practiceLetters, char => {
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'letter-chip';
       button.dataset.letter = char;
       button.setAttribute('aria-label', '小寫 ' + char);
-      button.setAttribute('aria-pressed', String(char === letter));
       button.append(letters.glyph(char));
       return button;
     }));
-    if (focusChip) rack.querySelector('[aria-pressed="true"]').focus({preventScroll: true});
+  }
+
+  function selectLetter(next) {
+    letter = next;
+    if (!reviewing) {
+      prefs.letter = letter;
+      save(prefsKey, prefs);
+    }
+    for (const button of byId('letter-rack').children) {
+      button.setAttribute('aria-pressed', String(button.dataset.letter === letter));
+    }
     byId('large-letter').replaceChildren(letters.glyph(letter));
     byId('letter-card').setAttribute('aria-label', '聽小寫 ' + letter + ' 的名稱');
-    const sequence = practiceGroups.join('');
-    byId('previous-letter').disabled = letter === sequence[0];
-    byId('next-letter').disabled = letter === sequence.at(-1);
+    byId('previous-letter').disabled = letter === practiceLetters[0];
+    byId('next-letter').disabled = letter === practiceLetters.at(-1);
     if (tracing) {
       stopSpeech();
       trace.select(letter);
       trace.demonstrate();
-    } else if (speak) playLetter(letter, false, byId('letter-card'));
+    } else playLetter(letter, false, byId('letter-card'));
   }
 
   function practice(review = false) {
     reviewing = review;
-    const missed = review ? quiz.review(round).join('') : '';
-    practiceGroups = review ? missed.match(/.{1,6}/g) : quiz.groups;
-    activeGroup = review ? practiceGroups[0] : prefs.group;
+    practiceLetters = review ? quiz.review(round).join('') : quiz.alphabet;
     tracing = false;
     byId('practice-title').textContent = review ? '再練剛才認錯的字母' : '和小熊練習';
-    fillSelect(byId('practice-group'), practiceGroups, activeGroup, review ? scope => Array.from(scope).join('、') : rangeLabel);
+    drawRack();
     byId('listen-panel').hidden = false;
     byId('trace-panel').hidden = true;
     byId('return-result').hidden = !review;
     show('practice');
-    selectLetter(review ? activeGroup[0] : prefs.letter);
+    selectLetter(review ? practiceLetters[0] : prefs.letter);
   }
 
   function stepLetter(offset) {
-    const sequence = practiceGroups.join('');
-    const next = sequence[sequence.indexOf(letter) + offset];
+    const next = practiceLetters[practiceLetters.indexOf(letter) + offset];
     if (next) selectLetter(next);
   }
 
-  function setup(scope = prefs.group) {
+  function setup(scope = quiz.groups.find(item => item.includes(prefs.letter))) {
     fillSelect(byId('quiz-scope'), quiz.scopes, scope, rangeLabel);
     show('setup');
   }
@@ -304,7 +300,6 @@
   };
   byId('garden-return').onclick = menu;
   byId('practice-entry').onclick = () => practice();
-  byId('practice-group').onchange = event => selectLetter(event.target.value[0]);
   byId('letter-rack').onclick = event => {
     const button = event.target.closest('button');
     if (button) selectLetter(button.dataset.letter);

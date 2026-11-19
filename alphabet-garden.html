@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f6f4e6">
   <meta name="description" content="和小熊認識 26 個小寫英文字母，聽字母名稱、跟著筆順寫，再玩十題聽音測驗。">
   <title>小熊字母花園｜學習星球</title>
-  <link rel="stylesheet" href="/assets/alphabet-garden.css?v=1">
+  <link rel="stylesheet" href="/assets/alphabet-garden.css?v=2">
   <link rel="stylesheet" href="/assets/completion-party.css?v=crown-cheer-47">
   <script defer src="/assets/alphabet-garden-letters.js?v=1"></script>
   <script defer src="/assets/alphabet-garden-quiz.js?v=1"></script>
@@ -14,13 +14,16 @@
   <script defer src="/assets/multiply-audio.js?v=2"></script>
   <script defer src="/assets/completion-art.js?v=bear-transform-49"></script>
   <script defer src="/assets/completion-party.js?v=crown-cheer-47"></script>
-  <script defer src="/assets/alphabet-garden-ui.js?v=1"></script>
+  <script defer src="/assets/alphabet-garden-ui.js?v=2"></script>
 </head>
 <body>
   <div class="garden-shell">
     <header class="garden-bar">
       <a id="planet-link" href="/">‹ 返回學習星球</a>
-      <button id="garden-return" class="text-button" type="button" hidden>‹ 返回字母花園</button>
+      <button id="garden-return" class="garden-return" type="button" hidden>
+        <img src="/assets/alphabet-garden-return-v1.webp" alt="" width="48" height="48">
+        <span aria-hidden="true">←</span> 返回字母花園
+      </button>
       <button id="effects" class="text-button" type="button" aria-pressed="true">♫ 提示音開</button>
     </header>
     <main>
@@ -37,7 +40,7 @@
       </section>
 
       <section id="practice" class="scene" aria-labelledby="practice-title" hidden>
-        <div class="section-head"><h1 id="practice-title" tabindex="-1">和小熊練習</h1><label class="range-label">選字母組 <select id="practice-group"></select></label></div>
+        <div class="section-head"><h1 id="practice-title" tabindex="-1">和小熊練習</h1><p class="practice-instruction">點一個想練習的字母。</p></div>
         <div id="letter-rack" class="letter-rack" role="group" aria-label="點一個想練習的字母"></div>
         <div id="listen-panel" class="work-panel listen-layout">
           <button id="letter-card" class="specimen" type="button"><span id="large-letter" aria-hidden="true"></span><span class="specimen-label" aria-hidden="true">♪ 點字母聽名稱</span></button>

@@ -25,6 +25,9 @@ h1, h2, p { margin: 0; }
 .garden-bar { min-height: 72px; }
 .garden-bar a, .text-button { display: inline-flex; align-items: center; min-height: 44px; padding: 6px 4px; font-weight: 700; font-size: .94rem; color: var(--green); background: transparent; border: 0; text-decoration: none; }
 .text-button:hover, .garden-bar a:hover { text-decoration: underline; }
+.garden-return { display: inline-flex; align-items: center; gap: 5px; min-height: 48px; margin-block: 3px; padding: 0 13px 0 3px; border: 1px solid #a1b78e; border-radius: 15px 22px 22px 15px; background: #e9f1db; box-shadow: 0 2px 0 #b8c9a5; color: #254d35; font-size: .96rem; font-weight: 800; white-space: nowrap; }
+.garden-return img { display: block; width: 48px; height: 48px; object-fit: contain; }
+.garden-return:hover { background: #dfeccc; }
 .scene { margin-inline: auto; }
 .narrow { max-width: 720px; }
 .hero, .work-panel, .menu-choice { overflow: hidden; border: 1px solid var(--line); background: var(--paper); border-radius: 25px; }
@@ -49,10 +52,10 @@ button:active:not(:disabled) { translate: 0 1px; }
 .resume { display: block; width: 100%; margin: 20px 0 0; padding: 12px; min-height: 48px; border: 1px solid var(--line); border-radius: 14px; background: #fffdf3; color: var(--green); font-weight: 750; }
 .section-head { flex-wrap: wrap; margin: 3px 0 18px; }
 .section-head h1, .work-panel h1 { font-size: clamp(1.55rem, 3.2vw, 2.1rem); }
-.range-label { display: inline-flex; align-items: center; gap: 8px; color: var(--soft); font-weight: 700; }
+.practice-instruction { color: var(--soft); font-size: .94rem; }
 select { border: 1px solid #aebfa3; background: #fffdf5; border-radius: 11px; padding: 8px 11px; min-height: 44px; max-width: 100%; }
-.letter-rack { display: flex; gap: 9px; flex-wrap: wrap; margin-bottom: 16px; }
-.letter-chip { width: 58px; height: 55px; display: grid; place-items: center; border-radius: 13px; border: 1px solid #c5ceb7; background: #fffdf4; color: #4f634b; padding: 1px; }
+.letter-rack { display: grid; grid-template-columns: repeat(13, minmax(0, 1fr)); gap: 6px; margin-bottom: 16px; }
+.letter-chip { min-width: 44px; height: 55px; display: grid; place-items: center; border-radius: 13px; border: 1px solid #c5ceb7; background: #fffdf4; color: #4f634b; padding: 1px; }
 .letter-chip[aria-pressed="true"] { border: 2px solid var(--green); background: #dcecd7; color: var(--green); box-shadow: 0 2px 0 #94b69a; }
 .letter-chip svg { width: 43px; height: 49px; }
 .letter-glyph { stroke: currentColor; fill: currentColor; stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; display: block; }
@@ -123,6 +126,9 @@ select { border: 1px solid #aebfa3; background: #fffdf5; border-radius: 11px; pa
 #restart-dialog { width: min(430px, calc(100% - 32px)); padding: 22px; border: 1px solid var(--line); border-radius: 20px; background: var(--paper); color: var(--ink); }
 #restart-dialog::backdrop { background: #1d312768; }
 #restart-dialog p { margin-top: 10px; line-height: 1.5; }
+@media (max-width: 720px) {
+  .letter-rack { grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); }
+}
 @media (max-width: 650px) {
   .garden-bar { min-height: 55px; }
   .hero { min-height: min(74vw, 290px); }
@@ -135,9 +141,9 @@ select { border: 1px solid #aebfa3; background: #fffdf5; border-radius: 11px; pa
   .menu-choice { padding: 14px 16px; border-radius: 18px; }
   .mode-icon { width: 44px; }
   .section-head { gap: 6px; margin-bottom: 12px; }
-  .range-label { font-size: .88rem; }
+  .practice-instruction { font-size: .88rem; }
   .letter-rack { gap: 4px; margin-bottom: 12px; }
-  .letter-chip { flex: 0 1 48px; min-width: 44px; height: 47px; }
+  .letter-chip { height: 45px; }
   .letter-chip svg { height: 42px; }
   .listen-layout, .trace-layout { grid-template-columns: minmax(0,1fr); gap: 13px; }
   .work-panel { padding: 17px; border-radius: 20px; }
@@ -153,8 +159,6 @@ select { border: 1px solid #aebfa3; background: #fffdf5; border-radius: 11px; pa
   .results-panel .result-letters { gap: 4px; }
 }
 @media (max-width: 360px) {
-  .range-label { gap: 4px; }
-  .letter-chip { width: 44px; flex-basis: 44px; }
   .result-seed small { font-size: .72rem; }
 }
 @media (prefers-reduced-motion: reduce) {
